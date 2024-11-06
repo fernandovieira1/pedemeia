@@ -1,8 +1,8 @@
 ##Baixando pacotes
 #install.packages("PNADcIBGE")
 #install.packages("survey")
-install.packages("htmltools")
-install.packages("webshot2")
+# install.packages("htmltools")
+# install.packages("webshot2")
 
 
 #Carregando pacotes
@@ -32,9 +32,11 @@ dados_pnadc_2024_trim2 <- get_pnadc(year = 2024, quarter = 2, design = FALSE)
 # Filtrando idade entre 14 e 24 para ambos os trimestres
 publico_alvo_trim1 <- dados_pnadc_2024_trim1 %>%
   filter(V2009 >= 14 & V2009 <= 24)
+head(publico_alvo_trim1)
 
 publico_alvo_trim2 <- dados_pnadc_2024_trim2 %>%
   filter(V2009 >= 14 & V2009 <= 24)
+head(publico_alvo_trim2)
 
 # Adicionando identificador do domicílio
 publico_alvo_trim1 <- publico_alvo_trim1 %>%
