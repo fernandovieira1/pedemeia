@@ -178,3 +178,101 @@ ggplot(tidy_model, aes(x = reorder(term, estimate), y = estimate)) +
 
 ## Variaveis de interesse
 variaveis_interesse <- c('UPA','V1008', 'V1014','V2003',"V1022", "V2001", "V2007", "V2009", "V2010", "UF", "VD2004", "VD3004", "VD4019"," V3001" )
+
+
+## COMENTÁRIOS FERNANDO 
+# dfs
+ls()
+
+### DATAFRAMES DESTE SCRIPT ####
+## 1) dados_pnadc_2024_trim 1 e 2 ####
+# 1.1 Listar as colunas ####
+names(dados_pnadc_2024_trim1)
+names(dados_pnadc_2024_trim2)
+
+# 1.2 Comparar as colunas dos dfs ####
+setdiff(colnames(dados_pnadc_2024_trim1), colnames(dados_pnadc_2024_trim2)) # nenhuma diferença
+
+# 1.3 Descrição das Colunas ####
+# PNAD 1º Trimestre de 2024 - 
+# Colunas básicas de identificação
+# "Ano"           : Ano da pesquisa.
+# "Trimestre"     : Trimestre em que a coleta de dados foi realizada.
+# "UF"            : Unidade da Federação (estado) onde reside a pessoa.
+# "Capital"       : Indicador de residência em capital (1 = Sim, 2 = Não).
+# "RM_RIDE"       : Indicador de residência em Região Metropolitana ou Região Integrada de Desenvolvimento Econômico (RIDE).
+
+# Identificação de domicílio e família
+# "UPA"           : Unidade Primária de Amostragem, identificador único do domicílio na amostra.
+# "Estrato"       : Estrato amostral a que pertence a unidade domiciliar.
+# "V1008"         : Número de controle do domicílio.
+# "V1014"         : Tipo de domicílio (1 = Particular, 2 = Coletivo).
+# "V1016"         : Situação do domicílio (1 = Urbana, 2 = Rural).
+# "V1022"         : Tipo de domicílio ocupado.
+# "V1023"         : Condição de ocupação do domicílio (próprio, alugado, etc.).
+
+# Informações detalhadas sobre a localização do domicílio
+# "V1027"         : Indicador de presença de coleta de lixo.
+# "V1028"         : Indicador de presença de energia elétrica.
+# "V1029"         : Indicador de acesso à água.
+# "V1033"         : Indicador de tipo de esgotamento sanitário.
+
+# Variáveis de identificação estatística e amostra
+# "posest"        : Identificador do setor censitário da unidade domiciliar.
+# "posest_sxi"    : Identificador específico do setor censitário.
+
+# Informações sobre o grupo familiar
+# "V2001"         : Número de pessoas no domicílio.
+# "V2003"         : Posição na família (chefe, cônjuge, filho, etc.).
+# "V2005"         : Código de identificação individual na família.
+# "V2007"         : Sexo da pessoa (1 = Masculino, 2 = Feminino).
+# "V2008"         : Idade em anos completos.
+# "V20081"        : Faixa etária da pessoa (agrupada).
+
+# Características pessoais
+# "V20082"       : Indicador de presença de deficiência.
+# "V2009"        : Raça/cor da pessoa.
+# "V2010"        : Religião declarada.
+
+# Informações educacionais
+# "V3001"        : Nível de instrução.
+# "V3002"        : Frequência escolar (se está frequentando escola, nível, etc.).
+# "V3002A"       : Modalidade de ensino (fundamental, médio, superior).
+# "V3003"        : Último nível de instrução concluído.
+
+# Informações sobre o trabalho
+# "V4001"        : Condição de ocupação (empregado, autônomo, etc.).
+# "V4002"        : Categoria de ocupação (formal, informal, empregador, etc.).
+# "V4003"        : Setor de atividade econômica principal.
+# "V4004"        : Rendimento do trabalho principal.
+# "V4005"        : Total de horas trabalhadas por semana.
+
+# Rendimento e transferências
+# "V4010"        : Recebimento de aposentadoria/pensão.
+# "V4012"        : Valor da aposentadoria ou pensão recebida.
+# "V4013"        : Transferências de programas sociais (como Bolsa Família).
+# "V4014"        : Valor total das transferências recebidas.
+
+# Outras variáveis relacionadas ao domicílio, trabalho e renda
+# "V4051"        : Renda domiciliar per capita.
+# "V40511"       : Indicador de acesso à internet no domicílio.
+# "V4056"        : Condição de moradia (se possui habitação própria ou alugada).
+
+# Dados de suplementares e controle
+# "ID_DOMICILIO" : Identificador único de cada domicílio.
+# "Habitual"     : População habitual no domicílio.
+# "Efetivo"      : População efetivamente presente no domicílio durante a coleta.
+
+## 2) renda_domicilio_trim 1 e 2 ####
+# 2.1 Listar as colunas ####
+names(renda_domicilio_trim1)
+names(renda_domicilio_trim2)
+
+# 2.2 Comparar as colunas dos dfs ####
+setdiff(colnames(renda_domicilio_trim1), colnames(renda_domicilio_trim2)) # nenhuma diferença
+
+# 2.3 Descrição das Colunas ####
+# ID_DOMICILIO                   : id do domicílio
+# "renda_total_domicilio"        : renda do domicílio
+# "num_pessoas_domicilio"        : nr. de pessoas no domicílio
+# "renda_per_capita"             : renda per capita
