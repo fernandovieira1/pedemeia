@@ -1,9 +1,53 @@
+* https://www.gov.br/mec/pt-br/pe-de-meia
+* https://www.gov.br/mec/pt-br/pe-de-meia/linha-do-tempo
+* https://www.gov.br/mec/pt-br/pe-de-meia/legislacao
+* https://www.gov.br/mec/pt-br/centrais-de-conteudo/publicacoes/institucionais/pe-de-meia.pdf
+
+
+============================================
+PÚBLICO
+* Geral:
+    - estudante do ensino médio das redes públicas
+    - ter entre 14 e 24 anos (até 31/12)
+* EJA:
+    - estudante do ensino médio das redes públicas
+    - ter entre 19 e 24 anos (até 31/12)
+* ter CPF
+* Frequência nas aulas >= 80% no mês
+
+INCENTIVOS
+1) Matricula
+    - R$ 200
+    - 1x
+    - Requisitos: efetivação da matrícula
+
+2) Frequência
+    - R$ 1.800
+    - 9x R$ 200
+    - Requistos: Frequência comprovada no mês ou na média do ano letivo
+
+3) Conclusão
+    - R$ 1.000
+    - 1x
+    - Requisitos: conclusão do EM; participação em atividades educacionais (?)
+
+4) Enem
+    - R$ 200
+    - 1x
+    - Requisitos: inscrição no Enem por alunos da 3ª série
+    
+* Estimativa atual (2024): 2,5 mi de estudantes (R$ 7.1 bi)
+    - Se aluno atender os quatro requisitos: Custo de R$ 9.200 por aluno
+    
+
+============================================
 # cadunico
 # 14 a 24 anos
 # bolsa familia
 # dummy: elegíveis e potenciais
 # público alvo por raça
 
+============================================
 # menor de idade pode declarar domicilio unipessoal
 # Evasão escolar: motivo
 # PNAD preditores evasão --> relacionados com variáveis socioeconômicas: construir PCA + probit
