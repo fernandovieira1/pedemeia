@@ -4,7 +4,7 @@
 #### 0. CONFIGURAR AMBIENTE E DF ####
 ## 0.1 Local de trabalho ####
 # (!) MUDAR (se for o caso)
-local <- 'C:\\Users\\ferna\\OneDrive\\Desktop OneDrive\\base_amostra_cad_201812\\base_amostra_cad_201812'
+local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 setwd(local)
 
 ## 0.2 Bibliotecas ####
@@ -18,13 +18,16 @@ library(scales)  # Formatação de gráficos
 ## 0.3 Carregar dfs ####
 # *Família ####
 familia <- read_delim('base_amostra_familia_201812.csv', delim = ';', quote = '\'', show_col_types = FALSE)
-familia <- familia %>%
-  filter(qtde_pessoas >= 14 & qtde_pessoas <= 24)
+
 # *Pessoas ####
 # pessoas <- read_delim('base_amostra_pessoa_201812.csv', delim = ';', quote = '\'', locale = locale(decimal_mark = ','), show_col_types = FALSE)
 
 ## 0.4 Renomear colunas ####
 names(familia) <- gsub("\"", "", names(familia))
+
+## 0.5 Renomear colunas ####
+familia <- familia %>%
+  filter(qtde_pessoas >= 14 & qtde_pessoas <= 24)
 
 
 #### 1. ANÁLISE EXPLORATÓRIA (AED) ####
@@ -32,13 +35,45 @@ names(familia) <- gsub("\"", "", names(familia))
 ## 1.1 Sobre o df (familia) ###
 head(familia)
 str(familia)
-names(familia)
 
 ## 1.2 Colunas ####
 names(familia)
 
 ## 1.3 Descritiva ####
 summary(familia)
+
+## 1.4 Descrição das colunas ####
+# cd_ibge: Código IBGE do município onde a família está registrada.
+# estrato: Estrato social ao qual a família pertence, categorizando em faixas de renda.
+# classf: Classificação socioeconômica da família.
+# id_familia: Identificador único para cada família.
+# dat_cadastramento_fam: Data em que a família foi cadastrada no sistema.
+# dat_alteracao_fam: Data da última alteração dos dados da família.
+# vlr_renda_media_fam: Valor da renda média mensal da família.
+# dat_atualizacao_familia: Data da última atualização dos dados cadastrais da família.
+# cod_local_domic_fam: Código do tipo de localização do domicílio (urbano/rural).
+# cod_especie_domic_fam: Código representando a espécie do domicílio (casa, apartamento, etc.).
+# qtd_comodos_domic_fam: Quantidade total de cômodos no domicílio da família.
+# qtd_comodos_dormitorio_fam: Quantidade de cômodos usados como dormitórios no domicílio.
+# cod_material_piso_fam: Código do material utilizado no piso do domicílio.
+# cod_material_domic_fam: Código do material principal das paredes externas do domicílio.
+# cod_agua_canalizada_fam: Código indicando se o domicílio possui água canalizada.
+# cod_abaste_agua_domic_fam: Código da fonte principal de abastecimento de água do domicílio.
+# cod_banheiro_domic_fam: Código indicando se o domicílio possui banheiro.
+# cod_escoa_sanitario_domic_fam: Código representando o tipo de escoamento sanitário do domicílio.
+# cod_destino_lixo_domic_fam: Código indicando o destino do lixo domiciliar.
+# cod_iluminacao_domic_fam: Código do tipo de iluminação utilizada no domicílio.
+# cod_calcamento_domic_fam: Código indicando se a rua onde o domicílio está localizado possui calçamento.
+# cod_familia_indigena_fam: Código indicando se a família se autodeclara indígena.
+# ind_familia_quilombola_fam: Indicador se a família pertence a uma comunidade quilombola.
+# nom_estab_assist_saude_fam: Nome do estabelecimento de saúde de referência para a família.
+# cod_eas_fam: Código do estabelecimento de saúde de referência para a família.
+# nom_centro_assist_fam: Nome do centro de assistência social de referência para a família.
+# cod_centro_assist_fam: Código do centro de assistência social de referência para a família.
+# ind_parc_mds_fam: Indicador de participação da família em programas do MDS (Ministério do Desenvolvimento Social).
+# marc_pbf: Indicador de participação da família no Programa Bolsa Família.
+# qtde_pessoas: Quantidade total de pessoas na família.
+# peso.fam: Peso amostral da família (para estimativas representativas).
 
 #### 2. GRÁFICOS E TABELAS ####
 ## 2.1 Estrutura geral dos dados ####

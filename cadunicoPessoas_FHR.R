@@ -4,7 +4,7 @@
 #### 0. CONFIGURAR AMBIENTE E DF ####
 ## 0.1 Local de trabalho ####
 # (!) MUDAR (se for o caso)
-local <- 'C:\\Users\\ferna\\OneDrive\\Desktop OneDrive\\base_amostra_cad_201812\\base_amostra_cad_201812'
+local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 setwd(local)
 
 ## 0.2 Bibliotecas ####
@@ -23,21 +23,61 @@ library(scales)  # Formatação de gráficos
 pessoas <- read_delim('base_amostra_pessoa_201812.csv', delim = ';', quote = '\'', locale = locale(decimal_mark = ','), show_col_types = FALSE)
 
 ## 0.4 Renomear colunas ####
+names(pessoas) <- gsub('"', '', names(pessoas))
+
+## 0.5 Filtrar público alvo ####
 pessoas <- pessoas %>%
-  rename_with(~ gsub('[\'\\\\]', '', .x))
+  filter(idade >= 14 & idade <= 24)
 
 #### 1. ANÁLISE EXPLORATÓRIA (AED) ####
 ### *PESSOAS ####
 ## 1.1 Sobre o df (pessoas) ###
 head(pessoas)
 str(pessoas)
-names(pessoas)
 
 ## 1.2 Colunas ####
 names(pessoas)
 
 ## 1.3 Descritiva ####
 summary(pessoas)
+
+## 1.4 Descrição das colunas ####
+
+# cd_ibge: Código IBGE do município onde a família está registrada.
+# estrato: Estrato social ao qual a família pertence, categorizando em faixas de renda.
+# classf: Classificação socioeconômica da família.
+# id_familia: Identificador único para cada família.
+# id_pessoa: Identificador único para cada pessoa dentro da família.
+# cod_sexo_pessoa: Código representando o sexo da pessoa (masculino/feminino).
+# idade: Idade da pessoa em anos.
+# cod_parentesco_rf_pessoa: Código de parentesco da pessoa em relação ao responsável familiar.
+# cod_raca_cor_pessoa: Código de raça/cor declarada da pessoa.
+# cod_local_nascimento_pessoa: Código do local de nascimento da pessoa (cidade, estado).
+# cod_certidao_registrada_pessoa: Indicador se a pessoa possui certidão de nascimento registrada.
+# cod_deficiencia_memb: Código indicando se a pessoa tem algum tipo de deficiência.
+# cod_sabe_ler_escrever_memb: Código indicando se a pessoa sabe ler e escrever.
+# ind_frequenta_escola_memb: Indicador se a pessoa está matriculada e frequenta escola.
+# cod_escola_local_memb: Código representando o tipo de escola (pública/privada) que frequenta.
+# cod_curso_frequenta_memb: Código do curso ou série em que a pessoa está matriculada.
+# cod_ano_serie_frequenta_memb: Código do ano ou série escolar que a pessoa está cursando.
+# cod_curso_frequentou_pessoa_memb: Código do curso ou série mais avançada frequentada pela pessoa.
+# cod_ano_serie_frequentou_memb: Código do ano ou série escolar mais avançada completada pela pessoa.
+# cod_concluiu_frequentou_memb: Código indicando se concluiu o curso ou série escolar mais avançada frequentada.
+# cod_trabalhou_memb: Código indicando se a pessoa trabalhou recentemente.
+# cod_afastado_trab_memb: Código indicando se a pessoa estava afastada do trabalho.
+# cod_agricultura_trab_memb: Código indicando se a pessoa trabalhou na agricultura.
+# cod_principal_trab_memb: Código representando a ocupação principal da pessoa.
+# val_remuner_emprego_memb: Valor da remuneração do emprego principal da pessoa.
+# cod_trabalho_12_meses_memb: Código indicando se a pessoa trabalhou nos últimos 12 meses.
+# qtd_meses_12_meses_memb: Quantidade de meses trabalhados nos últimos 12 meses pela pessoa.
+# val_renda_bruta_12_meses_memb: Valor da renda bruta total nos últimos 12 meses.
+# val_renda_doacao_memb: Valor da renda obtida por doações nos últimos 12 meses.
+# val_renda_aposent_memb: Valor da renda proveniente de aposentadoria.
+# val_renda_seguro_desemp_memb: Valor da renda proveniente do seguro-desemprego.
+# val_renda_pensao_alimen_memb: Valor da renda proveniente de pensão alimentícia.
+# val_outras_rendas_memb: Valor de outras fontes de renda não especificadas.
+# peso.fam: Peso amostral da família (para estimativas representativas).
+# peso.pes: Peso amostral da pessoa (para estimativas representativas).
 
 #### 2. GRÁFICOS E TABELAS ####
 ## 2.1 Distribuição de Idades ####
