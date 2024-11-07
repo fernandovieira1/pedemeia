@@ -4,7 +4,7 @@
 #### 0. CONFIGURAR AMBIENTE E DF ####
 ## 0.1 Local de trabalho ####
 # (!) MUDAR (se for o caso)
-local <- 'C:\\Users\\ferna\\OneDrive\\Desktop OneDrive'
+local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 setwd(local)
 
 ## 0.2 Bibliotecas ####
@@ -16,156 +16,57 @@ library(gt)  # Criar Tabelas
 library(scales)  # Formatação de gráficos
 
 ## 0.3 Carregar df pnad ####
-# De cada trimestre 2018
+# De cada trimestre
+# Definir ano e trimestres desejados
+ano <- 2023
+trimestres <- c(1, 2, 3, 4)  # Escolha os trim que deseja, ex: c(1, 2) para apenas t1 e t2
 
-# *Q1 ####
-pnad_q1 <- get_pnadc(
-  year = 2018,
-  quarter = 1,
-  vars = c(
-    # Parte 1 - Identificação e Controle
-    'UF',      # Unidade da Federação
-    'V2001',   # Tamanho da família
-    'V1022',   # Estrutura familiar (pai, mãe, monoparental)
-    'V1023',   # Localização geográfica (rural ou urbana)
-    
-    # Parte 2 - Características do domicílio
-    'V2001',   # Tamanho da família
-    'V2003',   # Ordem do morador na família
-    'V2005',   # Condição do domicílio
-    'V2007',   # Sexo do morador
-    'V20081',  # Mês de nascimento do morador
-    'V20082',  # Ano de nascimento do morador
-    'V2009',   # Idade do morador
-    'V2010',    # Cor ou raça do morador
-
-    # Parte 3 - Educação
-    'VD3005',  # Educação da mãe
-    'VD3006',  # Educação do pai
-    'V3003A',  # Curso que morador frequenta
-    'V3009A',  # Maior escolaridade atual do morador
-    
-    # Parte 4 - Trabalho
-    'V4001',   # Trabalhou na semana de referência?
-    'VD4019' # Rendimento domiciliar per capita
-  )
-)
-pnad_q1 <- pnad_q1$variables
-
-# *Q2 ####
-pnad_q2 <- get_pnadc(
-  year = 2018,
-  quarter = 2,
-  vars = c(
-    # Parte 1 - Identificação e Controle
-    'UF',      # Unidade da Federação
-    'V2001',   # Tamanho da família
-    'V1022',   # Estrutura familiar (pai, mãe, monoparental)
-    'V1023',   # Localização geográfica (rural ou urbana)
-    
-    # Parte 2 - Características do domicílio
-    'V2001',   # Tamanho da família
-    'V2003',   # Ordem do morador na família
-    'V2005',   # Condição do domicílio
-    'V2007',   # Sexo do morador
-    'V20081',  # Mês de nascimento do morador
-    'V20082',  # Ano de nascimento do morador
-    'V2009',   # Idade do morador
-    'V2010',    # Cor ou raça do morador
-    
-    # Parte 3 - Educação
-    'VD3005',  # Educação da mãe
-    'VD3006',  # Educação do pai
-    'V3003A',  # Curso que morador frequenta
-    'V3009A',  # Maior escolaridade atual do morador
-    
-    # Parte 4 - Trabalho
-    'V4001',   # Trabalhou na semana de referência?
-    'VD4019' # Rendimento domiciliar per capita
-  )
-)
-pnad_q2 <- pnad_q2$variables
-
-# *Q3 ####
-pnad_q3 <- get_pnadc(
-  year = 2018,
-  quarter = 3,
-  vars = c(
-    # Parte 1 - Identificação e Controle
-    'UF',      # Unidade da Federação
-    'V2001',   # Tamanho da família
-    'V1022',   # Estrutura familiar (pai, mãe, monoparental)
-    'V1023',   # Localização geográfica (rural ou urbana)
-    
-    # Parte 2 - Características do domicílio
-    'V2001',   # Tamanho da família
-    'V2003',   # Ordem do morador na família
-    'V2005',   # Condição do domicílio
-    'V2007',   # Sexo do morador
-    'V20081',  # Mês de nascimento do morador
-    'V20082',  # Ano de nascimento do morador
-    'V2009',   # Idade do morador
-    'V2010',    # Cor ou raça do morador
-    
-    # Parte 3 - Educação
-    'VD3005',  # Educação da mãe
-    'VD3006',  # Educação do pai
-    'V3003A',  # Curso que morador frequenta
-    'V3009A',  # Maior escolaridade atual do morador
-    
-    # Parte 4 - Trabalho
-    'V4001',   # Trabalhou na semana de referência?
-    'VD4019' # Rendimento domiciliar per capita
-  )
-)
-pnad_q3 <- pnad_q3$variables
-
-# *Q4 ####
-pnad_q4 <- get_pnadc(
-  year = 2018,
-  quarter = 4,
-  vars = c(
-    # Parte 1 - Identificação e Controle
-    'UF',      # Unidade da Federação
-    'V2001',   # Tamanho da família
-    'V1022',   # Estrutura familiar (pai, mãe, monoparental)
-    'V1023',   # Localização geográfica (rural ou urbana)
-    
-    # Parte 2 - Características do domicílio
-    'V2001',   # Tamanho da família
-    'V2003',   # Ordem do morador na família
-    'V2005',   # Condição do domicílio
-    'V2007',   # Sexo do morador
-    'V20081',  # Mês de nascimento do morador
-    'V20082',  # Ano de nascimento do morador
-    'V2009',   # Idade do morador
-    'V2010',    # Cor ou raça do morador
-    
-    # Parte 3 - Educação
-    'VD3005',  # Educação da mãe
-    'VD3006',  # Educação do pai
-    'V3003A',  # Curso que morador frequenta
-    'V3009A',  # Maior escolaridade atual do morador
-    
-    # Parte 4 - Trabalho
-    'V4001',   # Trabalhou na semana de referência?
-    'VD4019' # Rendimento domiciliar per capita
-  )
-)
-pnad_q4 <- pnad_q4$variables
-
-# *Juntar os 4 trimestres ####
-pnad <- dplyr::bind_rows(pnad_q1, pnad_q2, pnad_q3, pnad_q4)
-
-# *Selecionar apenas as colunas que eu tenho interesse ####
-# get_pnadc retoma variáveis desnecessárias apos juntar os dfs
-pnad <- pnad %>% select(
-  Ano, Trimestre, UF, V2001, V1022, V1023, V2003, V2005, V2007, V20081, V20082, V2009, V2010,
-  VD3005, VD3006, V3003A, V3009A, V4001, VD4019
+# Variáveis a serem selecionadas
+variaveis <- c(
+  # Parte 1 - Identificação e Controle
+  'UF',      # Unidade da Federação
+  'V2001',   # Tamanho da família
+  'V1022',   # Estrutura familiar (pai, mãe, monoparental)
+  'V1023',   # Localização geográfica (rural ou urbana)
+  
+  # Parte 2 - Características do domicílio
+  'V2001',   # Tamanho da família
+  'V2003',   # Ordem do morador na família
+  'V2005',   # Condição do domicílio
+  'V2007',   # Sexo do morador
+  'V20081',  # Mês de nascimento do morador
+  'V20082',  # Ano de nascimento do morador
+  'V2009',   # Idade do morador
+  'V2010',   # Cor ou raça do morador
+  
+  # Parte 3 - Educação
+  'VD3005',  # Educação da mãe
+  'VD3006',  # Educação do pai
+  'V3003A',  # Curso que morador frequenta
+  'V3009A',  # Maior escolaridade atual do morador
+  
+  # Parte 4 - Trabalho
+  'V4001',   # Trabalhou na semana de referência?
+  'VD4019'   # Rendimento domiciliar per capita
 )
 
-# *Remover dfs 4 trimestes ####
-rm(pnad_q1, pnad_q2, pnad_q3, pnad_q4)
+# Lista para armazenar dfs trim
+pnad_list <- list()
+
+# Loop para carregar e armazenar os dados de cada trim
+for (t in trimestres) {
+  # Carregar dados para o trimestre `t`
+  pnad_data <- get_pnadc(year = ano, quarter = t, vars = variaveis)
+  
+  # Criar o nome da variável dinamicamente (pnad_q1, pnad_q2, etc.)
+  assign(paste0("pnad_q", t), pnad_data$variables)
+  
+  # Adicionar o df à lista
+  pnad_list[[paste0("pnad_q", t)]] <- pnad_data$variables
+}
+
+# Juntar os dfs selecionados
+pnad <- bind_rows(pnad_list)
 gc()
 
 #### 1. ANÁLISE EXPLORATÓRIA (AED) ####
@@ -354,11 +255,3 @@ ggplot(renda_per_capita_uf, aes(x = reorder(UF, -Renda_Per_Capita_Media), y = Re
   theme_minimal() +
   coord_flip()
 
-# menor de idade pode declarar domicilio unipessoal
-# Evasão escolar: motivo
-# PNAD preditores evasão --> relacionados com variáveis socioeconômicas: construir PCA + probit
-# Comparações público alvo (frequenta escola pública) e todos (x=renda familiar, y=perc. jovens matriculados)
-# Comparar cadunico pnad
-# Identificar evasão escolar
-# PNADs concatenadas
-# cadunico municipios unipessoais

@@ -197,9 +197,5 @@ familia %>%
   theme_minimal() +
   theme(legend.position = 'none')
 
-# cadunico
-# 14 a 24 anos
-# bolsa familia
-# dummy: elegíveis e potenciais
-# público alvo por raça
+
 
