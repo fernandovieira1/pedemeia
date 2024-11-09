@@ -1,6 +1,6 @@
 ### DADOS PNAD -- Análise exploratória
 ## Autores: Fernando, Helena, Rafaela, Curti e Ivy
-rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
+# rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
 
 #### 0. CONFIGURAR AMBIENTE E DF ####
 ### 0.1 Local de trabalho ####
@@ -9,7 +9,7 @@ rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
 
 ### 0.2 Bibliotecas ####
 library(PNADcIBGE) # Dados PNADc
-library(survey) # Estratificação e Clusterização de dados
+library(survey) # Estratificação e Clusterização de dados --> cálculo dos pesos
 library(convey) # Cálculo de medidas de desigualdade
 library(tidyverse) # Manipulação do df e Gráficos
 library(gt)  # Criar Tabelas
@@ -80,7 +80,13 @@ carregar_pnadc <- function(ano, trimestres) {
     'VD4010',  # Ramo em que trabalha
     'VD4016',  # Rendimento mensal efetivo do trabalho
     'VD4015',  # Outras fontes de rendimento
-    'VD4019'   # Rendimento domiciliar per capita
+    'VD4019',   # Rendimento domiciliar per capita
+    
+    ## Pesos
+    'V1027', 
+    'V1028',
+    'V1029',
+    'V1033',   
   )
   
   # Lista para armazenar os dados de cada trimestre
@@ -129,60 +135,106 @@ names(pnad)
 #    * Trimestral >>> Microdados >>> Documentacao >> Variaveis_PNADC_Trimestral.xls
 
 ### 1.3 Colunas pnad (df local) ####
-## Localização
+## Localização  
 # UF: Unidade da Federação
-# RM_RIDE: Região Metropolitana ou Região Integrada de Desenvolvimento
-# Estrato: Estrato geográfico de amostragem
-# V1023: Localização geográfica (rural ou urbana)
+# RM_RIDE: Região Metropolitana / Região Administrativa de Interesse
+# UPA: Unidade Primária de Amostragem
+# Estrato: Estrato de Amostragem
+# V1022: Tipo de situação da região (rural ou urbana)
+# V1023: Tipo de área (rural ou urbana)
 
-## Infraestrutura e Serviços do domicílio
-# UPA: Unidade Primária de Amostragem (usada para estratificação) [CHAVE]
-# V1027: Tipo de moradia (domicílio particular ou coletivo)
-# V1032: Tipo de acesso ao saneamento (esgoto, fossa, etc.)
-# posest: Posição do domicílio no estrato de amostragem
-# posest_sxi: Subposição do domicílio no estrato de amostragem
-
-## Condições do domicílio
-# V1008: Número de série do domicílio [CHAVE domicílio]
-# V2005: Condição do domicílio (permanente, improvisado, etc.)
-# VD2002: Tipo de posse do domicílio (próprio, alugado, cedido, etc.)
-# VD2004: Indicador de residência unipessoal
+## Infraestrutura e Serviços do domicílio  
 # ID_DOMICILIO: Identificador único do domicílio
+# V1008: Número de seleção do domicílio
 
-## Membros da família
-# V1014: Número de série do morador no domicílio [CHAVE]
-# V2001: Tamanho da família (número total de membros)
-# V1022: Estrutura familiar (pai, mãe, monoparental, etc.)
-# V2003: Ordem do morador na família [CHAVE]
+## Condições do domicílio  
+# V1030: Informação adicional sobre o domicílio (campo específico da pesquisa)
+# V1031: Informação adicional sobre o domicílio (campo específico da pesquisa)
+# V1032: Informação adicional sobre o domicílio (campo específico da pesquisa)
+# V1034: Informação adicional sobre o domicílio (campo específico da pesquisa)
+# VD2002: Condição no domicílio (próprio, alugado, etc.)
+# VD2003: Número de componentes no domicílio
+# VD2004: Espécie da unidade doméstica
+
+## Membros da família  
+# V1014: Número de série do morador
+# V2001: Número de pessoas no domicílio
+# V2003: Número de ordem do morador no domicílio
+# V2005: Condição no domicílio (chefe, cônjuge, etc.)
 # V2007: Sexo do morador
-# V20081: Mês de nascimento do morador
-# V20082: Ano de nascimento do morador
-# V2009: Idade do morador
-# V2010: Cor ou raça do morador
-# VD2003: Posição do morador na família (Responsável = 1)
-# VD3004: Relação de parentesco com o responsável pelo domicílio
+# V20081: Mês de nascimento
+# V20082: Ano de nascimento
+# V2009: Idade
+# V2010: Cor ou raça
+# VD3004: Parentesco com o chefe do domicílio
 
-## Educação
-# V3002: Frequência escolar do morador (se está matriculado ou não)
-# V3005A: Escolaridade dos irmãos
-# V3007: Ano ou série escolar que o morador frequentava anteriormente
-# V3009A: Maior nível de escolaridade atual do morador
+## Educação  
+# V3002: Frequenta escola ou creche
+# V3005A: Modalidade do ensino (fundamental, médio, etc.)
+# V3007: Ano ou série que frequenta
+# V3009A: Maior grau de instrução alcançado
 # VD3005: Escolaridade da mãe
 # VD3006: Escolaridade do pai
 
-## Trabalho e Rendimento
-# V4001: Indicador se trabalhou na semana de referência
-# V4009: Condição de ocupação (empregado, desempregado, etc.)
-# VD4002: Horário semanal de trabalho
+## Trabalho e Rendimento  
+# V4001: Trabalhou na semana de referência
+# V4009: Condição de ocupação
+# VD4002: Horas trabalhadas na semana
 # VD4008: Tipo de vínculo empregatício
-# VD4010: Ramo ou setor de atividade em que trabalha
-# VD4015: Outras fontes de rendimento
+# VD4010: Ramo de atividade
+# VD4015: Recebimento de outras fontes de rendimento
 # VD4016: Rendimento mensal efetivo do trabalho
 # VD4019: Rendimento domiciliar per capita
 
-## Outras
-# Ano: Ano da pesquisa
-# Trimestre: Trimestre da pesquisa
-# V1030 até V1034: Variáveis adicionais de uso específico ou regional
-# CO1, CO1e, CO2, CO2e, CO3: Variáveis com finalidades específicas na pesquisa (necessitam de definição detalhada)
+## Outras  
+# Ano: Ano de referência
+# Trimestre: Trimestre de referência
+# posest: Domínios de projeção geográficos
+# posest_sxi: Domínios de projeção por sexo e idade
+# CO1, CO1e, CO2, CO2e, CO3: Variáveis de controle específicas da PNADC
+# V1028 e V1029: Pesos de calibração
+# V1032001 - V1032200: Pesos replicados para cálculo de variância
 
+### 1.4 Síntese das colunas/variáveis pnad ####
+
+## Variáveis de análise
+# Localização: 6 variáveis
+# Infraestrutura e Serviços do domicílio: 2 variáveis
+# Condições do domicílio: 7 variáveis
+# Membros da família: 10 variáveis
+# Educação: 6 variáveis
+# Trabalho e Rendimento: 8 variáveis
+# TOTAL: 39 variáveis
+
+## Variáveis de peso
+# - Pesos: 13 variáveis (incluindo o intervalo V1032001 - V1032200, que representa 200 
+# variáveis de pesos replicados)
+# TOTAL GERAL: 52 variáveis
+
+## Tipos de peso
+# - Peso Base: Expande a amostra para representar a população total e é usado 
+# para estatísticas pontuais (totais, médias).
+# - Peso Replicado: Permite calcular a variância dessas estimativas considerando 
+# a estrutura amostral, essencial para inferência estatística (erro padrão, 
+# intervalos de confiança).
+
+## Resumo geral do df (pnad)
+# - Variáveis selecionadas para análise: 39 (incluindo variáveis de localização, infraestrutura, condições do domicílio, membros da família, educação, e trabalho e rendimento)
+# - Variáveis de pesos: 13, sendo:
+# -  2 variáveis principais de peso (peso com calibração e peso sem calibração)
+# - 200 variáveis de pesos replicados (do intervalo V1032001 até V1032200)
+# TOTAL DATAFRAME: 248
+
+### 1.5 Aplicação dos pesos no df (pnad) ####
+# Peso base
+pnad <- svydesign(
+  id = ~UPA,
+  strata = ~Estrato,
+  weights = ~V1029,
+  data = pnad,
+  nest = TRUE
+)
+
+# Estimativa de total populacional, por exemplo, da variável "V2001" (Número de pessoas no domicílio)
+pop_total <- svytotal(~V2001, pnad)
+summary(pnad)
