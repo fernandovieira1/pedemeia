@@ -82,26 +82,29 @@ carregar_pnadc <- function(ano, trimestres) {
     'VD4015',  # Outras fontes de rendimento
     'VD4019',   # Rendimento domiciliar per capita
     
-    # ## Pesos
-    # 'V1027', 
-    # 'V1028',
-    # 'V1029',
-    # 'V1033',   
+    ## Pesos
+    'V1027', 
+    'V1028',
+    'V1029',
+    'V1033',   
   )
   
-  # Lista para armazenar os dados de cada trimestre
-  dados_trimestres <- get_pnadc(year=ano, interview=1, defyear=2023, 
-              labels=TRUE, deflator=TRUE, design=FALSE, 
-              vars = variaveis)
-  
-  # Combinar todos os trimestres em um único dataframe
-  dados_completos <- bind_rows(dados_trimestres)
-  
-  return(dados_completos)
+  # Loop para carregar e armazenar os dados de cada trim
+  for (t in trimestres) {
+    # Carregar dados para o trimestre `t`
+    pnad_data <- get_pnadc(year = ano, quarter = t, vars = variaveis)
+    
+    # Criar o nome da variável dinamicamente (pnad_q1, pnad_q2, etc.)
+    assign(paste0('pnad_q', t), pnad_data$variables)
+    
+    # Adicionar o df à lista
+    pnad_list[[paste0('pnad_q', t)]] <- pnad_data$variables
+  }
 }
 
 ### 0.4 Definir ano e trimestres ####
 ano <- 2023
+trimestres <- c(1, 2, 3, 4)  # Escolha os trim que deseja, ex: c(1, 2) para apenas t1 e t2
 
 ### 0.5 df prinicipal (pnad) ####
 pnad <- as_tibble(carregar_pnadc(ano))
