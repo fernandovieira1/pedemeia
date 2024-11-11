@@ -3,7 +3,6 @@
 * https://www.gov.br/mec/pt-br/pe-de-meia/legislacao
 * https://www.gov.br/mec/pt-br/centrais-de-conteudo/publicacoes/institucionais/pe-de-meia.pdf
 
-
 ============================================
 PÚBLICO
 * Geral:
@@ -39,7 +38,6 @@ INCENTIVOS
 * Estimativa atual (2024): 2,5 mi de estudantes (R$ 7.1 bi)
     - Se aluno atender os quatro requisitos: Custo de R$ 9.200 por aluno
     
-
 ============================================
 # cadunico
 # 14 a 24 anos
@@ -56,3 +54,11 @@ INCENTIVOS
 # Identificar evasão escolar
 # PNADs concatenadas
 # cadunico municipios unipessoais
+
+============================================
+OBS. DFS (ao fazer PNAD_Final5)
+----------------------------------
+pnadc: Pnad com pesos --> para regressões
+pdmc: público alvo em pdm com pesos --: estimar público alvo pdm
+emc: público ensino médio com pesos --> estimar público ensino médio
+pms == pnadas
