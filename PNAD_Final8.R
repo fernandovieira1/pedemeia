@@ -1,5 +1,6 @@
 ### DADOS PNAD -- Análise exploratória
 ## Autores: Fernando, Helena, Rafaela, Curti e Ivy
+# Código Curti: https://github.com/freitascurti/desafio-pe-de-meia/blob/main/probit
 rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
 
 #### 0. CONFIGURAR AMBIENTE ####
