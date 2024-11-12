@@ -47,7 +47,7 @@ library(scales)  # Formatação de gráficos
 #        2023: https://1drv.ms/x/s!AqlEsL9Wt3_5ku5rpuaUeN_JjVksCw?e=cgLGME
 
 ### 0.4 Função carregar_pnadc ####
-carregar_pnadc <- function(ano, trimestres) {
+carregar_pnadc <- function(anos, trimestres) {
   
   # Definir as variáveis de interesse
   variaveis <- c(
@@ -95,7 +95,7 @@ carregar_pnadc <- function(ano, trimestres) {
     'VD4013',  # Faixa de horas de trabalho semanal
     'VD4016',  # Rendimento mensal habitual (R$)
     'VD4017',  # Rendimento mensal efetivo (R$)
-    'VD4047',  # Rendimento efetivo recebido de programas sociais, seguro-desemprego, seguro-defeso, bolsa de estudos, rendimento de caderneta de poupança e outras aplicações financeiras
+    'VD4047',  # Rendimento efetivo recebido de programas sociais, seguro-desemprego, seguro-defeso, bolsa de estudos, rendimento de caderneta de poupança e outras aplicações financeiras (apenas 1º trimestre)
     'V5001A',  # Recebe BPC-LOAS?
     'V5001A2', # R$ BPC-LOAS
     'V5002A',  # Recebe Bolsa Família?
@@ -109,27 +109,56 @@ carregar_pnadc <- function(ano, trimestres) {
     'V1034'    # Projeção da população de 1º de julho por sexo e idade
   )
   
-  # Lista para armazenar os dados de cada trimestre
-  dados_trimestres <- get_pnadc(year=ano, interview=1, defyear=2023, 
-                                labels=TRUE, deflator=TRUE, design=FALSE, 
-                                vars = variaveis)
+  # Lista para armazenar os dados de cada ano e trimestre
+  dados_completos <- list()
   
-  # Combinar todos os trimestres em um único dataframe
-  dados_completos <- bind_rows(dados_trimestres)
+  # Iterar sobre cada ano e cada trimestre especificado
+  for (ano in anos) {
+    for (trimestre in trimestres) {
+      # Tentar carregar os dados de cada ano e trimestre
+      dados_trimestre <- tryCatch({
+        get_pnadc(
+          year = ano, 
+          interview = trimestre, 
+          defyear = ano, 
+          labels = TRUE, 
+          deflator = TRUE, 
+          design = FALSE, 
+          vars = variaveis
+        )
+      }, error = function(e) NULL)  # Retorna NULL caso ocorra um erro
+      
+      # Verificar se os dados foram carregados com sucesso e a variável existe
+      if (!is.null(dados_trimestre) && "VD4047" %in% names(dados_trimestre)) {
+        # Adicionar uma coluna de ano e trimestre
+        dados_trimestre <- dados_trimestre %>%
+          mutate(Ano = ano, Trimestre = trimestre)
+        
+        # Adicionar os dados do trimestre à lista
+        dados_completos[[paste(ano, trimestre, sep = "_")]] <- dados_trimestre
+      } else {
+        warning(paste("Dados não disponíveis para o ano", ano, "e trimestre", trimestre, "ou a variável VD4047 está ausente."))
+      }
+    }
+  }
   
-  return(dados_completos)
+  # Combinar todos os trimestres e anos em um único dataframe
+  dados_final <- bind_rows(dados_completos)
+  
+  return(dados_final)
 }
+
 
 #### 1. DADOS PNADc ####
 # Importar e tratar dados da pnad
 # Preparar para expandir a amostra (pnad) para a população (pesos)
 
 ### 1.1 Definir ano e trimestres ####
-ano <- c(2023)
-trimestres <- c(1, 2, 3, 4)
+anos <- c(2023, 2024)
+trimestres <- c(1, 2)
 
 ### 1.2 df prinicipal (pnad) ####
-pnad <- as_tibble(carregar_pnadc(ano, trimestres))
+pnad <- as_tibble(carregar_pnadc(anos, trimestres))
 
 ### 1.3 Criar/Tranformar variáveis ####
 ## Regiões brasileiras
@@ -224,21 +253,27 @@ pnadra <- pnad %>%
 
 ## *Critérios de renda ####
 # Salários mínimos / ano presente (ap) ###
-sal_min_ap <- case_when(
-  ano == 2023 ~ 1320,
-  ano == 2022 ~ 1212,
-  ano == 2021 ~ 1100,
-  ano == 2020 ~ 1039,
-  ano == 2019 ~ 998,
-  ano == 2018 ~ 954,
-  ano == 2017 ~ 937,
-  ano == 2016 ~ 880,
-  TRUE ~ NA_real_
-)
+if (!is.vector(anos)) anos <- list(anos)
 
-### Faixas de renda per capita ###
-# RDPC: Rendimento domiciliar per capita
-# Ver se considerar outros é melhor (VD4016, VD4017, VD4047, RD)
+# Definir uma função para calcular o salário mínimo para qualquer ano
+sal_min_ap <- function(ano) {
+  case_when(
+    ano == 2023 ~ 1320,
+    ano == 2022 ~ 1212,
+    ano == 2021 ~ 1100,
+    ano == 2020 ~ 1039,
+    ano == 2019 ~ 998,
+    ano == 2018 ~ 954,
+    ano == 2017 ~ 937,
+    ano == 2016 ~ 880,
+    TRUE ~ NA_real_
+  )
+}
+
+# Definir o salário mínimo para o ano mais recente disponível em 'anos'
+sal_min_ap_val <- sal_min_ap(max(anos))
+
+# Aplicar o cálculo de faixas com o valor numérico do salário mínimo
 pnad <- pnad %>%
   mutate(
     RDPC_categoria = case_when(
@@ -247,13 +282,13 @@ pnad <- pnad %>%
       RDPC > 105 & RDPC <= 218 ~ 'Pobreza (R$ 105,01 até R$ 218)',
       
       # Faixas adicionais baseadas no salário mínimo ajustado pelo ano
-      RDPC > 218 & RDPC <= sal_min_ap / 4 ~ 'Acima de pobreza até 1/4 sal mín',
-      RDPC > sal_min_ap / 4 & RDPC <= sal_min_ap / 2 ~ 'Mais de 1/4 até 1/2 sal mín',
-      RDPC > sal_min_ap / 2 & RDPC <= sal_min_ap ~ 'Mais de 1/2 até 1 sal mín',
-      RDPC > sal_min_ap & RDPC <= sal_min_ap * 2 ~ 'Mais de 1 até 2 sal mín',
-      RDPC > sal_min_ap * 2 & RDPC <= sal_min_ap * 3 ~ 'Mais de 2 até 3 sal mín',
-      RDPC > sal_min_ap * 3 & RDPC <= sal_min_ap * 5 ~ 'Mais de 3 até 5 sal mín',
-      RDPC > sal_min_ap * 5 ~ 'Mais de 5 sal mín',
+      RDPC > 218 & RDPC <= sal_min_ap_val / 4 ~ 'Acima de pobreza até 1/4 sal mín',
+      RDPC > sal_min_ap_val / 4 & RDPC <= sal_min_ap_val / 2 ~ 'Mais de 1/4 até 1/2 sal mín',
+      RDPC > sal_min_ap_val / 2 & RDPC <= sal_min_ap_val ~ 'Mais de 1/2 até 1 sal mín',
+      RDPC > sal_min_ap_val & RDPC <= sal_min_ap_val * 2 ~ 'Mais de 1 até 2 sal mín',
+      RDPC > sal_min_ap_val * 2 & RDPC <= sal_min_ap_val * 3 ~ 'Mais de 2 até 3 sal mín',
+      RDPC > sal_min_ap_val * 3 & RDPC <= sal_min_ap_val * 5 ~ 'Mais de 3 até 5 sal mín',
+      RDPC > sal_min_ap_val * 5 ~ 'Mais de 5 sal mín',
       TRUE ~ NA_character_
     )
   )
@@ -511,14 +546,15 @@ sum(emc_uf$total) # 8.3 mi de estudantres de ensino médio entre 14 e 24 anos
 # summary(pdms) # 396 obs.
 
 pdms <- pnad %>%
+  mutate(sal_min_atual = sal_min_ap(Ano)) %>% # Adicionar coluna com salário mínimo do ano
   filter(
-    V2009 >= 14 & V2009 <= 24 &           # Idade entre 14 e 24 anos
-      V3002 == "Sim" &                      # Frequenta escola
-      V3003A == "Regular do ensino médio" & # Ensino médio regular
-      V3002A == "Rede pública" &            # Escola pública
-      (RDPC <= sal_min_ap / 2 |             # Renda per capita até ½ salário mínimo
+    V2009 >= 14 & V2009 <= 24 &              # Idade entre 14 e 24 anos
+      V3002 == "Sim" &                       # Frequenta escola
+      V3003A == "Regular do ensino médio" &  # Ensino médio regular
+      V3002A == "Rede pública" &             # Escola pública
+      (RDPC <= sal_min_atual / 2 |           # Renda per capita até ½ salário mínimo
          V5001A == "Sim" | V5002A == "Sim" | V5003A == "Sim") & # Benefício social
-      VD2004 != "Unipessoal"                # Domicílios não unipessoais
+      VD2004 != "Unipessoal"                 # Domicílios não unipessoais
   ) %>%
   mutate(contagem = 1) # Variável para contar as observações
 summary(pdms) # 4732 obs.
@@ -537,19 +573,8 @@ summary(pdms) # 4732 obs.
 pdmc <- svydesign(
   ids = ~1,                    # IDs sem clusterização
   weights = ~V1032,            # Pesos calibrados da PNAD
-  data = 
-    pdms <- pnad %>%
-    filter(
-      V2009 >= 14 & V2009 <= 24 &           # Idade entre 14 e 24 anos
-        V3002 == "Sim" &                      # Frequenta escola
-        V3003A == "Regular do ensino médio" & # Ensino médio regular
-        V3002A == "Rede pública" &            # Escola pública
-        (RDPC <= sal_min_ap / 2 |             # Renda per capita até ½ salário mínimo
-           V5001A == "Sim" | V5002A == "Sim" | V5003A == "Sim") & # Benefício social
-        VD2004 != "Unipessoal"                # Domicílios não unipessoais
-    ) %>%
-    mutate(contagem = 1) # Variável para contar as observações
-) 
+  data = pdms                  # Usar o dataframe filtrado e ajustado
+)
 summary(pdmc)
 
 ## ****Por Região (GR) ####
