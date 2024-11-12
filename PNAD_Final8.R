@@ -157,11 +157,12 @@ carregar_pnadc <- function(anos, trimestres) {
 
 ### 1.1 Definir ano e trimestres ####
 anos <- c(2022) # 2024 não funciona
-trimestres <- c(1, 2)
+trimestres <- c(1)
 
 ### 1.2 df prinicipal (pnad) ####
 pnad <- as_tibble(carregar_pnadc(anos, trimestres))
 
+9+6
 ### 1.3 Criar/Tranformar variáveis ####
 ## Regiões brasileiras
 pnad <-  transform(pnad, GR = as.factor(ifelse(substr(UPA, start = 1, stop = 1) == '1','Norte',
@@ -372,6 +373,7 @@ pop_racas <- as.data.frame(svytotal(~factor(V2010),
   mutate(Perc = (total / sum(total)) * 100)
 print(pop_racas)
 sum(pop_racas$total)
+# todos os nao matriculados < meio salário
 
 ## *Localização - Rural ou urbana ####
 pop_rur_urb <- as.data.frame(svytotal(~factor(V1022), 
@@ -409,7 +411,7 @@ rend_med_4016_ap <- svyby(
   na.rm = TRUE
 )
 print(rend_med_4016_ap)
-mean(rend_med_4016_ap$VD4016AP) # (2022: R$ 2.414); (2023: R$ 2.635)
+mean(rend_med_4016_ap$VD4016AP)/12 # (2022: R$ 2.414); (2023: R$ 2.635)
 
 ## *Mensal Efetivo (VD4017) ####
 # VD4017AP: 4017 deflacionado Ano presente
@@ -422,7 +424,7 @@ rend_med_4017_ap <- svyby(
   na.rm = TRUE
 )
 print(rend_med_4017_ap)
-mean(rend_med_4017_ap$VD4017AP) # (2022: R$ 2.498); (2023: R$ 2.716)
+mean(rend_med_4017_ap$VD4017AP)/12----- # (2022: R$ 2.498); (2023: R$ 2.716)
 
 ## *Mensal Programas Sociais (VD4047) ####
 # VD4047AP: 4047 deflacionado Ano presente
@@ -628,6 +630,10 @@ sum(pdmc_uf$total)*3200
 # - Falta definir as variáveis de evasão escolar
 # - Adicionar dummies Curti (fazer: p/ modelo painel)
 # - Adaptar código pra trimestral
+# PANIEL BALANCEADO ATRITO
 
 ## CADÚNICO
 # Definir onde cruzar com cadunico
+# ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo + Estimar probit + socioeconomicas
+# EVASAO: 1 e 5 tri - merge sexo da amostra que ingressou no 1 tri + Estimar probit + socioeconomicas
+# Público alvo e fora
