@@ -19,6 +19,7 @@ library(convey) # Cálculo de medidas de desigualdade
 library(tidyverse) # Manipulação do df e Gráficos
 library(gt)  # Criar Tabelas
 library(scales)  # Formatação de gráficos
+library(plm)
 
 ### 0.3 Notas metodológicas colunas PNADc (IBGE) ####
 ## - [CHAVE]
@@ -84,10 +85,11 @@ carregar_pnadc_multiplos <- function(anos, trimestres) {
 
 # Definir anos e trimestres para carregar
 anos <- c(2022, 2023)     # Pode especificar um ou mais anos
-trimestres <- c(1, 2, 3, 4) # Pode especificar um ou mais trimestres
+trimestres <- c(1, 2) # Pode especificar um ou mais trimestres
 
 # Carregar os dados
 dados_pnad <- carregar_pnadc_multiplos(anos, trimestres)
+
 table(dados_pnad$Ano)
 table(dados_pnad$Trimestre)
 
@@ -161,6 +163,7 @@ publico_alvo_filtrado <- publico_alvo_filtrado %>%
   ) %>%
   ungroup()
 
+### (!) Aqui, se não tiver 4 semestres, quebra (!)
 ## Filtrando o painel para manter apenas indivíduos que aparecem nos quatro trimestres
 publico_alvo_filtrado <- publico_alvo_filtrado %>%
   group_by(id_individuo) %>%
