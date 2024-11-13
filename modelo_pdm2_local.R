@@ -55,10 +55,10 @@ library(janitor) # Limpeza de dados
 
 ### 0.3 Definir anos e trimestres ####
 # Defina o diretório onde o arquivo .RDS está armazenado
-diretorio_dados <- "C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia"
+diretorio_dados <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
 # Nome do arquivo com todos os dados de 2022 e 2023
-nome_arquivo <- file.path(diretorio_dados, "dados_pnad_2022-2023.rds")
+nome_arquivo <- file.path(diretorio_dados, 'dados_pnad_2022-2023.rds')
 
 # Definir anos e trimestres que você deseja filtrar
 anos <- c(2022, 2023)     # Pode especificar um ou mais anos
@@ -68,7 +68,7 @@ trimestres <- c(1, 2, 3)     # Pode especificar um ou mais trimestres
 dados_pnad <- tryCatch({
   readRDS(nome_arquivo)
 }, error = function(e) {
-  warning("Erro ao carregar o arquivo de dados.")
+  warning('Erro ao carregar o arquivo de dados.')
   NULL
 })
 
@@ -81,7 +81,7 @@ if (!is.null(dados_pnad)) {
     filter(Ano %in% anos & Trimestre %in% trimestres)
   
 } else {
-  warning("Os dados não foram carregados corretamente.")
+  warning('Os dados não foram carregados corretamente.')
 }
 
 # Verificar a distribuição de anos e trimestres no filtro aplicado
