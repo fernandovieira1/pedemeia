@@ -5,6 +5,7 @@ install.packages("plm")
 install.packages("janitor")
 
 
+
 # Carregando pacotes necessários
 library(PNADcIBGE)
 library(convey)
@@ -64,11 +65,115 @@ table(dados_pnad$Ano)
 table(dados_pnad$Trimestre)
 
 ## Variáveis/Colunas PNADc
-variaveis_interesse <- c(
-  'UPA', 'V1008', 'V1014', 'V2003', 'V2007', 'V2008', 'V2010', 'V20081', 'V20082', 'V2009',
+variaveis_interesse <- c( # Fernando
+  # Localização
+  'UPA',     # Unidade Primária de Amostragem (curti)
+  'UF',      # Unidade da Federação
+  'V1022',   # Situação do domicílio (rural ou urbana)
+  'V1023',   # Tipo de área (Capital, RM, RIDE e UF)
+  'RM_RIDE', # Região Metropolitana (r de capitais brasileiras)
+  
+  # Condições do domicílio
+  'V1008',	 # Número de seleção do domicílio (1 a 14)
+  'V2005',   # Condição no domicílio (responsável, cônjuge, filho, etc.)
+  'VD2002',  # Condição no domicílio (responsável, cônjuge, filho, etc.)
+  'VD2004',  # Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
+  
+  # Membros da família
+  'V1014',	 # Painel
+  'V2001',   # Tamanho da família (nr. pessoas domicílio)
+  'V2003',   # Ordem do morador na família
+  'V2007',   # Sexo do morador
+  'V20081',  # Mês de nascimento do morador
+  'V20082',  # Ano de nascimento do morador
+  'V2009',   # Idade do morador
+  'V2010',   # Cor ou raça do morador
+  'VD2003',  # Nr. de componentes/moradores (1 a 30)
+  
+  # Educação 
+  'V3002',   # Frequenta escola?
+  'V3002A',  # Tipo de escola (pública, privada, etc.)
+  # 'V3003',   # Curso atual ou série frequentada (NÃO RODOU 2023)
+  'V3003A',  # Curso atual ou série frequentada
+  'V3006',   # Ano ou série que frequentava anteriormente
+  # 'V3009',  # Maior escolaridade atual do morador (NÃO RODOU 2023)
+  'V3009A',  # Maior escolaridade atual do morador
+  'VD3006',  # Grupos de estudo (1 a 4, 5 a 8 etc.)
+  
+  # Trabalho e Rendimento
+  'V4001',   # Trabalhou na semana de referência?
+  'V4009',   # Quantos trabalhos tinha na semana de referência?
+  'VD4002',  # Se pessoas >= 14 anos estavam ocupadas ou não
+  'VD4008',  # Tipo de vínculo empregatício (empregado, doméstica, militar etc.)
+  'VD4009',  # Tipo de vínculo empregatício (empregado, doméstica, militar etc.)
+  'VD4010',  # Ramo em que trabalha (agricultura, indústria, comércio etc.)
+  'VD4011',  # Grupamentos ocupacionais (diretor, apoio adm., técnico agropecuários etc.)
+  'VD4013',  # Faixa de horas de trabalho semanal
+  'VD4016',  # Rendimento mensal habitual (R$)
+  'VD4017',  # Rendimento mensal efetivo (R$)
+  'VD4019',  # Rendimento mensal habitual (R$) (apenas 1º trimestre)
+  'VD4047',  # Rendimento efetivo recebido de programas sociais, seguro-desemprego, seguro-defeso, bolsa de estudos, rendimento de caderneta de poupança e outras aplicações financeiras (apenas 1º trimestre)
+  'V5001A',  # Recebe BPC-LOAS?
+  'V5001A2', # R$ BPC-LOAS
+  'V5002A',  # Recebe Bolsa Família?
+  'V5002A2', # R$ Bolsa Família
+  'V5003A',  # Outros programas sociais?
+  'V5003A2', # R$ Outros programas sociais
+  
+  # ## Pesos
+  'V1031',   # Peso domicílio e pessoas SEM calibração
+  'V1032',   # Peso domicílio e pessoas COM calibração
+  'V1034'    # Projeção da população de 1º de julho por sexo e idade
+)
+
+variaveis_interesse <- c( # Gabriel
+  'UPA', 'V1008', 'V1014', 'V2003', 'V2008', 'V20081', 'V20082', 'V2009',
   'V3003A', 'VD2004', 'V3002A', 'ID_DOMICILIO', 'V2001', 'VD4016',
   'VD4017', 'VD2003', 'VD4019', 'V2007', 'V3009A','VD2002', 'V3006','VD3005', 
   'V2010', 'VD4020','V3002', 'Ano', 'Trimestre')
+
+## 0.6 Variáveis interesse ####
+variaveis_interesse <- c( # Fernando 'modelo_pnad3'
+  
+  ## IDENTIFICAÇÃO
+  'ID_DOMICILIO',  # Identificador único do domicílio (não aparece dicionário)
+  'UPA',          # Unidade Primária de Amostragem (UPA)
+  'V1008',        # Nr. de seleção do domicílio (1 a 14)
+  'V1014',        # Painel (indicador de panel)
+  'Ano',          # Ano
+  'Trimestre',    # Trimestre
+  
+  # DOMICÍLIO
+  'VD2004',  # Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
+  'VD2002',   # Condição/Parentesco no domicílio (responsável, cônjuge, filho, etc.)
+  
+  # FAMÍLIA
+  'V2001',   # Tamanho da família (nr. de pessoas no domicílio)
+  'V2003',   # Ordem do morador na família
+  'V2007',   # Sexo do morador
+  'V2008',   # Dia de nascimento do morador
+  'V20081',  # Mês de nascimento do morador
+  'V20082',  # Ano de nascimento do morador
+  'V2009',   # Idade do morador
+  'V2010',   # Cor ou raça do morador
+  'VD2003',  # Nr. de componentes/moradores
+  
+  # EDUCAÇÃO
+  'V3002',   # Frequenta escola?
+  'V3002A',  # Tipo de escola (pública, privada, etc.)
+  'V3003A',  # Curso atual ou série frequentada
+  'V3006',   # Ano ou série que frequentava anteriormente
+  'V3009A',  # Maior escolaridade atual do morador
+  'VD3005',  # Anos de estudo completos do morador
+  
+  # TRABALHO E RENDA
+  'VD4016',  # Rendimento mensal habitual (R$)
+  'VD4017',  # Rendimento mensal efetivo (R$)
+  'VD4019',  # Rendimento mensal habitual (R$) (apenas 1º trimestre)
+  'VD4020'  # Rendimento mensal todos os trabalhos
+)
+
+
 
 ## Definir df 
 publico_alvo_filtrado <- dados_pnad %>%
