@@ -268,12 +268,18 @@ prop.table(table(base_evasao$regiao))
 # VD2002: Condição no domicílio (01: Condição no domicílio; 02: Cônjuge ou companheiro(a); 06: Pai, mãe, padrasto ou madrasta)
 # VD3005: Grau de instrução (ensino fund. com 9 anos)
 base_evasao <- base_evasao %>%
+  group_by(ID_DOMICILIO) %>%  # Substitua ID_DOMICILIO pelo identificador do grupo familiar, se for diferente
   mutate(
-    is_mae = (as.numeric(V2007) == 2 & (as.numeric(VD2002) %in% c(1, 2, 6))), 
-    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA), 
-    is_pai = (as.numeric(V2007) == 1 & (as.numeric(VD2002) %in% c(1, 2, 6))),
+    is_mae = as.numeric(V2007) == 2 & as.numeric(VD2002) %in% c(1, 2, 6),
+    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA),
+    is_pai = as.numeric(V2007) == 1 & as.numeric(VD2002) %in% c(1, 2, 6),
     educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA)
-  )
+  ) %>%
+  ungroup()
+
+base_evasao %>%
+  select(educacao_mae, educacao_pai) %>%
+  summary()
 
 ## *Criar a dummie de evasão ####
 base_evasao <- base_evasao %>%
