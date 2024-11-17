@@ -202,7 +202,7 @@ base_evasao <- base_evasao %>%
            V3003A == 'Educação de jovens e adultos (EJA) do ensino médio'),
       1, 0
     )
-  ) # (?) Considerar "NA's" como 0?
+  ) # (?) Considerar 'NA's' como 0?
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_evasao <- base_evasao %>%
