@@ -320,6 +320,8 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
   filter(V20082 != 9999) # V20082: Ano de nascimento
 summary(base_evasao_filtrada)
 
+# PAREI AQUI
+
 ######################## 2. BASE ABANDONO ########################
 
 ### 2.1 df Abandono ####
