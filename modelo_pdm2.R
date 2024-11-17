@@ -141,8 +141,8 @@ base_evasao <- base_evasao %>%
     rede_publica = ifelse(V3002A == 'Rede pública', 1, 0), # V3002A: Rede de ensino
     
     # Calcular RDPC (Renda Domiciliar Per Capita)
-    RD = sum(VD4020, na.rm = TRUE),          # Rendimento domiciliar total
-    V2001R = ifelse(!is.na(V2001), V2001[1], NA),  # Número de residentes no domicílio
+    RD = sum(VD4020, na.rm = TRUE),          # Rendimento domiciliar total --> TÁ ERRADO: tá somando tudo, não apenas o domicílio
+    V2001R = ifelse(!is.na(V2001), V2001[1], NA),  # Número de residentes no domicílio 
     RDPC = RD / V2001R,                      # Renda domiciliar per capita
     
     # Criar a dummy para renda per capita menor que 706

@@ -14,8 +14,9 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 
 ## *Dicionários PNADc #####
 # Descrição: Dicionários de variáveis PNADc
-# Fonte: 2016: https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fftp.ibge.gov.br%2FTrabalho_e_Rendimento%2FPesquisa_Nacional_por_Amostra_de_Domicilios_continua%2FAnual%2FMicrodados%2FVisita%2FVisita_1%2FDocumentacao%2Fdicionario_PNADC_microdados_2016_visita1_20220224.xls&wdOrigin=BROWSELINK
-#        2023: https://1drv.ms/x/s!AqlEsL9Wt3_5ku5rpuaUeN_JjVksCw?e=cgLGME
+# Fonte: - 2016: https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fftp.ibge.gov.br%2FTrabalho_e_Rendimento%2FPesquisa_Nacional_por_Amostra_de_Domicilios_continua%2FAnual%2FMicrodados%2FVisita%2FVisita_1%2FDocumentacao%2Fdicionario_PNADC_microdados_2016_visita1_20220224.xls&wdOrigin=BROWSELINK
+#        - 2022: https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fftp.ibge.gov.br%2FTrabalho_e_Rendimento%2FPesquisa_Nacional_por_Amostra_de_Domicilios_continua%2FAnual%2FMicrodados%2FVisita%2FVisita_1%2FDocumentacao%2Fdicionario_PNADC_microdados_2022_visita1_20231129.xls&wdOrigin=BROWSELINK
+#        - 2023: https://1drv.ms/x/s!AqlEsL9Wt3_5ku5rpuaUeN_JjVksCw?e=cgLGME
 
 ## *Chaves PNADc ####
 # Descrição: Chaves PNADc (domicílio e pessoas)
@@ -87,8 +88,12 @@ dados_pnad <- tryCatch({
   NULL
 })
 
+nrow(dados_pnad)
+table(dados_pnad$Ano)
+table(dados_pnad$Trimestre)
+
 ## *dados_pnad (DF) ####
-# Filtrar ano(s) e trimestre(s)
+# Filtrar ano(s) e trimestre(s) de interesse
 # Verificar se deu certo
 if (!is.null(dados_pnad)) {
   dados_pnad <- as.data.frame(dados_pnad)
@@ -100,6 +105,7 @@ if (!is.null(dados_pnad)) {
   warning('Os dados não foram carregados corretamente.')
 }
 
+nrow(dados_pnad)
 table(dados_pnad$Ano)
 table(dados_pnad$Trimestre)
 
@@ -145,6 +151,7 @@ variaveis_interesse <- c(
 )
 
 ## *publico_alvo_filtrado (DF) #### 
+# Filtrar as variáveis de interesse
 publico_alvo_filtrado <- dados_pnad %>%
   select(all_of(variaveis_interesse))
 
@@ -160,7 +167,6 @@ table(base_evasao$Trimestre)
 
 ## *Criar Coluna id_individuo ####
 base_evasao <- base_evasao %>%
-  # Criar a coluna id_individuo
   mutate(
     id_individuo = paste0(UPA, '_', # Unidade Primária de Amostragem
                           V1008, '_', # Nr. de diferenciação de domicílios na mesma UPA
@@ -169,27 +175,69 @@ base_evasao <- base_evasao %>%
                           V2008, '_', # Dia de nascimento
                           V20081, '_', # Mês de nascimento
                           V20082) # Ano de nascimento
-  ) 
+  )
 
+## *Ordenar por id_individuo, ano e trimestre ####
+base_evasao <- base_evasao %>%
+  arrange(id_individuo, Ano, Trimestre) 
 
-#PAREI AQUI %>%
-  # Organizar a base pelos identificadores, ano e trimestres
-  arrange(id_individuo, Ano, Trimestre) %>%
-  # Critérios Pé-de-Meia
+## *Critérios Pé-de-Meia ####
+base_evasao <- base_evasao %>%
   mutate(
     faixa_idade_14_24 = ifelse(V2009 >= 14 & V2009 <= 24, 1, 0), # V2009: Idade
     ensino_medio_dummie = ifelse(V3003A %in% c('Regular do ensino médio', 
-                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), # Mudei aqui para incluir EJA
+                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), # V3003A: qual curso frequenta
     residencia_unipessoal = ifelse(VD2004 == 'Unipessoal', 1, 0), # VD2004: Condição de ocupação do domicílio
     rede_publica = ifelse(V3002A == 'Rede pública', 1, 0), # V3002A: Rede de ensino
-    
-    # Calcular RDPC (Renda Domiciliar Per Capita)
-    RD = sum(VD4020, na.rm = TRUE),          # Rendimento domiciliar total
-    V2001R = ifelse(!is.na(V2001), V2001[1], NA),  # nr. de residentes no domicílio
-    RDPC = RD / V2001R,                      # Renda domiciliar per capita
-    
-    # Criar a dummy para renda per capita menor que 706
-    renda_per_capta_menor_706 = ifelse(RDPC < 706, 1, 0), # (!) Tá errado --> mudar (sm de acordo com ano)
+  )
+
+## *Calcular RD (Renda Domiciliar) #####
+base_evasao <- base_evasao %>%
+  group_by(ID_DOMICILIO) %>%
+  mutate(
+    RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
+    ) %>%
+  ungroup()
+
+## *Calcular RDPC (Renda Domiciliar Per Capita) ####
+base_evasao <- base_evasao %>%
+  group_by(ID_DOMICILIO) %>%
+  mutate(
+    RDPC = RD/V2001, # V2001: Qtde residentes no domicílio
+  ) %>%
+  ungroup()
+base_evasao$RDPC <- round(base_evasao$RDPC, 0)
+
+
+## *Criar dummy renda per capita < 1/2 Sal. Mín. ####
+sal_min <- function(ano) {
+  case_when(
+    ano == 2023 ~ 1320,
+    ano == 2022 ~ 1212,
+    ano == 2021 ~ 1100,
+    ano == 2020 ~ 1039,
+    ano == 2019 ~ 998,
+    ano == 2018 ~ 954,
+    ano == 2017 ~ 937,
+    ano == 2016 ~ 880,
+    ano == 2015 ~ 788,
+    ano == 2014 ~ 724,
+    ano == 2013 ~ 678,
+    ano == 2012 ~ 622,
+    ano == 2011 ~ 545,
+    ano == 2010 ~ 510,
+    TRUE ~ NA_real_
+  )
+}
+
+base_evasao <- base_evasao %>%
+  mutate(
+    RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) # Criar a variável dummy
+  )
+
+
+## PAREI AQUI
+
     
     # Adicionar a coluna de região
     região = case_when(
