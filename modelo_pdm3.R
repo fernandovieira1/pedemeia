@@ -304,7 +304,7 @@ base_evasao_filtrada <- base_evasao %>%
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_evasao_filtrada <- base_evasao_filtrada %>%
   select( 
-    id_individuo,Ano, Trimestre, faixa_idade_14_24, ensino_medio_eja_pub, residencia_unipessoal,
+    id_individuo,Ano, Trimestre, ensino_medio_eja_pub,
     VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
     everything()
   )
