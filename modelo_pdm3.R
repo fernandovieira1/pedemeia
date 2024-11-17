@@ -38,7 +38,9 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 # Fonte: https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/PNADcIBGE_Deflator_Trimestral.pdf
 #    * Trimestral >>> Microdados >>> Documentacao >> Variaveis_PNADC_Trimestral.xls
 
-
+## *Evasão e abandono ####
+# EVASAO: 1 e 5 tri - merge sexo da amostra que ingressou no 1 tri
+# ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
 
 ### 0.2 Local de trabalho ####
 local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
@@ -182,14 +184,16 @@ base_evasao <- base_evasao %>%
   arrange(id_individuo, Ano, Trimestre) 
 
 ## *Critérios Pé-de-Meia ####
+# V2009: Idade
+# V3003A: qual curso frequenta
+# VD2004: Condição de ocupação do domicílio
 base_evasao <- base_evasao %>%
   mutate(
-    faixa_idade_14_24 = ifelse(V2009 >= 14 & V2009 <= 24, 1, 0), # V2009: Idade
-    ensino_medio_dummie = ifelse(V3003A %in% c('Regular do ensino médio', 
-                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), # V3003A: qual curso frequenta
-    residencia_unipessoal = ifelse(VD2004 == 'Unipessoal', 1, 0), # VD2004: Condição de ocupação do domicílio
-    rede_publica = ifelse(V3002A == 'Rede pública', 1, 0), # V3002A: Rede de ensino
-  )
+    faixa_idade_14_24 = ifelse(V2009 >= 14 & V2009 <= 24, 1, 0), 
+    ensino_medio_eja_pub = ifelse(V3002A == 'Rede Pública' & V3003A %in% c('Regular do ensino médio', 
+                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), 
+    residencia_unipessoal = ifelse(VD2004 == 'Unipessoal', 1, 0)
+    )
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_evasao <- base_evasao %>%
@@ -210,6 +214,7 @@ base_evasao$RDPC <- round(base_evasao$RDPC, 0)
 
 
 ## *Criar dummy renda per capita < 1/2 Sal. Mín. ####
+# Função salários mínimos
 sal_min <- function(ano) {
   case_when(
     ano == 2023 ~ 1320,
@@ -230,40 +235,54 @@ sal_min <- function(ano) {
   )
 }
 
+# Criar a variável dummy
 base_evasao <- base_evasao %>%
   mutate(
-    RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) # Criar a variável dummy
+    RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) 
   )
 
 
-## PAREI AQUI
-
-    
-    # Adicionar a coluna de região
-    região = case_when(
+## *Adicionar a coluna de região ####
+base_evasao <- base_evasao %>%
+  mutate(
+    regiao = case_when(
       substr(UPA, start = 1, stop = 1) == '1' ~ 'Norte',
       substr(UPA, start = 1, stop = 1) == '2' ~ 'Nordeste',
       substr(UPA, start = 1, stop = 1) == '3' ~ 'Sudeste',
       substr(UPA, start = 1, stop = 1) == '4' ~ 'Sul',
       substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
       TRUE ~ NA_character_
-    ),
+    ))
+table(base_evasao$regiao)
+prop.table(table(base_evasao$regiao))
     
-    # Identificar a educação da mãe e do pai
-    is_mae = (as.numeric(V2007) == 2 & (as.numeric(VD2002) %in% c(1, 2, 6))), # V2007: Sexo
-    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA), # VD3005: Grau de instrução (ensino fund. com 9 anos)
+## *Identificar a educação da mãe e do pai ####
+# V2007: Sexo
+# VD2002: Condição no domicílio (01: Condição no domicílio; 02: Cônjuge ou companheiro(a); 06: Pai, mãe, padrasto ou madrasta)
+# VD3005: Grau de instrução (ensino fund. com 9 anos)
+base_evasao <- base_evasao %>%
+  mutate(
+    is_mae = (as.numeric(V2007) == 2 & (as.numeric(VD2002) %in% c(1, 2, 6))), 
+    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA), 
     is_pai = (as.numeric(V2007) == 1 & (as.numeric(VD2002) %in% c(1, 2, 6))),
-    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA),
-    
-    # Criar a dummie de abandono: frequentando no trimestre anterior e não frequentando no trimestre atual
-    evasão = ifelse(
+    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA)
+  )
+
+## *Criar a dummie de evasão ####
+base_evasao <- base_evasao %>%
+  mutate(
+    evasao = ifelse(
       lag(V3002) == 'Sim' & V3002 == 'Não' & lag(Ano) == Ano, # V3002: Frequenta escola ou creche?
       1,
       0
     )
-  ) %>%
-  # Remover as colunas auxiliares usadas para identificar pais e mães
+  )
+
+# Remover as colunas auxiliares usadas para identificar pais e mães
+base_evasao <- base_evasao %>%  
   select(-is_mae, -is_pai)
+
+summary(base_evasao)
 
 ### 1.2 df Evasão Filtrado ####
 # Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1
@@ -279,13 +298,14 @@ base_evasao_filtrada <- base_evasao %>%
 base_evasao_filtrada <- base_evasao_filtrada %>%
   select( 
     id_individuo,Ano, Trimestre, faixa_idade_14_24, ensino_medio_dummie, residencia_unipessoal,
-    rede_publica, renda_per_capta_menor_706, RDPC, região, educacao_mae, educacao_pai, evasão,
+    rede_publica, VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
     everything()
   )
 
 ## Removendo observações onde V20082 é igual a 9999
 base_evasao_filtrada <- base_evasao_filtrada %>%
   filter(V20082 != 9999) # V20082: Ano de nascimento
+summary(base_evasao_filtrada)
 
 ######################## 2. BASE ABANDONO ########################
 
@@ -400,7 +420,7 @@ evasao_publico_potencial <- publico_potencial %>%
 evasao_em_publico <- em_publico %>%
   group_by(V3006) %>%  # Agrupar por série
   summarise(
-    evasao_total = sum(evasão, na.rm = TRUE),  # Soma das evasões
+    evasao_total = sum(evasao, na.rm = TRUE),  # Soma das evasões
     total_alunos = n(),                        # Total de alunos
     taxa_evasao = evasao_total / total_alunos  # Taxa de evasão
   )
@@ -410,7 +430,7 @@ evasao_em_publico <- em_publico %>%
 evasao_publico_alvo <- beneficiários_pdm %>%
   group_by(V3006) %>%  # Agrupar por série
   summarise(
-    evasao_total = sum(evasão, na.rm = TRUE),  # Soma das evasões
+    evasao_total = sum(evasao, na.rm = TRUE),  # Soma das evasões
     total_alunos = n(),                        # Total de alunos
     taxa_evasao = evasao_total / total_alunos  # Taxa de evasão
   )
@@ -418,7 +438,7 @@ evasao_publico_alvo <- beneficiários_pdm %>%
 ######################## 5. MODELO DE EVASÃO ########################
 ## 5.1 Logit em painel, público potencial ####
 modelo_logit_simples <- plm(
-  evasão ~ região + educacao_mae + educacao_pai+ V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai+ V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001,
   data = publico_pontencial,
   model = 'pooling'  # Modelo de dados agrupados (sem efeitos fixos ou aleatórios)
@@ -426,7 +446,7 @@ modelo_logit_simples <- plm(
 
 ## 5.2 Logit em painel, efeito fixo, público pontecial ####
 modelo_logit_potencial <- feglm(
-  evasão ~ região + educacao_mae + educacao_pai + V1022 + V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai + V1022 + V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001 | id_individuo,
   data = publico_pontencial,
   family = binomial(link = 'logit')
@@ -435,7 +455,7 @@ modelo_logit_potencial <- feglm(
 
 ## 5.3 Logit em painel, efeito fixo, público potencial ####
 modelo_logit_em_publico <- plm(
-  evasão ~ região + educacao_mae + educacao_pai+ V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai+ V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001,
   data = em_publico_painel,
   model = 'pooling'  # Modelo pooling (sem efeitos fixos ou aleatórios)
@@ -443,7 +463,7 @@ modelo_logit_em_publico <- plm(
 
 ## 5.4 Logit em painel, efeito fixo, público pontecial ####
 modelo_logit_em_publico <- feglm(
-  evasão ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001 | id_individuo,
   data = em_publico,
   family = binomial(link = 'logit')
@@ -452,7 +472,7 @@ modelo_logit_em_publico <- feglm(
 
 ## 5.5 Logit em painel, efeito fixo, público pontecial ####
 modelo_logit_publico_alvo <- plm(
-  evasão ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001,
   data = beneficiarios_pdm_painel,
   model = 'pooling'  # Modelo pooling (sem efeitos fixos ou aleatórios)
@@ -460,7 +480,7 @@ modelo_logit_publico_alvo <- plm(
 
 ## 5.6 Logit em painel, efeito fixo, público alvo ####
 modelo_logit_publico_alvo <- feglm(
-  evasão ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
+  evasao ~ região + educacao_mae + educacao_pai + V2001 + V2007 + V2009 + V2010 + 
     VD2004 + VD3004 + RDPC + V3001 | id_individuo,
   data = beneficiários_pdm,
   family = binomial(link = 'logit')
