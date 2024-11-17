@@ -78,6 +78,9 @@ load_install('stargazer') # Tabelas de resultados
 anos <- c(2022, 2023)     
 trimestres <- c(1, 2)
 
+ano_inicial <- min(anos)
+n_anos <- length(unique(anos))
+
 ### 0.5 Dados PNADc ####
 # AVISO: Verifique o nome do arquivo e altere-o, se for o caso
 df <- file.path(local, 'dados_pnad_2022-2023.rds')
@@ -189,11 +192,17 @@ base_evasao <- base_evasao %>%
 # VD2004: Condição de ocupação do domicílio
 base_evasao <- base_evasao %>%
   mutate(
-    faixa_idade_14_24 = ifelse(V2009 >= 14 & V2009 <= 24, 1, 0), 
-    ensino_medio_eja_pub = ifelse(V3002A == 'Rede Pública' & V3003A %in% c('Regular do ensino médio', 
-                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), 
-    residencia_unipessoal = ifelse(VD2004 == 'Unipessoal', 1, 0)
+    # Critério unificado para Geral e EJA
+    ensino_medio_eja_pub = ifelse(
+      (V2009 >= 14 & V2009 <= 24 & 
+         V3002A == 'Rede pública' & 
+         V3003A == 'Regular do ensino médio') |
+        (V2009 >= 19 & V2009 <= 24 & 
+           V3002A == 'Rede pública' & 
+           V3003A == 'Educação de jovens e adultos (EJA) do ensino médio'),
+      1, 0
     )
+  ) # (?) Considerar "NA's" como 0?
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_evasao <- base_evasao %>%
@@ -211,7 +220,6 @@ base_evasao <- base_evasao %>%
   ) %>%
   ungroup()
 base_evasao$RDPC <- round(base_evasao$RDPC, 0)
-
 
 ## *Criar dummy renda per capita < 1/2 Sal. Mín. ####
 # Função salários mínimos
@@ -240,7 +248,6 @@ base_evasao <- base_evasao %>%
   mutate(
     RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) 
   )
-
 
 ## *Adicionar a coluna de região ####
 base_evasao <- base_evasao %>%
@@ -289,16 +296,16 @@ summary(base_evasao)
 base_evasao_filtrada <- base_evasao %>%
   group_by(id_individuo) %>%
   filter(
-    any(Ano == 2022 & Trimestre == 1) & any(Ano == 2023 & Trimestre == 1) |
-      any(Ano == 2023 & Trimestre == 1) & any(Ano == 2024 & Trimestre == 1)
+    any(Ano == ano_inicial & Trimestre == 1) &
+      any(Ano == ano_inicial + n_anos - 1 & Trimestre == 1)
   ) %>%
-  ungroup() # (!) Mudar para ficar recursiva/dinâmica, de acordo com ano e trimestre (!)
+  ungroup()
 
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_evasao_filtrada <- base_evasao_filtrada %>%
   select( 
-    id_individuo,Ano, Trimestre, faixa_idade_14_24, ensino_medio_dummie, residencia_unipessoal,
-    rede_publica, VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
+    id_individuo,Ano, Trimestre, faixa_idade_14_24, ensino_medio_eja_pub, residencia_unipessoal,
+    VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
     everything()
   )
 
