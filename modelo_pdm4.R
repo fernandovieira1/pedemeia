@@ -338,9 +338,20 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_evasao_filtrada <- base_evasao_filtrada %>%
   select( 
-    id_individuo,Ano, Trimestre, ensino_medio_eja_pub,
-    VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
-    salario_minimo, everything()
+    id_individuo,
+    Ano, 
+    Trimestre, 
+    ensino_medio_eja_pub,
+    VD4020, # Rendimento mensal todos os trabalhos
+    RD, 
+    RDPC, 
+    RDPC_menor_meio_sm, 
+    regiao, 
+    educacao_mae, 
+    educacao_pai, 
+    evasao,
+    salario_minimo, 
+    everything()
   )
 
 summary(base_evasao)
@@ -506,9 +517,20 @@ table(base_abandono$abandono)
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_abandono_filtrada <- base_abandono %>%
   select( 
-    id_individuo,Ano, Trimestre, ensino_medio_eja_pub,
-    VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
-    salario_minimo, everything()
+    id_individuo,
+    Ano, 
+    Trimestre, 
+    ensino_medio_eja_pub,
+    VD4020, # Rendimento mensal todos os trabalhos
+    RD, 
+    RDPC, 
+    RDPC_menor_meio_sm, 
+    regiao, 
+    educacao_mae, 
+    educacao_pai, 
+    abandono,
+    salario_minimo, 
+    everything()
   )
 
 ## Removendo observações onde V20082 é igual a 9999
@@ -518,29 +540,64 @@ base_abandono_filtrada <- base_abandono_filtrada %>%
 summary(base_abandono_filtrada)
 
 ######################## 3. TAMANHO DO PROBLEMA ########################
-### 3.1 Públicos ####
-## *Potencial ####
-# Público potencial (14-24 anos, RDPC < 706)
-publico_potencial <- base_abandono_filtrada %>%
+# * Define os dataframes (dfs) utilizados nos modelos econométricos
+# * SUFIXOS utilizados em cada nome de variável (df)
+#     - ev: evasão
+#     - ab: abandono
+
+### 3.1 Público potencial ####
+# Público potencial (14-24 anos, RDPC < meio sm)
+
+## *Evasão ####
+publico_potencial_ev <- base_evasao_filtrada %>%
   filter(
-    V2009 >= 14 & V2009 <= 24 & RDPC < salario_minimo/2
+    V2009 >= 14 & V2009 <= 24 &             # Faixa etária de 14 a 24 anos
+      RDPC < salario_minimo/2               # Renda per capita menor que 1/2 sm
   )
 
-## *Pública EM ####
+## *Abandono ####
+publico_potencial_ab <- base_abandono_filtrada %>%
+  filter(
+    V2009 >= 14 & V2009 <= 24 &             # Faixa etária de 14 a 24 anos
+      RDPC < salario_minimo/2               # Renda per capita menor que 1/2 sm
+  )
+
+## 3.2 Pública EM ####
 # Público EM público (Rede pública, 14-24 anos)
-em_publico <- base_abandono_filtrada %>%
+
+## *Evasão ####
+em_publico_ev <- base_evasao_filtrada %>%
   filter(
-    V3002A == 'Rede pública' & V2009 >= 14 & V2009 <= 24 
+    V3002A == 'Rede pública' &              # Tipo da escola: Escola pública
+      V2009 >= 14 & V2009 <= 24             # Faixa etária de 14 a 24 anos
   )
 
-## *Público PDM ####
-# (Rede pública, Ensino médio regular, RDPC < 706)
-beneficiários_pdm <- base_abandono_filtrada %>%
+## *Abandono ####
+em_publico_ab <- base_abandono_filtrada %>%
   filter(
-    V2009 >= 14 & V2009 <= 24 &          # Faixa etária de 14 a 24 anos
-      V3002A == 'Rede pública' &           # Escola pública
+    V3002A == 'Rede pública' &              # Tipo da escola: Escola pública
+      V2009 >= 14 & V2009 <= 24             # Faixa etária de 14 a 24 anos
+  )
+
+## 3.3 Público PDM ####
+# (Rede pública, Ensino médio regular, RDPC < meio sm)
+
+## *Evasão ####
+beneficiarios_pdm_ev <- base_evasao_filtrada %>%
+  filter(
+    V2009 >= 14 & V2009 <= 24 &             # Faixa etária de 14 a 24 anos
+      V3002A == 'Rede pública' &            # Tipo da escola: Escola pública
       V3003A == 'Regular do ensino médio' & # Ensino médio regular
-      RDPC < 706                           # Renda per capita menor que 706 reais
+      RDPC < salario_minimo/2               # Renda per capita menor que 1/2 sm
+  )
+
+## *Abandono ####
+beneficiarios_pdm <- base_evasao_filtrada %>%
+  filter(
+    V2009 >= 14 & V2009 <= 24 &             # Faixa etária de 14 a 24 anos
+      V3002A == 'Rede pública' &            # Tipo da escola: Escola pública
+      V3003A == 'Regular do ensino médio' & # Ensino médio regular
+      RDPC < salario_minimo/2               # Renda per capita menor que 1/2 sm
   )
 
 ######################## 4. EVASÃO POR SÉRIE ########################
