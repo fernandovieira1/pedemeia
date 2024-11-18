@@ -597,7 +597,7 @@ names(base_evasao_filtrada)
 # VD4020                   : Rendimento mensal todos os trabalhos
 # RD
 # RDPC \x\
-# RDPC_menor_meio_sm \x\
+# RDPC_menor_meio_sm \x\ 
 # salario_minimo
 
 ### 3.2 Tratar categóricas ####
