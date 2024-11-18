@@ -43,6 +43,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 # ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
 
 ### 0.2 Local de trabalho ####
+# AVISO: Verifique o caminho do arquivo e altere-o, se for o caso
 local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
 ### 0.3 Bibliotecas ####
@@ -75,7 +76,7 @@ load_install('stargazer') # Tabelas de resultados
 
 ### 0.4 Definir anos e trimestres ####
 # AVISO: Pode especificar um ou mais (anos ou trimestres)
-anos <- c(2022, 2023)     
+anos <- c(2022, 2023, 2024)     
 trimestres <- c(1, 2)
 
 ano_inicial <- min(anos)
@@ -281,31 +282,61 @@ base_evasao %>%
   select(educacao_mae, educacao_pai) %>%
   summary()
 
-## *Criar a dummie de evasão ####
-base_evasao <- base_evasao %>%
-  mutate(
-    evasao = ifelse(
-      lag(V3002) == 'Sim' & V3002 == 'Não' & lag(Ano) == Ano, # V3002: Frequenta escola ou creche?
-      1,
-      0
-    )
-  )
-
-# Remover as colunas auxiliares usadas para identificar pais e mães
-base_evasao <- base_evasao %>%  
-  select(-is_mae, -is_pai)
-
 summary(base_evasao)
 
+## *Organizar em ordem ascendente por id, ano e trimestre ####
+base_evasao <- base_evasao %>% arrange(id_individuo, Ano, Trimestre)
+
+## *Criar a dummie de evasão ####
+base_evasao <- base_evasao %>%
+  # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
+  mutate(
+    Trimestre = as.integer(Trimestre),
+    Ano = as.integer(Ano),
+    V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
+  ) %>%
+  # Filtrar apenas indivíduos com mais de uma entrada
+  group_by(id_individuo) %>%
+  filter(n() > 1) %>%
+  # Ordenar os dados por Ano e Trimestre dentro de cada indivíduo
+  arrange(Ano, Trimestre, .by_group = TRUE) %>%
+  # Criar a dummy de evasão
+  mutate(
+    evasao = ifelse(
+      # Condição principal: Matriculado no 1º trimestre do ano T, mas não aparece no 1º trimestre do ano T+1
+      Trimestre == 1 & V3003A == 'Regular do ensino médio' &
+        !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
+            dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
+            dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio'),
+      1,  # Marca como evasão
+      0   # Caso contrário, não há evasão
+    )
+  ) %>%
+  # Remover o agrupamento
+  ungroup()
+
+summary(base_evasao$evasao)
+table(base_evasao$evasao)
+prop.table(round(table(base_evasao$evasao)))
+# O % de evasão escolar pode ser visto aqui
+
 ### 1.2 df Evasão Filtrado ####
-# Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1
+# - Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1,
+# considerando indivíduos com continuidade de presença em dois anos consecutivos no mesmo 
+# trimestre (1º Trimestre).
 base_evasao_filtrada <- base_evasao %>%
   group_by(id_individuo) %>%
   filter(
-    any(Ano == ano_inicial & Trimestre == 1) &
-      any(Ano == ano_inicial + n_anos - 1 & Trimestre == 1)
+    any(map_lgl(map2(anos[-length(anos)], anos[-1], ~ c(.x, .y)), ~ {
+      any(Ano == .x[1] & Trimestre == 1) &
+        any(Ano == .x[2] & Trimestre == 1)
+    }))
   ) %>%
   ungroup()
+
+## Removendo observações onde V20082 é igual a 9999
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  filter(V20082 != 9999) # V20082: Ano de nascimento
 
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_evasao_filtrada <- base_evasao_filtrada %>%
@@ -315,12 +346,7 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     everything()
   )
 
-## Removendo observações onde V20082 é igual a 9999
-base_evasao_filtrada <- base_evasao_filtrada %>%
-  filter(V20082 != 9999) # V20082: Ano de nascimento
-summary(base_evasao_filtrada)
-
-# PAREI AQUI
+summary(base_evasao)
 
 ######################## 2. BASE ABANDONO ########################
 
