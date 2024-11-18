@@ -316,11 +316,6 @@ base_evasao <- base_evasao %>%
   # Remover o agrupamento
   ungroup()
 
-summary(base_evasao$evasao)
-table(base_evasao$evasao)
-prop.table(round(table(base_evasao$evasao)))
-# O percentual de evasão escolar pode ser visto aqui
-
 ### 1.2 df Evasão Filtrado ####
 # - Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1,
 # considerando indivíduos com continuidade de presença em dois anos consecutivos no mesmo 
@@ -349,12 +344,115 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
   )
 
 summary(base_evasao)
-
-## PAREI AQUI
+table(base_evasao$evasao)
+prop.table(round(table(base_evasao$evasao)))
+# O percentual de evasão escolar pode ser visto aqui
 
 ######################## 2. BASE ABANDONO ########################
 
-### 2.1 df Abandono ####
+### 2.1 base_abandono (DF) ####
+# Abandono compara 1 e 2 tri, 2 e 3 tri, 3 e 4 tri, e 4 e 5 tri.
+base_abandono <- base_evasao %>%
+  # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
+  mutate(
+    Trimestre = as.integer(Trimestre),
+    Ano = as.integer(Ano),
+    V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
+  ) 
+
+## *Criar Coluna id_individuo ####
+base_abandono <- base_abandono %>%
+  mutate(
+    id_individuo = paste0(UPA, '_', # Unidade Primária de Amostragem
+                          V1008, '_', # Nr. de diferenciação de domicílios na mesma UPA
+                          V1014, '_', # Domicílios que permanecem na amostra da PNAD
+                          V2003, '_', # Nr. de ordem (de registro na pnad) do morador no domicílio
+                          V2008, '_', # Dia de nascimento
+                          V20081, '_', # Mês de nascimento
+                          V20082) # Ano de nascimento
+  )
+
+## *Ordenar por id_individuo, ano e trimestre ####
+base_abandono <- base_abandono %>%
+  arrange(id_individuo, Ano, Trimestre)
+
+## *Critérios Pé-de-Meia ####
+# V2009: Idade
+# V3003A: qual curso frequenta
+# VD2004: Condição de ocupação do domicílio
+base_abandono <- base_abandono %>%
+  mutate(
+    # Critério unificado para Geral e EJA
+    ensino_medio_eja_pub = ifelse(
+      (V2009 >= 14 & V2009 <= 24 & 
+         V3002A == 'Rede pública' & 
+         V3003A == 'Regular do ensino médio') |
+        (V2009 >= 19 & V2009 <= 24 & 
+           V3002A == 'Rede pública' & 
+           V3003A == 'Educação de jovens e adultos (EJA) do ensino médio'),
+      1, 0
+    )
+  ) # (?) Considerar 'NA's' como 0?
+
+## *Calcular RD (Renda Domiciliar) #####
+base_abandono <- base_abandono %>%
+  group_by(ID_DOMICILIO) %>%
+  mutate(
+    RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
+  ) %>%
+  ungroup()
+
+## *Calcular RDPC (Renda Domiciliar Per Capita) ####
+base_abandono <- base_abandono %>%
+  group_by(ID_DOMICILIO) %>%
+  mutate(
+    RDPC = RD/V2001, # V2001: Qtde residentes no domicílio
+  ) %>%
+  ungroup()
+base_abandono$RDPC <- round(base_abandono$RDPC, 0)
+
+# Criar a variável dummy
+base_abandono <- base_abandono %>%
+  mutate(
+    salario_minimo = sal_min(Ano),
+    RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) 
+  )
+
+## *Adicionar a coluna de região ####
+base_abandono <- base_abandono %>%
+  mutate(
+    regiao = case_when(
+      substr(UPA, start = 1, stop = 1) == '1' ~ 'Norte',
+      substr(UPA, start = 1, stop = 1) == '2' ~ 'Nordeste',
+      substr(UPA, start = 1, stop = 1) == '3' ~ 'Sudeste',
+      substr(UPA, start = 1, stop = 1) == '4' ~ 'Sul',
+      substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
+      TRUE ~ NA_character_
+    ))
+table(base_abandono$regiao)
+prop.table(table(base_abandono$regiao))
+
+## *Identificar a educação da mãe e do pai ####
+# V2007: Sexo
+# VD2002: Condição no domicílio (01: Condição no domicílio; 02: Cônjuge ou companheiro(a); 06: Pai, mãe, padrasto ou madrasta)
+# VD3005: Grau de instrução (ensino fund. com 9 anos)
+base_abandono <- base_abandono %>%
+  group_by(ID_DOMICILIO) %>%  # Substitua ID_DOMICILIO pelo identificador do grupo familiar, se for diferente
+  mutate(
+    is_mae = as.numeric(V2007) == 2 & as.numeric(VD2002) %in% c(1, 2, 6),
+    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA),
+    is_pai = as.numeric(V2007) == 1 & as.numeric(VD2002) %in% c(1, 2, 6),
+    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA)
+  ) %>%
+  ungroup()
+
+base_abandono %>%
+  select(educacao_mae, educacao_pai) %>%
+  summary()
+
+summary(base_abandono)
+
+## *Criar a dummie de abandono ####
 base_abandono <- base_evasao %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
@@ -394,62 +492,22 @@ base_abandono <- base_evasao %>%
   # Remover o agrupamento
   ungroup()
 
-base_abandono <- base_abandono %>%
-  # Criar a coluna id_individuo
-  mutate(
-    id_individuo = paste0(UPA, '_', V1008, '_', V1014, '_', V2003, '_', V2008, '_', V20081, '_', V20082)
-  ) %>%
-  # Organizar a base pelos identificadores e trimestres
-  arrange(id_individuo, Ano, Trimestre) %>%
-  # Adicionar as outras colunas e variáveis necessárias
-  mutate(
-    faixa_idade_14_24 = ifelse(V2009 >= 14 & V2009 <= 24, 1, 0), # V2009: Idade
-    # ensino_medio_dummie = ifelse(V3003A == 'Regular do ensino médio', 1, 0), # V3003A: qual curso frequenta
-    ensino_medio_dummie = ifelse(V3003A %in% c('Regular do ensino médio', 
-                                               'Educação de jovens e adultos (EJA) do ensino médio'), 1, 0), # Mudei aqui para incluir EJA
-    residencia_unipessoal = ifelse(VD2004 == 'Unipessoal', 1, 0), # VD2004: Condição de ocupação do domicílio
-    rede_publica = ifelse(V3002A == 'Rede pública', 1, 0), # V3002A: Rede de ensino
-    
-    # Calcular RDPC (Renda Domiciliar Per Capita)
-    RD = sum(VD4020, na.rm = TRUE),          # Rendimento domiciliar total
-    V2001R = ifelse(!is.na(V2001), V2001[1], NA),  # nr. de residentes no domicílio
-    RDPC = RD / V2001R,                      # Renda domiciliar per capita
-    
-    # Criar a dummy para renda per capita menor que 706
-    renda_per_capta_menor_706 = ifelse(RDPC < 706, 1, 0),
-    
-    # Adicionar a coluna de região
-    regiao = case_when(
-      substr(UPA, start = 1, stop = 1) == '1' ~ 'Norte',
-      substr(UPA, start = 1, stop = 1) == '2' ~ 'Nordeste',
-      substr(UPA, start = 1, stop = 1) == '3' ~ 'Sudeste',
-      substr(UPA, start = 1, stop = 1) == '4' ~ 'Sul',
-      substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
-      TRUE ~ NA_character_
-    ),
-    
-    # Identificar a educação da mãe e do pai
-    is_mae = (as.numeric(V2007) == 2 & (as.numeric(VD2002) %in% c(1, 2, 6))),
-    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA),
-    is_pai = (as.numeric(V2007) == 1 & (as.numeric(VD2002) %in% c(1, 2, 6))),
-    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA),
-    
-    # Criar a dummie de abandono: matriculado no trimestre anterior e não matriculado no trimestre atual
-    abandono = ifelse(
-      lag(V3002) == 'Sim' & V3002 == 'Não' & lag(Ano) == Ano,
-      1,
-      0
-    )
-  ) %>%
-  # Remover as colunas auxiliares usadas para identificar pais e mães
-  select(-is_mae, -is_pai)
+print('Taxa de abandono:') 
+prop.table(round(table(base_abandono$abandono)))
+
+print('Taxa de evasão:') 
+prop.table(round(table(base_evasao$evasao)))
+# O percentual de abandono escolar pode ser visto aqui
+
+summary(base_abandono$abandono)
+table(base_abandono$abandono)
 
 ### 2.2 df Abandono Filtrado ####
 # Reorganizando as colunas para trazer as novas variáveis para o começo
 base_abandono_filtrada <- base_abandono %>%
   select( 
-    id_individuo,Ano, Trimestre, faixa_idade_14_24, ensino_medio_dummie, residencia_unipessoal,
-    rede_publica, renda_per_capta_menor_706, RDPC, regiao, educacao_mae, educacao_pai, abandono,
+    id_individuo,Ano, Trimestre, ensino_medio_eja_pub,
+    VD4020, RD, RDPC, RDPC_menor_meio_sm, regiao, educacao_mae, educacao_pai, evasao,
     salario_minimo, everything()
   )
 
