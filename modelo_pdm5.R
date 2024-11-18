@@ -354,10 +354,12 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     everything()
   )
 
-summary(base_evasao)
-table(base_evasao$evasao)
-prop.table(round(table(base_evasao$evasao)))
+table(base_evasao_filtrada$evasao)
+prop.table(round(table(base_evasao_filtrada$evasao)))
 # O percentual de evasão escolar pode ser visto aqui
+
+summary(base_evasao_filtrada)
+str(base_evasao_filtrada)
 
 ######################## 2. BASE ABANDONO ########################
 
@@ -537,4 +539,96 @@ base_abandono_filtrada <- base_abandono %>%
 base_abandono_filtrada <- base_abandono_filtrada %>%
   filter(V20082 != 9999)
 
+table(base_abandono_filtrada$abandono)
+prop.table(round(table(base_abandono_filtrada$abandono)))
+# O percentual de abandono escolar pode ser visto aqui
+
 summary(base_abandono_filtrada)
+str(base_abandono_filtrada)
+
+######################## 3. MODELOS EVASÃO ########################
+head(base_evasao_filtrada)
+
+### 3.1 Logit Evasão - inicial ####
+names(base_evasao_filtrada)
+
+## *Y = Evasão ####
+# evasao
+
+## *Identificação ####
+# id_individuo
+# ID_DOMICILIO
+# UPA
+# Ano
+# Trimestre
+# regiao \x\
+# V1008 \x\    : Nr. de seleção do domicílio (1 a 14)
+
+## *Domicílio ####
+# VD2002 \x\               : Condição/Parentesco no domicílio (responsável, cônjuge, filho, etc.)
+# VD2004 \x\               : Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
+
+## *Família ####
+# V2001 \x\                : Tamanho da família (nr. de pessoas no domicílio)
+# V2003                    : Ordem do morador na família
+# V2007 \x\                : Sexo do morador
+# V2008                    : Dia de nascimento do morador
+# V20081                   : Mês de nascimento do morador
+# V20082                   : Ano de nascimento do morador
+# V2009                    : Idade do morador
+# V2010 \x\                : Cor ou raça do morador
+# VD2003 \x\               : Nr. de componentes/moradores
+# educacao_mae \x\
+# educacao_pai
+
+## *Educação ####
+# V3002                    : Frequenta escola?
+# V3002A                   : Tipo de escola (pública, privada, etc.)
+# V3003A                   : Curso atual ou série frequentada
+# V3006                    : Ano ou série que frequentava anteriormente
+# V3009A                   : Maior escolaridade atual do morador
+# VD3005 \x\               : Anos de estudo completos do morador
+# ensino_medio_eja_pub \x\
+
+## *Trabalho e Renda ####
+# VD4016                   : Rendimento mensal habitual (R$)
+# VD4017                   : Rendimento mensal efetivo (R$)
+# VD4019                   : Rendimento mensal habitual (R$) (apenas 1º trimestre)
+# VD4020                   : Rendimento mensal todos os trabalhos
+# RD
+# RDPC \x\
+# RDPC_menor_meio_sm \x\
+# salario_minimo
+
+### 3.2 Tratar categóricas ####
+# Considerando todas as variáveis explicativas escolhidas \x\
+
+## *Variáveis categóricas ####
+categoricas <- c('regiao', 'V1008', 'VD2002', 'VD2004', 'V2007', 'V2010', 'VD3005')
+
+## *Número de categorias únicas ####
+# Ver se alguma possui menos de 2 níveis
+sapply(base_evasao_filtrada[categoricas], function(x) length(unique(x))) 
+
+## *Configuar categóricas como factor ####
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  mutate(across(all_of(categoricas), ~ as.factor(.)))
+
+### 3.3 Logit Evasão - completo ####
+# Considerando todas as variáveis explicativas escolhidas \x\
+modelo_inicial <- glm(evasao ~ regiao + V1008 + 
+                        VD2002 + VD2004 + 
+                        V2001 + V2007 + V2010 + VD2003 + educacao_mae + 
+                        VD3005 + ensino_medio_eja_pub +
+                        RDPC + RDPC_menor_meio_sm,
+                      family = binomial(link = 'probit'), 
+                      data = base_evasao_filtrada,
+                      na.action = na.omit)
+summary(modelo_inicial)
+
+### 3.4 Logit Evasão - inicial ####
+# Considerando apenas as variáveis explicativas mais relevantes \x\
+modelo_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
+                       educacao_mae + V2010, 
+                     family = binomial(link = 'probit'), data = base_evasao_filtrada)
+summary(modelo_inicial)

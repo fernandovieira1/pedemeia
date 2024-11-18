@@ -153,7 +153,7 @@ variaveis_interesse <- c(
   'VD4016',  # Rendimento mensal habitual (R$)
   'VD4017',  # Rendimento mensal efetivo (R$)
   'VD4019',  # Rendimento mensal habitual (R$) (apenas 1º trimestre)
-  'VD4020'  # Rendimento mensal todos os trabalhos
+  'VD4020'   # Rendimento mensal todos os trabalhos
 )
 
 ## *publico_alvo_filtrado (DF) #### 
