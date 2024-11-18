@@ -4,7 +4,7 @@ gc()
 library(PNADcIBGE) # Dados PNADc
 library(tidyverse) # Manipulação do df e Gráficos
 
-anos <- c(2015, 2023)     # Pode especificar um ou mais anos
+anos <- c(2015, 2016)     # Pode especificar um ou mais anos
 trimestres <- c(1, 2, 3, 4) # Pode especificar um ou mais trimestres
 
 ## Função para carregar dados de múltiplos anos e trimestres
@@ -43,6 +43,17 @@ carregar_pnadc_multiplos <- function(anos, trimestres) {
 }
 
 ## Importar dados
-dados_pnad <- carregar_pnadc_multiplos(anos, trimestres)
-table(dados_pnad$Ano)
-table(dados_pnad$Trimestre)
+dados_pnad_1516 <- carregar_pnadc_multiplos(anos, trimestres)
+table(dados_pnad_1516$Ano)
+table(dados_pnad_1516$Trimestre)
+
+saveRDS(dados_pnad_1516, "C:\\Users\\ferna\\OneDrive\\Desktop OneDrive\\dfs_pnadc\\dados_pnad_1516.rds")
+
+## Importar dados
+rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
+gc()
+
+anos <- c(2017, 2018) 
+dados_pnad_1718 <- carregar_pnadc_multiplos(anos, trimestres)
+table(dados_pnad_1718$Ano)
+table(dados_pnad_1718$Trimestre)

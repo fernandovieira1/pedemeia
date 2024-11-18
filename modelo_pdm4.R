@@ -334,6 +334,7 @@ base_evasao_filtrada <- base_evasao %>%
     }))
   ) %>%
   ungroup()
+base_evasao_filtrada
 
 ## Removendo observações onde V20082 é igual a 9999
 base_evasao_filtrada <- base_evasao_filtrada %>%
