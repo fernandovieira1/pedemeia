@@ -592,7 +592,7 @@ beneficiarios_pdm_ev <- base_evasao_filtrada %>%
   )
 
 ## *Abandono ####
-beneficiarios_pdm <- base_evasao_filtrada %>%
+beneficiarios_pdm_ab <- base_abandono_filtrada %>%
   filter(
     V2009 >= 14 & V2009 <= 24 &             # Faixa etária de 14 a 24 anos
       V3002A == 'Rede pública' &            # Tipo da escola: Escola pública
@@ -600,10 +600,13 @@ beneficiarios_pdm <- base_evasao_filtrada %>%
       RDPC < salario_minimo/2               # Renda per capita menor que 1/2 sm
   )
 
-######################## 4. EVASÃO POR SÉRIE ########################
-## *Público potencial ####
+######################## 4. PUB. POTENCIAL / EM PÚBLICO / PÚBLICO PDM ########################
+
+## 4.1 Público potencial ####
 # Calcular a evasão por série para o público potencial
-evasao_publico_potencial <- publico_potencial %>%
+
+## *Evasão ####
+evasao_publico_potencial <- publico_potencial_ev %>%
   group_by(V3006) %>%  # Agrupar por série
   summarise(
     evasao_total = sum(evasao, na.rm = TRUE),  # Soma das evasões
@@ -611,9 +614,20 @@ evasao_publico_potencial <- publico_potencial %>%
     taxa_evasao = evasao_total / total_alunos  # Taxa de evasão
   )
 
-## *Público EM ####
-# Calcular a evasão por série para o público EM público
-evasao_em_publico <- em_publico %>%
+## *Abandono ####
+abandono_publico_potencial <- publico_potencial_ab %>%
+  group_by(V3006) %>%  # Agrupar por série
+  summarise(
+    abandono_total = sum(abandono, na.rm = TRUE),  # Soma dos abandonos
+    total_alunos = n(),                            # Total de alunos
+    taxa_abandono = abandono_total / total_alunos  # Taxa de abandon
+  )
+
+## 4.2 EM Público ####
+# Calcular a evasão por série para o público ensino médio (EM) público.
+
+## *Evasão ####
+evasao_em_publico <- em_publico_ev %>%
   group_by(V3006) %>%  # Agrupar por série
   summarise(
     evasao_total = sum(evasao, na.rm = TRUE),  # Soma das evasões
@@ -621,14 +635,34 @@ evasao_em_publico <- em_publico %>%
     taxa_evasao = evasao_total / total_alunos  # Taxa de evasão
   )
 
-## *Público PDM ####
+## *Abandono ####
+abandono_em_publico <- em_publico_ab %>%
+  group_by(V3006) %>%  # Agrupar por série
+  summarise(
+    abandono_total = sum(abandono, na.rm = TRUE),  # Soma dos abandonos
+    total_alunos = n(),                        # Total de alunos
+    taxa_abandono = abandono_total / total_alunos  # Taxa de abandono
+  )
+
+## 4.3 Público PDM ####
 # Calcular a evasão por série para os beneficiários PDM
-evasao_publico_alvo <- beneficiários_pdm %>%
+
+## *Evasão ####
+evasao_publico_alvo <- beneficiarios_pdm_ev %>%
   group_by(V3006) %>%  # Agrupar por série
   summarise(
     evasao_total = sum(evasao, na.rm = TRUE),  # Soma das evasões
     total_alunos = n(),                        # Total de alunos
     taxa_evasao = evasao_total / total_alunos  # Taxa de evasão
+  )
+
+## *Abandono ####
+abandono_publico_alvo <- beneficiarios_pdm_ab %>%
+  group_by(V3006) %>%  # Agrupar por série
+  summarise(
+    abandono_total = sum(abandono, na.rm = TRUE),  # Soma das evasões
+    total_alunos = n(),                        # Total de alunos
+    taxa_abandono = abandono_total / total_alunos  # Taxa de evasão
   )
 
 ######################## 5. MODELO DE EVASÃO ########################
@@ -681,3 +715,5 @@ modelo_logit_publico_alvo <- feglm(
   data = beneficiários_pdm,
   family = binomial(link = 'logit')
 )
+
+######################## 6. MODELOS DE ABANDONO ########################
