@@ -549,7 +549,7 @@ str(base_abandono_filtrada)
 ######################## 3. MODELOS EVASÃO ########################
 head(base_evasao_filtrada)
 
-### 3.1 Logit Evasão - inicial ####
+### 3.1 Probit Evasão - inicial ####
 names(base_evasao_filtrada)
 
 ## *Y = Evasão ####
@@ -614,7 +614,7 @@ sapply(base_evasao_filtrada[categoricas], function(x) length(unique(x)))
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(across(all_of(categoricas), ~ as.factor(.)))
 
-### 3.3 Logit Evasão - completo ####
+### 3.3 Probit Evasão - completo ####
 # Considerando todas as variáveis explicativas escolhidas \x\
 modelo_inicial <- glm(evasao ~ regiao + V1008 + 
                         VD2002 + VD2004 + 
@@ -626,7 +626,7 @@ modelo_inicial <- glm(evasao ~ regiao + V1008 +
                       na.action = na.omit)
 summary(modelo_inicial)
 
-### 3.4 Logit Evasão - inicial ####
+### 3.4 Probit Evasão - inicial ####
 # Considerando apenas as variáveis explicativas mais relevantes \x\
 modelo_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
                        educacao_mae + V2010, 
