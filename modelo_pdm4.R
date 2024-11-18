@@ -56,22 +56,22 @@ load_install <- function(pacote) {
 }
 
 { ## Manipulação de dados 
-load_install('PNADcIBGE') # Dados PNADc
-load_install('survey') # Estratificação e Clusterização de dados - cálculo dos pesos
-load_install('convey') # Cálculo de medidas de desigualdade
-load_install('tidyverse') # Manipulação do df e Gráficos
-load_install('janitor') # Limpeza de dados
-load_install('scales')  # Formatação de gráficos
-
-## Modelos econométricos
-load_install('fixest') # Estimação de modelos fixos
-load_install('lme4') # Estimação de modelos mistos
-load_install('plm') # Estimação de modelos de painel
-load_install('glmnet') # Regularização de modelos
-
-## Visualização de dados
-load_install('gt')  # Criar Tabelas
-load_install('stargazer') # Tabelas de resultados
+  load_install('PNADcIBGE') # Dados PNADc
+  load_install('survey') # Estratificação e Clusterização de dados - cálculo dos pesos
+  load_install('convey') # Cálculo de medidas de desigualdade
+  load_install('tidyverse') # Manipulação do df e Gráficos
+  load_install('janitor') # Limpeza de dados
+  load_install('scales')  # Formatação de gráficos
+  
+  ## Modelos econométricos
+  load_install('fixest') # Estimação de modelos fixos
+  load_install('lme4') # Estimação de modelos mistos
+  load_install('plm') # Estimação de modelos de painel
+  load_install('glmnet') # Regularização de modelos
+  
+  ## Visualização de dados
+  load_install('gt')  # Criar Tabelas
+  load_install('stargazer') # Tabelas de resultados
 }
 
 ### 0.4 Definir anos e trimestres ####
@@ -210,7 +210,7 @@ base_evasao <- base_evasao %>%
   group_by(ID_DOMICILIO) %>%
   mutate(
     RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
-    ) %>%
+  ) %>%
   ungroup()
 
 ## *Calcular RDPC (Renda Domiciliar Per Capita) ####
@@ -264,7 +264,7 @@ base_evasao <- base_evasao %>%
     ))
 table(base_evasao$regiao)
 prop.table(table(base_evasao$regiao))
-    
+
 ## *Identificar a educação da mãe e do pai ####
 # V2007: Sexo
 # VD2002: Condição no domicílio (01: Condição no domicílio; 02: Cônjuge ou companheiro(a); 06: Pai, mãe, padrasto ou madrasta)
@@ -348,6 +348,8 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
   )
 
 summary(base_evasao)
+
+## PAREI AQUI
 
 ######################## 2. BASE ABANDONO ########################
 
