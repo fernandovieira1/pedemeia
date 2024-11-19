@@ -550,7 +550,7 @@ str(base_abandono_filtrada)
 head(base_evasao_filtrada)
 
 ### 3.1 Probit Evasão - inicial ####
-names(base_evasao_filtrada)
+str(base_evasao_filtrada)
 
 ## *Y = Evasão ####
 # evasao
@@ -616,7 +616,7 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
 
 ### 3.3 Probit Evasão - completo ####
 # Considerando todas as variáveis explicativas escolhidas \x\
-modelo_inicial <- glm(evasao ~ regiao + V1008 + 
+probit_completo <- glm(evasao ~ regiao + V1008 + 
                         VD2002 + VD2004 + 
                         V2001 + V2007 + V2010 + VD2003 + educacao_mae + 
                         VD3005 + ensino_medio_eja_pub +
@@ -624,11 +624,20 @@ modelo_inicial <- glm(evasao ~ regiao + V1008 +
                       family = binomial(link = 'probit'), 
                       data = base_evasao_filtrada,
                       na.action = na.omit)
-summary(modelo_inicial)
+summary(probit_completo)
 
 ### 3.4 Probit Evasão - inicial ####
 # Considerando apenas as variáveis explicativas mais relevantes \x\
-modelo_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
+probit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
                        educacao_mae + V2010, 
-                     family = binomial(link = 'probit'), data = base_evasao_filtrada)
-summary(modelo_inicial)
+                     family = binomial(link = 'probit'), 
+                     data = base_evasao_filtrada)
+summary(probit_inicial)
+
+### 3.5 Logit Evasão - inicial ####
+# Considerando apenas as variáveis explicativas mais relevantes \x\
+logit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
+                        educacao_mae + V2010, 
+                      family = binomial(link = 'logit'), 
+                      data = base_evasao_filtrada)
+summary(logit_inicial)
