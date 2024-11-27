@@ -177,6 +177,10 @@ variaveis_interesse <- c(
 publico_alvo_filtrado <- dados_pnad %>%
   select(all_of(variaveis_interesse))
 
+## Remover df dados_pnad 
+# liberar RAM
+rm(dados_pnad)
+
 ######################## 1. BASE EVASÃO ########################
 
 ### 1.1 base_evasao (DF) ####
@@ -355,7 +359,7 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     id_individuo,
     Ano, 
     Trimestre, 
-    ensino_medio_eja_pub,
+    ensino_medio,
     VD4020, # Rendimento mensal todos os trabalhos
     RD, 
     RDPC, 
@@ -386,6 +390,10 @@ base_abandono <- base_evasao %>%
     Ano = as.integer(Ano),
     V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
   ) 
+
+## Remover base_evasao
+# liberar RAM
+rm(base_evasao)
 
 ## *Criar Coluna id_individuo ####
 base_abandono <- base_abandono %>%
