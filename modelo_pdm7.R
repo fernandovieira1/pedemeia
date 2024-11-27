@@ -98,23 +98,6 @@ nrow(dados_pnad)
 table(dados_pnad$Ano)
 table(dados_pnad$Trimestre)
 
-## *dados_pnad (DF) ####
-# Filtrar ano(s) e trimestre(s) de interesse
-# Verificar se deu certo
-if (!is.null(dados_pnad)) {
-  dados_pnad <- as.data.frame(dados_pnad)
-  
-  dados_pnad <- dados_pnad %>%
-    filter(Ano %in% anos & Trimestre %in% trimestres)
-  
-} else {
-  warning('Os dados não foram carregados corretamente.')
-}
-
-nrow(dados_pnad)
-table(dados_pnad$Ano)
-table(dados_pnad$Trimestre)
-
 ## 0.6 Variáveis interesse ####
 variaveis_interesse <- c(
   
@@ -172,10 +155,35 @@ variaveis_interesse <- c(
   'VD4019'   # Rendimento de todos os trabalhos (confirmar se é isso mesmo)
 )
 
+## *dados_pnad - Variáveis de interesse ####
+dados_pnad <- dados_pnad %>%
+  select(all_of(variaveis_interesse))
+
+## *dados_pnad (DF) - Filtrar períodos ####
+# Filtrar ano(s) e trimestre(s) de interesse
+# Verificar se deu certo
+if (!is.null(dados_pnad)) {
+  dados_pnad <- as.data.frame(dados_pnad)
+  
+  dados_pnad <- dados_pnad %>%
+    filter(Ano %in% anos & Trimestre %in% trimestres)
+  
+} else {
+  warning('Os dados não foram carregados corretamente.')
+}
+
+nrow(dados_pnad)
+table(dados_pnad$Ano)
+table(dados_pnad$Trimestre)
+
+
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
-publico_alvo_filtrado <- dados_pnad %>%
-  select(all_of(variaveis_interesse))
+publico_alvo_filtrado <- dados_pnad 
+
+nrow(publico_alvo_filtrado)
+table(publico_alvo_filtrado$Ano)
+table(publico_alvo_filtrado$Trimestre)
 
 ## Remover df dados_pnad 
 # liberar RAM
@@ -372,28 +380,26 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     everything()
   )
 
+summary(base_evasao_filtrada)
+str(base_evasao_filtrada)
+table(base_evasao_filtrada$Ano)
+table(base_evasao_filtrada$Trimestre)
+
 table(base_evasao_filtrada$evasao)
 prop.table(round(table(base_evasao_filtrada$evasao)))
 # O percentual de evasão escolar pode ser visto aqui
-
-summary(base_evasao_filtrada)
-str(base_evasao_filtrada)
 
 ######################## 2. BASE ABANDONO ########################
 
 ### 2.1 base_abandono (DF) ####
 # Abandono compara 1 e 2 tri, 2 e 3 tri, 3 e 4 tri, e 4 e 5 tri.
-base_abandono <- base_evasao %>%
+base_abandono <- publico_alvo_filtrado %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
     Trimestre = as.integer(Trimestre),
     Ano = as.integer(Ano),
     V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
   ) 
-
-## Remover base_evasao
-# liberar RAM
-rm(base_evasao)
 
 ## *Criar Coluna id_individuo ####
 base_abandono <- base_abandono %>%
@@ -417,17 +423,15 @@ base_abandono <- base_abandono %>%
 # VD2004: Condição de ocupação do domicílio
 base_abandono <- base_abandono %>%
   mutate(
-    # Critério unificado para Geral e EJA
-    ensino_medio_eja_pub = ifelse(
+    # Critério unificado para Geral
+    ensino_medio = ifelse(
       (V2009 >= 14 & V2009 <= 24 & 
          V3002A == 'Rede pública' & 
-         V3003A == 'Regular do ensino médio') |
-        (V2009 >= 19 & V2009 <= 24 & 
-           V3002A == 'Rede pública' & 
-           V3003A == 'Educação de jovens e adultos (EJA) do ensino médio'),
+         V3003A == 'Regular do ensino médio'),
       1, 0
     )
   ) # (?) Considerar 'NA's' como 0?
+# EJA retirado em modelo_pdm7 / inserir depois
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_abandono <- base_abandono %>%
@@ -488,8 +492,8 @@ base_abandono %>%
 summary(base_abandono)
 
 ## *Criar a dummy de abandono ####
-base_abandono <- base_evasao %>%
-  # Transformar 'Trimestre', 'Ano' e 'V3003A' (Qual é o curso que ... frequenta?) para os tipos adequados
+base_abandono <- base_abandono %>%
+  # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
     Trimestre = as.integer(Trimestre),
     Ano = as.integer(Ano),
@@ -502,30 +506,29 @@ base_abandono <- base_evasao %>%
   arrange(Ano, Trimestre, .by_group = TRUE) %>%
   # Criar a dummy de abandono
   mutate(
-    abandono = ifelse(
+    abandono = case_when(
       # Condição 1: Entre T1 e T2 do mesmo ano
-      (Trimestre == 1 & V3003A == 'Regular do ensino médio' &
-         !(dplyr::lead(Trimestre, default = NA_integer_) == 2 &
-             dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
-        # Condição 2: Entre T2 e T3 do mesmo ano
-        (Trimestre == 2 & V3003A == 'Regular do ensino médio' &
-           !(dplyr::lead(Trimestre, default = NA_integer_) == 3 &
-               dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
-        # Condição 3: Entre T3 e T4 do mesmo ano
-        (Trimestre == 3 & V3003A == 'Regular do ensino médio' &
-           !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
-               dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
-        # Condição 4: Entre T4 do ano T e T1 do ano T+1
-        (Trimestre == 4 & V3003A == 'Regular do ensino médio' &
-           !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
-               dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
-               dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')),
-      1,  # Marca como abandono
-      0   # Caso contrário, não há abandono
+      Trimestre == 1 & V3003A == 'Regular do ensino médio' &
+        !(dplyr::lead(Trimestre) == 2 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
+      # Condição 2: Entre T2 e T3 do mesmo ano
+      Trimestre == 2 & V3003A == 'Regular do ensino médio' &
+        !(dplyr::lead(Trimestre) == 3 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
+      # Condição 3: Entre T3 e T4 do mesmo ano
+      Trimestre == 3 & V3003A == 'Regular do ensino médio' &
+        !(dplyr::lead(Trimestre) == 4 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
+      # Condição 4: Entre T4 e T1 do próximo ano
+      Trimestre == 4 & V3003A == 'Regular do ensino médio' &
+        !(dplyr::lead(Ano) == Ano + 1 & dplyr::lead(Trimestre) == 1 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
+      # Caso contrário, não há abandono
+      TRUE ~ 0
     )
   ) %>%
   # Remover o agrupamento
   ungroup()
+
+table(base_abandono$Ano)
+table(base_abandono$Trimestre)
+
 
 print('Taxa de abandono:') 
 prop.table(round(table(base_abandono$abandono)))
@@ -544,7 +547,7 @@ base_abandono_filtrada <- base_abandono %>%
     id_individuo,
     Ano, 
     Trimestre, 
-    ensino_medio_eja_pub,
+    ensino_medio,
     VD4020, # Rendimento mensal todos os trabalhos
     RD, 
     RDPC, 
