@@ -42,8 +42,12 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 # ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
 
 ### 0.2 Local de trabalho ####
-# AVISO: Verifique o caminho do arquivo e altere-o, se for o caso
+# AVISO: Verifique abaixo o caminho do arquivo e altere-o, se for o caso
+
+## Windows
 # local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
+
+## Ubuntu
 local <- '~/Insync/fernandovieira1@outlook.com/OneDrive/1. Educacao/2. Academia/3. DOUTORADO/USP - Economia Aplicada/MATERIAS/Eco II - Daniel/Desafio Eco II - Pe de Meia/BDs Pe de Meia'
 
 ### 0.3 Bibliotecas ####
@@ -83,7 +87,8 @@ ano_inicial <- min(anos)
 n_anos <- length(unique(anos))
 
 ### 0.5 Dados PNADc ####
-# AVISO: Verifique o nome do arquivo e altere-o, se for o caso
+# AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
+# AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: https://1drv.ms/f/s!AqlEsL9Wt3_5kvASEz8uIW1-ZxyB4g
 df <- file.path(local, 'dados_pnad_2022-2023.rds')
 
 ## *df (DF)  ####
@@ -175,7 +180,6 @@ if (!is.null(dados_pnad)) {
 nrow(dados_pnad)
 table(dados_pnad$Ano)
 table(dados_pnad$Trimestre)
-
 
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
@@ -309,8 +313,6 @@ base_evasao %>%
   select(educacao_mae, educacao_pai) %>%
   summary()
 
-summary(base_evasao)
-
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
 base_evasao <- base_evasao %>% arrange(id_individuo, Ano, Trimestre)
 
@@ -355,7 +357,6 @@ base_evasao_filtrada <- base_evasao %>%
     }))
   ) %>%
   ungroup()
-base_evasao_filtrada
 
 ## Removendo observações onde V20082 é igual a 9999
 base_evasao_filtrada <- base_evasao_filtrada %>%
@@ -387,12 +388,12 @@ table(base_evasao_filtrada$Trimestre)
 
 table(base_evasao_filtrada$evasao)
 prop.table(round(table(base_evasao_filtrada$evasao)))
-# O percentual de evasão escolar pode ser visto aqui
+# O percentual de evasão escolar (=1) pode ser visto aqui
 
 ######################## 2. BASE ABANDONO ########################
 
 ### 2.1 base_abandono (DF) ####
-# Abandono compara 1 e 2 tri, 2 e 3 tri, 3 e 4 tri, e 4 e 5 tri.
+# Abandono compara 1 e 2 tri, 2 e 3 tri, 3 e 4 tri.
 base_abandono <- publico_alvo_filtrado %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
@@ -450,7 +451,7 @@ base_abandono <- base_abandono %>%
   ungroup()
 base_abandono$RDPC <- round(base_abandono$RDPC, 0)
 
-# Criar a variável dummy
+# Criar a variável dummy sm
 base_abandono <- base_abandono %>%
   mutate(
     salario_minimo = sal_min(Ano),
@@ -485,12 +486,6 @@ base_abandono <- base_abandono %>%
   ) %>%
   ungroup()
 
-base_abandono %>%
-  select(educacao_mae, educacao_pai) %>%
-  summary()
-
-summary(base_abandono)
-
 ## *Criar a dummy de abandono ####
 base_abandono <- base_abandono %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
@@ -499,46 +494,62 @@ base_abandono <- base_abandono %>%
     Ano = as.integer(Ano),
     V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
   ) %>%
-  # Filtrar apenas indivíduos com mais de uma entrada
+  # Filtrar apenas indivíduos com mais de uma entrada válida
   group_by(id_individuo) %>%
-  filter(n() > 1) %>%
+  filter(n_distinct(Trimestre) > 1) %>%
   # Ordenar os dados por Ano e Trimestre dentro de cada indivíduo
   arrange(Ano, Trimestre, .by_group = TRUE) %>%
   # Criar a dummy de abandono
   mutate(
-    abandono = case_when(
-      # Condição 1: Entre T1 e T2 do mesmo ano
-      Trimestre == 1 & V3003A == 'Regular do ensino médio' &
-        !(dplyr::lead(Trimestre) == 2 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
-      # Condição 2: Entre T2 e T3 do mesmo ano
-      Trimestre == 2 & V3003A == 'Regular do ensino médio' &
-        !(dplyr::lead(Trimestre) == 3 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
-      # Condição 3: Entre T3 e T4 do mesmo ano
-      Trimestre == 3 & V3003A == 'Regular do ensino médio' &
-        !(dplyr::lead(Trimestre) == 4 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
-      # Condição 4: Entre T4 e T1 do próximo ano
-      Trimestre == 4 & V3003A == 'Regular do ensino médio' &
-        !(dplyr::lead(Ano) == Ano + 1 & dplyr::lead(Trimestre) == 1 & dplyr::lead(V3003A) == 'Regular do ensino médio') ~ 1,
-      # Caso contrário, não há abandono
-      TRUE ~ 0
+    abandono = ifelse(
+      # Apenas considerar trimestres 2, 3 e 4 para cálculo de abandono
+      Trimestre > 1 & (
+        # Condição 1: Entre T1 e T2 do mesmo ano
+        (Trimestre == 2 & V3003A == 'Regular do ensino médio' &
+           !(dplyr::lead(Trimestre, default = NA_integer_) == 3 &
+               dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
+          # Condição 2: Entre T2 e T3 do mesmo ano
+          (Trimestre == 3 & V3003A == 'Regular do ensino médio' &
+             !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
+                 dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
+          # Condição 3: Entre T3 e T4 do mesmo ano
+          (Trimestre == 4 & V3003A == 'Regular do ensino médio' &
+             !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
+                 dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
+                 dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio'))
+      ),
+      1,  # Marca como abandono
+      0   # Caso contrário, não há abandono
     )
   ) %>%
   # Remover o agrupamento
   ungroup()
+# Obs.: demora o processamento aqui
+
+## Verificar abandono por trimestre
+cat('Distribuição por trimestre e abandono:\n')
+base_abandono %>%
+  filter(!is.na(abandono)) %>%  
+  count(Trimestre, abandono) %>%
+  pivot_wider(
+    names_from = abandono,
+    values_from = n,
+    names_prefix = 'Absoluto_'
+  ) %>%
+  mutate(
+    Absoluto_0 = replace_na(Absoluto_0, 0),  
+    Absoluto_1 = replace_na(Absoluto_1, 0),
+    Relativo_1 = round((Absoluto_1 / (Absoluto_0 + Absoluto_1)) * 100, 5)  
+  ) %>%
+  select(Trimestre, Absoluto_0, Absoluto_1, Relativo_1) %>% 
+  arrange(Trimestre)
+
+## Verificar taxa de abandono
+cat('\nTaxa de abandono (4 trimestres):\n')
+print(prop.table(table(base_abandono$abandono)))
 
 table(base_abandono$Ano)
 table(base_abandono$Trimestre)
-
-
-print('Taxa de abandono:') 
-prop.table(round(table(base_abandono$abandono)))
-
-print('Taxa de evasão:') 
-prop.table(round(table(base_evasao$evasao)))
-# O percentual de abandono escolar pode ser visto aqui
-
-summary(base_abandono$abandono)
-table(base_abandono$abandono)
 
 ### 2.2 df Abandono Filtrado ####
 # Reorganizando as colunas para trazer as novas variáveis para o começo
@@ -566,103 +577,19 @@ base_abandono_filtrada <- base_abandono_filtrada %>%
 
 table(base_abandono_filtrada$abandono)
 prop.table(round(table(base_abandono_filtrada$abandono)))
-# O percentual de abandono escolar pode ser visto aqui
+# O percentual de abandono escolar (todos os períodos) pode ser visto aqui
 
-summary(base_abandono_filtrada)
-str(base_abandono_filtrada)
-
-######################## 3. MODELOS EVASÃO ########################
+######################## 3. MODELOS - BASE EVASÃO ########################
 head(base_evasao_filtrada)
-
-### 3.1 Probit Evasão - inicial ####
 str(base_evasao_filtrada)
+names(base_evasao_filtrada)
 
-## *Y = Evasão ####
-# evasao
 
-## *Identificação ####
-# id_individuo
-# ID_DOMICILIO
-# UPA
-# Ano
-# Trimestre
-# regiao \x\
-# V1008 \x\    : Nr. de seleção do domicílio (1 a 14)
 
-## *Domicílio ####
-# VD2002 \x\               : Condição/Parentesco no domicílio (responsável, cônjuge, filho, etc.)
-# VD2004 \x\               : Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
 
-## *Família ####
-# V2001 \x\                : Tamanho da família (nr. de pessoas no domicílio)
-# V2003                    : Ordem do morador na família
-# V2007 \x\                : Sexo do morador
-# V2008                    : Dia de nascimento do morador
-# V20081                   : Mês de nascimento do morador
-# V20082                   : Ano de nascimento do morador
-# V2009                    : Idade do morador
-# V2010 \x\                : Cor ou raça do morador
-# VD2003 \x\               : Nr. de componentes/moradores
-# educacao_mae \x\
-# educacao_pai
 
-## *Educação ####
-# V3002                    : Frequenta escola?
-# V3002A                   : Tipo de escola (pública, privada, etc.)
-# V3003A                   : Curso atual ou série frequentada
-# V3006                    : Ano ou série que frequentava anteriormente
-# V3009A                   : Maior escolaridade atual do morador
-# VD3005 \x\               : Anos de estudo completos do morador
-# ensino_medio_eja_pub \x\
 
-## *Trabalho e Renda ####
-# VD4016                   : Rendimento mensal habitual (R$)
-# VD4017                   : Rendimento mensal efetivo (R$)
-# VD4019                   : Rendimento mensal habitual (R$) (apenas 1º trimestre)
-# VD4020                   : Rendimento mensal todos os trabalhos
-# RD
-# RDPC \x\
-# RDPC_menor_meio_sm \x\ 
-# salario_minimo
-
-### 3.2 Tratar categóricas ####
-# Considerando todas as variáveis explicativas escolhidas \x\
-
-## *Variáveis categóricas ####
-categoricas <- c('regiao', 'V1008', 'VD2002', 'VD2004', 'V2007', 'V2010', 'VD3005')
-
-## *Número de categorias únicas ####
-# Ver se alguma possui menos de 2 níveis
-sapply(base_evasao_filtrada[categoricas], function(x) length(unique(x))) 
-
-## *Configuar categóricas como factor ####
-base_evasao_filtrada <- base_evasao_filtrada %>%
-  mutate(across(all_of(categoricas), ~ as.factor(.)))
-
-### 3.3 Probit Evasão - completo ####
-# Considerando todas as variáveis explicativas escolhidas \x\
-probit_completo <- glm(evasao ~ regiao + V1008 + 
-                         VD2002 + VD2004 + 
-                         V2001 + V2007 + V2010 + VD2003 + educacao_mae + 
-                         VD3005 + ensino_medio_eja_pub +
-                         RDPC + RDPC_menor_meio_sm,
-                       family = binomial(link = 'probit'), 
-                       data = base_evasao_filtrada,
-                       na.action = na.omit)
-summary(probit_completo)
-
-### 3.4 Probit Evasão - inicial ####
-# Considerando apenas as variáveis explicativas mais relevantes \x\
-probit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
-                        educacao_mae + V2010, 
-                      family = binomial(link = 'probit'), 
-                      data = base_evasao_filtrada)
-summary(probit_inicial)
-
-### 3.5 Logit Evasão - inicial ####
-# Considerando apenas as variáveis explicativas mais relevantes \x\
-logit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
-                       educacao_mae + V2010, 
-                     family = binomial(link = 'logit'), 
-                     data = base_evasao_filtrada)
-summary(logit_inicial)
+######################## 4. MODELOS - BASE ABANDONO ########################
+head(base_abandono_filtrada)
+str(base_abandono_filtrada)
+names(base_abandono_filtrada)
