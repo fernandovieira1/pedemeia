@@ -45,10 +45,10 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 # AVISO: Verifique abaixo o caminho do arquivo e altere-o, se for o caso
 
 ## Windows
-# local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
+local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
 ## Ubuntu
-local <- '~/Insync/fernandovieira1@outlook.com/OneDrive/1. Educacao/2. Academia/3. DOUTORADO/USP - Economia Aplicada/MATERIAS/Eco II - Daniel/Desafio Eco II - Pe de Meia/BDs Pe de Meia'
+# local <- '~/Insync/fernandovieira1@outlook.com/OneDrive/1. Educacao/2. Academia/3. DOUTORADO/USP - Economia Aplicada/MATERIAS/Eco II - Daniel/Desafio Eco II - Pe de Meia/BDs Pe de Meia'
 
 ### 0.3 Bibliotecas ####
 ## Função para instalar e carregar pacotes

@@ -619,16 +619,17 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
 probit_completo <- glm(evasao ~ regiao + V1008 + 
                          VD2002 + VD2004 + 
                          V2001 + V2007 + V2010 + VD2003 + educacao_mae + 
-                         VD3005 + ensino_medio_eja_pub +
+                         VD3005 + ensino_medio +
                          RDPC + RDPC_menor_meio_sm,
                        family = binomial(link = 'probit'), 
                        data = base_evasao_filtrada,
                        na.action = na.omit)
 summary(probit_completo)
+# Retirar renda do próprio indivíduo
 
 ### 3.4 Probit Evasão - inicial ####
 # Considerando apenas as variáveis explicativas mais relevantes \x\
-probit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
+probit_inicial <- glm(evasao ~ RDPC_menor_meio_sm + ensino_medio + 
                         educacao_mae + V2010, 
                       family = binomial(link = 'probit'), 
                       data = base_evasao_filtrada)
@@ -636,7 +637,7 @@ summary(probit_inicial)
 
 ### 3.5 Logit Evasão - inicial ####
 # Considerando apenas as variáveis explicativas mais relevantes \x\
-logit_inicial <- glm(evasao ~ RDPC + ensino_medio_eja_pub + 
+logit_inicial <- glm(evasao ~ RDPC + ensino_medio + 
                        educacao_mae + V2010, 
                      family = binomial(link = 'logit'), 
                      data = base_evasao_filtrada)
