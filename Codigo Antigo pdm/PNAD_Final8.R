@@ -1,6 +1,6 @@
 ### DADOS PNAD -- Análise exploratória
-## Autores: Fernando, Helena, Rafaela, Curti e Ivy
-# Código Curti: https://github.com/freitascurti/desafio-pe-de-meia/blob/main/probit
+## Autores: Fernando, Helena e Rafaela
+cat('\014')
 rm(list=ls(all=TRUE)) # Comentar se não quiser limpar a memória RAM
 
 #### 0. CONFIGURAR AMBIENTE ####
@@ -156,13 +156,13 @@ carregar_pnadc <- function(anos, trimestres) {
 # Preparar para expandir a amostra (pnad) para a população (pesos)
 
 ### 1.1 Definir ano e trimestres ####
-anos <- c(2022) # 2024 não funciona
-trimestres <- c(1)
+anos <- c(2022, 2023) # 2024 não funciona
+trimestres <- c(1, 2, 3, 4)
 
 ### 1.2 df prinicipal (pnad) ####
 pnad <- as_tibble(carregar_pnadc(anos, trimestres))
 
-9+6
+
 ### 1.3 Criar/Tranformar variáveis ####
 ## Regiões brasileiras
 pnad <-  transform(pnad, GR = as.factor(ifelse(substr(UPA, start = 1, stop = 1) == '1','Norte',

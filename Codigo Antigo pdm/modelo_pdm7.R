@@ -183,7 +183,7 @@ table(dados_pnad$Trimestre)
 
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
-publico_alvo_filtrado <- dados_pnad 
+publico_alvo_filtrado <- dados_pnad  # Apenas mudei o nome pelo código legado de outras versões.
 
 nrow(publico_alvo_filtrado)
 table(publico_alvo_filtrado$Ano)
@@ -314,7 +314,8 @@ base_evasao %>%
   summary()
 
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
-base_evasao <- base_evasao %>% arrange(id_individuo, Ano, Trimestre)
+base_evasao <- base_evasao %>% 
+  arrange(id_individuo, Ano, Trimestre)
 
 ## *Criar a dummy de evasão ####
 base_evasao <- base_evasao %>%
