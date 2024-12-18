@@ -1,5 +1,4 @@
 ### VALIDAÇÃO AED - Validação e Ajustes ###
-# Não é necessário rodar este script, pois ele é apenas para validação e ajustes
 
 # Validar colunas carregadas
 expected_cols <- c('ID_DOMICILIO', 'UPA', 'V1008', 'V1014', 'V2003', 'V2009', 'V3003A', 'VD4020')
