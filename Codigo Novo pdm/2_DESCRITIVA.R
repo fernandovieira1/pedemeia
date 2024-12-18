@@ -582,6 +582,22 @@ tabela_rdpc %>%
   filter(!is.na(Evasao)) %>%
   filter(Evasao == 1)
 
+# Gerar a tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_rdpc_clean,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Faixas de RDPC (Sem NAs e Ajustadas pelo Salário Mínimo)',  # Título
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = "\n")
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
+
 #### 1.6 RDPC POR REGIÃO ####
 ## 1.6.1 Resumo Descritivo do RDPC por Região** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
