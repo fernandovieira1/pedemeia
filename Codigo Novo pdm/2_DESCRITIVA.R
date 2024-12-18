@@ -98,6 +98,24 @@ stargazer(tabela_cor_raca, type = 'text', summary = FALSE,
           title = 'Proporção de Evasão por Cor/Raça',
           digits = 2)
 
+tabela_cor_raca %>%
+  filter(Evasao == 1)
+
+# Gerar tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_cor_raca,
+  type = 'html',
+  summary = FALSE,
+  title = 'Proporção de Evasão por Cor/Raça',
+  digits = 2
+)
+
+# Converter para um único texto HTML
+html_output <- paste(tabela_html, collapse = "\n")
+
+# Renderizar no Viewer
+htmltools::html_print(HTML(html_output))
+
 
 ## 1.2.2 Gráfico Inicial: Proporção de Evasão por Cor/Raça ####
 ggplot(base_evasao_filtrada, aes(x = V2010, fill = as.factor(evasao))) +
@@ -108,6 +126,7 @@ ggplot(base_evasao_filtrada, aes(x = V2010, fill = as.factor(evasao))) +
        y = 'Proporção (%)',
        fill = 'Evasão (1=Sim)') +
   theme_minimal()
+
 
 ## 1.2.3 Filtragem de Valores Válidos ####
 # Filtrar apenas idades válidas e garantir que evasao não tenha NAs
@@ -168,6 +187,26 @@ tabela_cor_raca_df_clean <- tabela_cor_raca_df %>%
 stargazer(tabela_cor_raca_df_clean, type = 'text', summary = FALSE,
           title = 'Proporção de Evasão por Cor/Raça (Sem NAs)',
           digits = 2)
+
+tabela_cor_raca_df %>%
+  filter(Cor_Raca != 'Ignorado' & !is.na(Cor_Raca)) %>%
+  filter(evasao == 1)
+
+# Gerar a tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_cor_raca_df_clean,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Cor/Raça (Sem NAs)',  # Título
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = "\n")
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
 
 ## 1.3 SEXO ####
 # 1.3.1 Resumo Descritivo de Sexo ####
@@ -268,6 +307,25 @@ stargazer(tabela_sexo_clean, type = 'text', summary = FALSE,
           title = 'Proporção de Evasão por Sexo (Recalculada para cada Sexo)',
           digits = 2)
 
+tabela_sexo_clean %>%
+  filter(Evasao == 1)
+
+# Gerar a tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_sexo_clean,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Sexo (Recalculada para cada Sexo)',  # Título
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = "\n")
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
+
 #### 1.4 REGIÃO ####
 ## 1.4.1 Resumo Descritivo da Região** ####
 # Resumo estatístico: Contagem e proporção de evasão por região
@@ -359,6 +417,26 @@ print(tabela_regiao_clean)
 stargazer(tabela_regiao_clean, type = 'text', summary = FALSE,
           title = 'Proporção de Evasão por Região (Sem NAs em Evasao)',
           digits = 2)
+
+tabela_regiao %>%
+  filter(!is.na(Evasao)) %>%
+  filter(Evasao == 1)
+
+# Gerar a tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_regiao_clean,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Região (Sem NAs em Evasao)',  # Título
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = "\n")
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
 
 #### 1.5 RDPC ####
 ## 1.5.1 Resumo Descritivo do RDPC** ####

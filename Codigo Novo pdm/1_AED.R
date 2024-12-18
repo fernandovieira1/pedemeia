@@ -76,6 +76,7 @@
     ## Visualização de dados
     load_install('gt')  # Criar Tabelas
     load_install('stargazer') # Tabelas de resultados
+    load_install('htmltools') # 
   }
   
   ### 0.4 Definir anos e trimestres ####
