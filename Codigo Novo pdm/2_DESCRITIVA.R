@@ -49,8 +49,7 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
        fill = 'Evasão (1=Sim)') +
   theme_minimal()
 
-
-## 1.1.4 Gráfico Filtrado: Idades Válidas (14-24 Anos) ####
+## 1.1.4 Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
 inicio <- min(anos)
 fim <- max(anos)
@@ -81,7 +80,7 @@ ggplot(base_evasao_percentual, aes(x = as.factor(V2009), y = Contagem, fill = as
   theme_minimal()
 
 #### 1.2 COR ####
-## 1.2.1 Resumo Descritivo da Cor/Raça ####
+## 1.2.1 Resumo Descritivo da Cor/Raça** ####
 # Resumo estatístico: Contagem e proporção de evasão por cor/raça
 tabela_cor_raca <- base_evasao_filtrada %>%
   group_by(V2010, evasao) %>%
@@ -120,7 +119,7 @@ base_evasao_filtrada_validos <- base_evasao_filtrada %>%
 base_evasao_filtrada_validos <- base_evasao_filtrada_validos %>%
   mutate(Cor_Raca = as.character(V2010))
 
-## 1.2.4 Gráfico com Percentuais no Topo ####
+## 1.2.4 Gráfico com Percentuais no Topo** ####
 # Obter os valores mínimo e máximo da variável 'anos'
 inicio <- min(anos)
 fim <- max(anos)
@@ -153,7 +152,7 @@ ggplot(base_evasao_percentual, aes(x = Cor_Raca, y = Contagem, fill = as.factor(
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Melhor visualização
 
-## 1.2.5 Exportação Final da Tabela ####
+## 1.2.5 Exportação Final da Tabela** ####
 # Criar uma tabela consolidada e filtrar valores válidos (remover 'Ignorado' e NAs)
 tabela_cor_raca_df <- base_evasao_filtrada_validos %>%
   group_by(Cor_Raca, evasao) %>%
@@ -225,7 +224,7 @@ ggplot(base_evasao_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.facto
   theme_minimal()
 
 
-## 1.3.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.3.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
 inicio <- min(anos)
 fim <- max(anos)
@@ -270,7 +269,7 @@ stargazer(tabela_sexo_clean, type = 'text', summary = FALSE,
           digits = 2)
 
 #### 1.4 REGIÃO ####
-## 1.4.1 Resumo Descritivo da Região ####
+## 1.4.1 Resumo Descritivo da Região** ####
 # Resumo estatístico: Contagem e proporção de evasão por região
 tabela_regiao <- base_evasao_filtrada %>%
   group_by(regiao, evasao) %>%
@@ -325,7 +324,7 @@ ggplot(base_evasao_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.fa
   theme_minimal()
 
 
-## 1.4.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.4.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar valores não nulos (NA) em regiao e evasao
 base_evasao_filtrada_validos <- base_evasao_filtrada %>%
   filter(!is.na(regiao) & !is.na(evasao))
@@ -348,7 +347,7 @@ ggplot(base_evasao_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.fa
        fill = 'Evasão (1=Sim)') +
   theme_minimal()
 
-## 1.4.5 Exportação Final da Tabela (Sem NAs em Evasao) ####
+## 1.4.5 Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Filtrar valores válidos (remover NAs da variável Evasao)
 tabela_regiao_clean <- tabela_regiao %>%
   filter(!is.na(Evasao))  # Remove NAs apenas da coluna Evasao
@@ -362,7 +361,7 @@ stargazer(tabela_regiao_clean, type = 'text', summary = FALSE,
           digits = 2)
 
 #### 1.5 RDPC ####
-## 1.5.1 Resumo Descritivo do RDPC ####
+## 1.5.1 Resumo Descritivo do RDPC** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -491,7 +490,7 @@ ggplot(tabela_rdpc_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(e
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.5.5 Exportação Final da Tabela (Sem NAs em Evasao) ####
+## 1.5.5 Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Filtrar tabela sem NAs em evasao
 tabela_rdpc_clean <- tabela_rdpc %>%
   filter(!is.na(Evasao))  # Remove NAs apenas da coluna evasao
@@ -506,7 +505,7 @@ tabela_rdpc %>%
   filter(Evasao == 1)
 
 #### 1.6 RDPC POR REGIÃO ####
-## 1.6.1 Resumo Descritivo do RDPC por Região ####
+## 1.6.1 Resumo Descritivo do RDPC por Região** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -595,7 +594,7 @@ ggplot(tabela_rdpc_regiao, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Ev
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.6.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.6.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Gráfico com percentuais no topo (sem NAs) por região, com texto rotacionado em 90 graus
 # Criar tabela filtrada sem valores NA em evasao
 tabela_rdpc_regiao_validos <- tabela_rdpc_regiao %>%
@@ -621,7 +620,7 @@ ggplot(tabela_rdpc_regiao_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.f
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.6.5 Exportação Final da Tabela (Sem NAs em Evasao) ####
+## 1.6.5 Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Filtrar tabela sem NAs em evasao e regiao
 tabela_rdpc_regiao_clean <- tabela_rdpc_regiao %>%
   filter(!is.na(Evasao) & !is.na(Regiao))  # Remove NAs
@@ -643,7 +642,7 @@ tabela_rdpc_regiao %>%
 
 
 #### 1.7 RDPC POR COR ####
-## 1.7.1 Resumo Descritivo do RDPC por Cor ####
+## 1.7.1 Resumo Descritivo do RDPC por Cor** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -732,7 +731,7 @@ ggplot(tabela_rdpc_cor, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evasa
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.7.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.7.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar apenas dados válidos (sem NAs em Evasao e V2010)
 base_evasao_filtrada_validos <- base_evasao_filtrada %>%
   filter(!is.na(evasao) & !is.na(V2010) & !is.na(RDPC))
@@ -778,7 +777,7 @@ ggplot(tabela_rdpc_cor_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.fact
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-## 1.7.5 Exportação Final da Tabela (Sem NAs em Evasao e Cor) ####
+## 1.7.5 Exportação Final da Tabela (Sem NAs em Evasao e Cor)** ####
 # Filtrar tabela sem NAs em evasao e V2010
 tabela_rdpc_cor_clean <- tabela_rdpc_cor %>%
   filter(!is.na(Evasao) & !is.na(Cor))  # Remove NAs
@@ -792,7 +791,7 @@ tabela_rdpc_cor %>%
   filter(!is.na(Evasao) & !is.na(Cor)) %>%
   filter(Evasao == 1)
 
-#### 1.8 RDPC POR SEXO ####
+#### 1.8 RDPC POR SEXO** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -876,7 +875,7 @@ ggplot(tabela_rdpc_sexo, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evas
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.8.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.8.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar dados válidos
 tabela_rdpc_sexo_validos <- tabela_rdpc_sexo %>%
   filter(!is.na(Evasao))
@@ -901,7 +900,7 @@ ggplot(tabela_rdpc_sexo_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.fac
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.8.5 Exportação Final da Tabela (Sem NAs em Evasao e Sexo) ####
+## 1.8.5 Exportação Final da Tabela (Sem NAs em Evasao e Sexo)** ####
 tabela_rdpc_sexo_clean <- tabela_rdpc_sexo %>%
   filter(!is.na(Evasao) & !is.na(Sexo))
 
@@ -915,7 +914,7 @@ tabela_rdpc_sexo_clean %>%
 
 
 #### 1.9 RDPC POR ENSINO MÉDIO ####
-## 1.9.1 Resumo Descritivo do RDPC por Ensino Médio ####
+## 1.9.1 Resumo Descritivo do RDPC por Ensino Médio** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -1028,7 +1027,7 @@ ggplot(tabela_rdpc_ensino_medio_validos, aes(x = Faixa_RDPC, y = Contagem, fill 
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.9.5 Exportação Final da Tabela (Sem NAs em Evasao e Ensino Médio) ####
+## 1.9.5 Exportação Final da Tabela (Sem NAs em Evasao e Ensino Médio)** ####
 tabela_rdpc_ensino_medio_clean <- tabela_rdpc_ensino_medio %>%
   filter(!is.na(Evasao) & !is.na(Ensino_Medio))
 
@@ -1042,7 +1041,7 @@ tabela_rdpc_ensino_medio %>%
   filter(Evasao == 1)
 
 #### 1.10 RDPC POR EVASÃO ####
-## 1.10.1 Resumo Descritivo do RDPC por Evasão ####
+## 1.10.1 Resumo Descritivo do RDPC por Evasão** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -1084,7 +1083,7 @@ stargazer(tabela_rdpc_evasao, type = 'text', summary = FALSE,
 tabela_rdpc_evasao %>% 
   filter(Evasao == 1)
 
-## 1.10.2 Gráfico Inicial: Proporção de Evasão por Faixas de RDPC ####
+## 1.10.2 Gráfico Inicial: Proporção de Evasão por Faixas de RDPC** ####
 # Gráfico inicial: proporção de evasão por faixas de RDPC
 ggplot(base_evasao_filtrada %>% # (ESTE!)
          mutate(
@@ -1110,7 +1109,7 @@ ggplot(base_evasao_filtrada %>% # (ESTE!)
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-## 1.10.3 Gráfico com Percentuais no Topo ####
+## 1.10.3 Gráfico com Percentuais no Topo** ####
 # Criar gráfico com os percentuais no topo das barras, segmentado por evasão
 ggplot(tabela_rdpc_evasao, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evasao))) + # (ESTE!)
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
@@ -1162,7 +1161,7 @@ stargazer(tabela_rdpc_evasao_validos, type = 'text', summary = FALSE,
 
 
 #### 1.11 RDPC POR EVASÃO E ENSINO MÉDIO ####
-## 1.11.1 Resumo Descritivo do RDPC por Evasão e Ensino Médio ####
+## 1.11.1 Resumo Descritivo do RDPC por Evasão e Ensino Médio** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -1213,7 +1212,7 @@ tabela_rdpc_evasao_ensino %>%
 ## 1.11.3 Gráfico com Percentuais no Topo ####
 # Não faz sentido
 
-## 1.11.4 Gráfico com Percentuais no Topo (Sem NAs) ####
+## 1.11.4 Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar tabela sem NAs em evasao e ensino médio
 tabela_rdpc_evasao_ensino_validos <- tabela_rdpc_evasao_ensino %>%
   filter(!is.na(Evasao) & !is.na(Ensino_Medio))
@@ -1252,7 +1251,7 @@ tabela_rdpc_evasao_ensino %>%
   filter(Evasao == 1)
 
 #### 1.11 Resumo Evasão ####
-## 1.11.1 Resumo Descritivo da Evasão ####
+## 1.11.1 Resumo Descritivo da Evasão** ####
 # Resumo descritivo da evasão
 tabela_evasao <- base_evasao_filtrada %>%
   group_by(evasao) %>%
@@ -1260,8 +1259,8 @@ tabela_evasao <- base_evasao_filtrada %>%
   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2))
 tabela_evasao
 
-## 1.11.2 Gráfico Inicial: Proporção de Evasão #### (ESTE!)
-# Gráfico inicial: proporção de evasão
+## 1.11.2 Gráfico Inicial: Proporção de Evasão** #### 
+# Gráfico inicial: proporção de evasão (ESTE!)
 ggplot(tabela_evasao, aes(x = '', y = Contagem, fill = as.factor(evasao))) +
   geom_bar(stat = 'identity', color = 'black') +
   geom_text(aes(label = paste0(Proporcao, '%')), vjust = -0.5, size = 5) +
@@ -1273,8 +1272,8 @@ ggplot(tabela_evasao, aes(x = '', y = Contagem, fill = as.factor(evasao))) +
   ) +
   theme_minimal()
 
-## 1.11.3 Exportação Final da Tabela (Sem NAs em Evasao) #### (ESTE!)
-# Exportar tabela limpa com stargazer
+## 1.11.3 Exportação Final da Tabela (Sem NAs em Evasao)** #### 
+# Exportar tabela limpa com stargazer (ESTE!)
 stargazer(tabela_evasao, type = 'text', summary = FALSE,
           title = 'Proporção de Evasão (Sem NAs)',
           digits = 2) 
