@@ -44,6 +44,10 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 ### 0.2 Local de trabalho ####
 # AVISO: Verifique abaixo o caminho do arquivo e altere-o, se for o caso
 
+## Listar os arquivos disponíveis
+# comentar/descomentar
+# dir(local)
+
 ## Windows
 local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
@@ -76,7 +80,7 @@ load_install <- function(pacote) {
   ## Visualização de dados
   load_install('gt')  # Criar Tabelas
   load_install('stargazer') # Tabelas de resultados
-  load_install('htmltools') # 
+  load_install('htmltools') # Exportar tabelas para HTML
 }
 
 ### 0.4 Definir anos e trimestres ####
@@ -191,7 +195,7 @@ table(publico_alvo_filtrado$Ano)
 table(publico_alvo_filtrado$Trimestre)
 
 ## Remover df dados_pnad 
-# liberar RAM
+# liberar RAM (COMENTAR OU DESCOMENTAR ABAIXO)
 # rm(dados_pnad)
 
 ######################## 1. BASE EVASÃO ########################
@@ -395,7 +399,7 @@ prop.table(round(table(base_evasao_filtrada$evasao)))
 ######################## 2. BASE ABANDONO ########################
 
 ### 2.1 base_abandono (DF) ####
-# Abandono compara 1 e 2 tri, 2 e 3 tri, 3 e 4 tri.
+# Abandono compara 1 com 2 tri, 2 com 3 tri, 3 com 4 tri.
 base_abandono <- publico_alvo_filtrado %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
