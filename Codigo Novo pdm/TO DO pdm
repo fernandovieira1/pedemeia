@@ -1,0 +1,38 @@
+PENDÊNCIAS - DESAFIO PDM
+=========================
+
+ETAPAS:
+
+
+1) AED
+--------
+      i) Definir variáveis (x)
+     ii) Definir novas variáveis (x)
+    iii) Construir Script - Base Evasão e Base Abandono (x)
+     iv) Testar o código (x)
+      v) Validar com Daniel (x)
+      
+2) DESCRITIVA
+----------------
+      i) Dados Empilhados - Base Evasão (x)
+     ii) Dados Longitudinais - Base Evasão ( )
+    iii) Motivos Evasão (variáveis prévias modelos) ( )
+    
+     iv) Dados Empilhados - Base Abandono ( )
+      v) Dados Longitudinais - Base Evasão ( )
+     vi) Motivos Abandono (variáveis prévias modelos) ( )
+
+
+3) MODELOS
+-------------
+Socioeconômicos
+      i) Probit - Evasão ( )
+     ii) Logit - Evasão ( )
+    
+    iii) Probit - Abandono ( )
+     iv) Logit - Abandono ( ) 
+
+Efeitos futuros
+      v) Heckit (equação de salários) ( )
+     vi) Modelo de duração ( )
+

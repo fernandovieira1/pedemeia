@@ -74,7 +74,7 @@ n_anos <- length(unique(anos))
 
 ### 0.5 Dados PNADc ####
 # AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
-# AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: '1.4_Notas_Metodologicas.R' >>> '0.5 Dados PNADc'
+# AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: https://1drv.ms/f/s!AqlEsL9Wt3_5kvASEz8uIW1-ZxyB4g
 df <- file.path(local, 'dados_pnad_2022-2023.rds')
 
 ## *df (DF)  ####
@@ -86,31 +86,10 @@ dados_pnad <- tryCatch({
 })
 
 nrow(dados_pnad)
-ncol(dados_pnad)
-# table(dados_pnad$Ano)
-# table(dados_pnad$Trimestre)
+table(dados_pnad$Ano)
+table(dados_pnad$Trimestre)
 
-### 0.6 Variáveis interesse ####
-
-## Verificar a presença das variáveis de transferências sociais
-variaveis_transferencias <- intersect(c('VD4047', 'VDI4047'), names(dados_pnad))
-
-## Criar ou ajustar a variável de transferências sociais
-if (length(variaveis_transferencias) > 0) {
-  # Combinar as variáveis disponíveis, se existirem
-  dados_pnad <- dados_pnad %>%
-    mutate(transferencias_sociais = rowSums(select(., all_of(variaveis_transferencias)), na.rm = TRUE))
-} else {
-  # Adicionar uma coluna de transferências sociais com NA caso não existam as variáveis
-  dados_pnad <- dados_pnad %>%
-    mutate(transferencias_sociais = NA_real_)
-  warning('Nenhuma variável de transferências sociais encontrada. Adicionando coluna com valores NA.')
-}
-
-## Verificar estrutura do conjunto de dados atualizado
-# glimpse(dados_pnad)
-
-## Variáveis de interesse
+## 0.6 Variáveis interesse ####
 variaveis_interesse <- c(
   
   ## IDENTIFICAÇÃO
@@ -164,8 +143,7 @@ variaveis_interesse <- c(
   'V405012', # Valor em dinheiro do rendimento mensal que recebia normalmente nesse trabalho secundário
   'V4056',   # Quantas horas ... trabalhava normalmente, por semana, nesse trabalho secundário?
   'VD4018',  # Tipo de remuneração recebida em todos os trabalhos (1 = dinheiro, 2 = beneficios ou sem rem.)
-  'VD4019',  # Rendimento de todos os trabalhos (confirmar se é isso mesmo)
-  'transferencias_sociais'
+  'VD4019'   # Rendimento de todos os trabalhos (confirmar se é isso mesmo)
 )
 
 ## *dados_pnad - Variáveis de interesse ####
@@ -186,16 +164,16 @@ if (!is.null(dados_pnad)) {
 }
 
 nrow(dados_pnad)
-# table(dados_pnad$Ano)
-# table(dados_pnad$Trimestre)
+table(dados_pnad$Ano)
+table(dados_pnad$Trimestre)
 
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
 publico_alvo_filtrado <- dados_pnad  # Apenas mudei o nome pelo código legado de outras versões.
 
 nrow(publico_alvo_filtrado)
-# table(publico_alvo_filtrado$Ano)
-# table(publico_alvo_filtrado$Trimestre)
+table(publico_alvo_filtrado$Ano)
+table(publico_alvo_filtrado$Trimestre)
 
 ## Remover df dados_pnad 
 # liberar RAM (COMENTAR OU DESCOMENTAR ABAIXO)
@@ -209,7 +187,7 @@ nrow(publico_alvo_filtrado)
 ## *Criar base_evasao ####
 base_evasao <- publico_alvo_filtrado %>% 
   filter(Trimestre == 1)
-# table(base_evasao$Trimestre)
+table(base_evasao$Trimestre)
 
 ## *Criar Coluna id_individuo ####
 base_evasao <- base_evasao %>%
@@ -300,7 +278,7 @@ base_evasao <- base_evasao %>%
       substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
       TRUE ~ NA_character_
     ))
-# table(base_evasao$regiao)
+table(base_evasao$regiao)
 prop.table(table(base_evasao$regiao))
 
 ## *Identificar a educação da mãe e do pai ####
@@ -410,10 +388,10 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
 
 summary(base_evasao_filtrada)
 str(base_evasao_filtrada)
-# table(base_evasao_filtrada$Ano)
-# table(base_evasao_filtrada$Trimestre)
+table(base_evasao_filtrada$Ano)
+table(base_evasao_filtrada$Trimestre)
 
-# table(base_evasao_filtrada$evasao)
+table(base_evasao_filtrada$evasao)
 prop.table(round(table(base_evasao_filtrada$evasao)))
 # O percentual de evasão escolar (=1) pode ser visto aqui
 
@@ -496,7 +474,7 @@ base_abandono <- base_abandono %>%
       substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
       TRUE ~ NA_character_
     ))
-# table(base_abandono$regiao)
+table(base_abandono$regiao)
 prop.table(table(base_abandono$regiao))
 
 ## *Identificar a educação da mãe e do pai ####
@@ -575,8 +553,8 @@ base_abandono %>%
 cat('\nTaxa de abandono (4 trimestres):\n')
 print(prop.table(table(base_abandono$abandono)))
 
-# table(base_abandono$Ano)
-# table(base_abandono$Trimestre)
+table(base_abandono$Ano)
+table(base_abandono$Trimestre)
 
 ### 2.2 df Abandono Filtrado ####
 # Reorganizando as colunas para trazer as novas variáveis para o começo
@@ -602,6 +580,6 @@ base_abandono_filtrada <- base_abandono %>%
 base_abandono_filtrada <- base_abandono_filtrada %>%
   filter(V20082 != 9999)
 
-# table(base_abandono_filtrada$abandono)
+table(base_abandono_filtrada$abandono)
 prop.table(round(table(base_abandono_filtrada$abandono)))
 # O percentual de abandono escolar (todos os períodos) pode ser visto aqui

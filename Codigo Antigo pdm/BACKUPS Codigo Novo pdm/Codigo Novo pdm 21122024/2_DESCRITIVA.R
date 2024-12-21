@@ -1760,8 +1760,6 @@ head(base_evasao_filtrada, 2)
 # utilizando dados empilhados e longitudinais, a fim de identificar possíveis fatores associados
 # à evasão escolar que poderão ser testados nos modelos probit, logit e heckit.
 
-## PAREI AQUI (consertar abaixo VD4047)
-
 # Filtrar apenas indivíduos válidos para a análise
 base_evasao_filtrada_validos <- base_evasao_filtrada %>%
   filter(V2009 >= 14 & V2009 <= 24 & !is.na(evasao))
