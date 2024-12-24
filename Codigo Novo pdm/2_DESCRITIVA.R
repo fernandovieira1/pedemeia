@@ -1231,7 +1231,6 @@ html_output <- paste(tabela_html, collapse = '\n')
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
 
-
 ## 1.6.2A Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Região ####
 # Gráfico inicial: proporção de evasão por faixas de RDPC por região
 ggplot(base_evasao_filtrada %>%
@@ -1366,7 +1365,7 @@ head(base_evasao_filtrada, 2)
 #### 1.7 RDPC POR COR ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.7.1A Resumo Descritivo do RDPC por Cor** ####
+## 1.7.1A Resumo Descritivo do RDPC por Cor ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -1403,10 +1402,20 @@ tabela_rdpc_cor <- as.data.frame(tabela_rdpc_cor)
 # Renomear colunas
 colnames(tabela_rdpc_cor) <- c('Cor', 'Faixa_RDPC', 'Evasao', 'Contagem', 'Proporcao')
 
-# Exibir a tabela com stargazer (ESTE!)
-stargazer(tabela_rdpc_cor, type = 'text', summary = FALSE,
-          title = 'Proporção de Evasão por Faixas de RDPC por Cor (Ajustadas pelo Salário Mínimo)',
-          digits = 2)
+# Gerar a tabela como HTML com stargazer
+tabela_html <- stargazer(
+  tabela_rdpc_cor,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Faixas de RDPC por Cor (Ajustadas pelo Salário Mínimo)',
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = '\n')
+
+# Renderizar a tabela no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
 
 ## 1.7.2A Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Cor ####
 # Gráfico inicial: proporção de evasão por faixas de RDPC por cor
@@ -1560,7 +1569,7 @@ head(base_evasao_filtrada, 2)
 #### 1.8 RDPC POR SEXO** ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.8.1A Resumo Descritivo do RDPC por Sexo** ####
+## 1.8.1A Resumo Descritivo do RDPC por Sexo ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_filtrada <- base_evasao_filtrada %>%
   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
@@ -1594,10 +1603,20 @@ tabela_rdpc_sexo <- as.data.frame(tabela_rdpc_sexo)
 # Renomear colunas
 colnames(tabela_rdpc_sexo) <- c('Sexo', 'Faixa_RDPC', 'Evasao', 'Contagem', 'Proporcao')
 
-# Exibir a tabela com stargazer (ESTE!)
-stargazer(tabela_rdpc_sexo, type = 'text', summary = FALSE,
-          title = 'Proporção de Evasão por Faixas de RDPC por Sexo (Ajustadas pelo Salário Mínimo)',
-          digits = 2)
+# Gerar a tabela como HTML com stargazer
+tabela_html <- stargazer(
+  tabela_rdpc_sexo,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = 'Proporção de Evasão por Faixas de RDPC por Sexo (Ajustadas pelo Salário Mínimo)',
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = '\n')
+
+# Renderizar a tabela no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
 
 ## 1.8.2A Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Sexo ####
 ggplot(base_evasao_filtrada %>%
