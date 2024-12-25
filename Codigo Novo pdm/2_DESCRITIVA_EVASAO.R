@@ -265,19 +265,19 @@ fim <- max(anos)
 # Calcular os percentuais de evasão por cor/raça
 base_evasao_percentual_cor <- base_evasao_filtrada %>%
   group_by(V2010, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(V2010) %>%
   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2))
 
 # Gráfico com os percentuais no topo das barras
 ggplot(base_evasao_percentual_cor, aes(x = V2010, y = Contagem, fill = as.factor(evasao))) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
-  geom_text(aes(label = paste0(Percentual, "%")), 
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0("Evasão por Cor/Raça com Percentuais no Topo - Acumulado: Período ", inicio, "-", fim),
-       x = "Cor/Raça",
-       y = "Frequência",
-       fill = "Evasão (1=Sim)") +
+  labs(title = paste0('Evasão por Cor/Raça com Percentuais no Topo - Acumulado: Período ', inicio, '-', fim),
+       x = 'Cor/Raça',
+       y = 'Frequência',
+       fill = 'Evasão (1=Sim)') +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Melhor visualização
 
@@ -293,19 +293,19 @@ base_evasao_filtrada_validos <- base_evasao_filtrada %>%
 # Calcular os percentuais de evasão por cor/raça
 base_evasao_percentual_cor_validos <- base_evasao_filtrada_validos %>%
   group_by(V2010, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(V2010) %>%
   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2))
 
 # Gráfico com os percentuais no topo das barras (Sem NAs)
 ggplot(base_evasao_percentual_cor_validos, aes(x = V2010, y = Contagem, fill = as.factor(evasao))) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
-  geom_text(aes(label = paste0(Percentual, "%")), 
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0("Evasão por Cor/Raça (Sem NAs) - Acumulado: Período ", inicio, "-", fim),
-       x = "Cor/Raça",
-       y = "Frequência",
-       fill = "Evasão (1=Sim)") +
+  labs(title = paste0('Evasão por Cor/Raça (Sem NAs) - Acumulado: Período ', inicio, '-', fim),
+       x = 'Cor/Raça',
+       y = 'Frequência',
+       fill = 'Evasão (1=Sim)') +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -313,7 +313,7 @@ ggplot(base_evasao_percentual_cor_validos, aes(x = V2010, y = Contagem, fill = a
 # Criar uma tabela consolidada
 tabela_cor_clean <- base_evasao_filtrada_validos %>%
   group_by(V2010, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(V2010) %>%
   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
   ungroup()
@@ -323,12 +323,12 @@ tabela_cor_clean <- tabela_cor_clean %>%
   filter(!is.na(V2010))  # Filtrar valores inválidos, se necessário
 
 # Gerar título dinâmico para a tabela
-titulo_dinamico <- paste0("Proporção de Evasão por Cor/Raça (Sem NAs) - Período: ", inicio, "-", fim)
+titulo_dinamico <- paste0('Proporção de Evasão por Cor/Raça (Sem NAs) - Período: ', inicio, '-', fim)
 
 # Exportar a tabela como HTML
 tabela_html <- stargazer(
   tabela_cor_clean,
-  type = "html",
+  type = 'html',
   summary = FALSE,
   title = titulo_dinamico,
   digits = 2,
@@ -336,7 +336,7 @@ tabela_html <- stargazer(
 )
 
 # Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
+htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 head(base_evasao_filtrada, 2)
@@ -859,21 +859,21 @@ head(base_evasao_filtrada, 2)
 # Calcular contagem e proporção de evasão por região e ano
 tabela_regiao_ano <- base_evasao_filtrada %>%
   group_by(Ano, regiao, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(Ano, regiao) %>%
   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
   ungroup()
 
 # Renomear colunas para maior clareza
-colnames(tabela_regiao_ano) <- c("Ano", "Regiao", "Evasao", "Contagem", "Proporcao")
+colnames(tabela_regiao_ano) <- c('Ano', 'Regiao', 'Evasao', 'Contagem', 'Proporcao')
 
 # Gerar o título dinâmico para a tabela
-titulo_dinamico <- "Proporção de Evasão por Região Segmentada por Ano"
+titulo_dinamico <- 'Proporção de Evasão por Região Segmentada por Ano'
 
 # Exportar tabela com stargazer (HTML)
 tabela_html <- stargazer(
   tabela_regiao_ano,
-  type = "html",
+  type = 'html',
   summary = FALSE,
   title = titulo_dinamico,
   digits = 2,
@@ -881,19 +881,19 @@ tabela_html <- stargazer(
 )
 
 # Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
+htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## 1.4.2B Gráfico Inicial: Proporção de Evasão por Região ####
 # Gráfico mostrando a proporção de evasão por região para cada ano
 ggplot(base_evasao_filtrada, aes(x = regiao, fill = as.factor(evasao))) +
-  geom_bar(position = "fill", color = "black") +
+  geom_bar(position = 'fill', color = 'black') +
   scale_y_continuous(labels = scales::percent) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = "Proporção de Evasão por Região - Separado por Ano",
-    x = "Região",
-    y = "Proporção (%)",
-    fill = "Evasão (1=Sim)"
+    title = 'Proporção de Evasão por Região - Separado por Ano',
+    x = 'Região',
+    y = 'Proporção (%)',
+    fill = 'Evasão (1=Sim)'
   ) +
   theme_minimal()
 
@@ -901,22 +901,22 @@ ggplot(base_evasao_filtrada, aes(x = regiao, fill = as.factor(evasao))) +
 # Calcular os percentuais de evasão por região e ano
 base_evasao_percentual_regiao_ano <- base_evasao_filtrada %>%
   group_by(Ano, regiao, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(Ano, regiao) %>%
   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2)) %>%
   ungroup()
 
 # Gráfico com percentuais no topo das barras
 ggplot(base_evasao_percentual_regiao_ano, aes(x = regiao, y = Contagem, fill = as.factor(evasao))) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
-  geom_text(aes(label = paste0(Percentual, "%")),
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Percentual, '%')),
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = "Evasão por Região com Percentuais no Topo - Separado por Ano",
-    x = "Região",
-    y = "Frequência",
-    fill = "Evasão (1=Sim)"
+    title = 'Evasão por Região com Percentuais no Topo - Separado por Ano',
+    x = 'Região',
+    y = 'Frequência',
+    fill = 'Evasão (1=Sim)'
   ) +
   theme_minimal()
 
@@ -928,22 +928,22 @@ base_evasao_filtrada_validos_ano <- base_evasao_filtrada %>%
 # Calcular os percentuais de evasão por região e ano
 base_evasao_percentual_regiao_validos_ano <- base_evasao_filtrada_validos_ano %>%
   group_by(Ano, regiao, evasao) %>%
-  summarise(Contagem = n(), .groups = "drop") %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(Ano, regiao) %>%
   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2)) %>%
   ungroup()
 
 # Gráfico com percentuais no topo das barras (Sem NAs)
 ggplot(base_evasao_percentual_regiao_validos_ano, aes(x = regiao, y = Contagem, fill = as.factor(evasao))) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
-  geom_text(aes(label = paste0(Percentual, "%")),
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Percentual, '%')),
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = "Evasão por Região (Sem NAs) com Percentuais no Topo - Separado por Ano",
-    x = "Região",
-    y = "Frequência",
-    fill = "Evasão (1=Sim)"
+    title = 'Evasão por Região (Sem NAs) com Percentuais no Topo - Separado por Ano',
+    x = 'Região',
+    y = 'Frequência',
+    fill = 'Evasão (1=Sim)'
   ) +
   theme_minimal()
 
@@ -953,10 +953,10 @@ tabela_regiao_clean_ano <- tabela_regiao_ano %>%
   filter(!is.na(Regiao) & !is.na(Evasao))  # Remove NAs da coluna Evasao
 
 # Exportar a tabRegiao# Exportar a tabela como HTML com stargazer
-titulo_dinamico <- "Proporção de Evasão por Região (Sem NAs) - Segmentada por Ano"
+titulo_dinamico <- 'Proporção de Evasão por Região (Sem NAs) - Segmentada por Ano'
 tabela_html <- stargazer(
   tabela_regiao_clean_ano,
-  type = "html",
+  type = 'html',
   summary = FALSE,
   title = titulo_dinamico,
   digits = 2,
@@ -964,10 +964,7 @@ tabela_html <- stargazer(
 )
 
 # Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
+htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -1160,16 +1157,152 @@ htmltools::html_print(HTML(html_output))
 head(base_evasao_filtrada, 2)
 
 ## 1.5.1B Resumo Descritivo do RDPC ####
+# Adicionar o salário mínimo à base, calculado para cada ano
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+
+# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo e RDPC
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0)
+
+# Calcular contagem e proporção de evasão por faixas de RDPC e ano
+tabela_rdpc_ano <- base_evasao_filtrada %>%
+  mutate(
+    Faixa_RDPC = case_when(
+      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+      TRUE ~ 'Acima de 20 SM'
+    )
+  ) %>%
+  group_by(Ano, Faixa_RDPC, evasao) %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
+  group_by(Ano, Faixa_RDPC) %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+  ungroup()
+
+# Renomear colunas para maior clareza
+colnames(tabela_rdpc_ano) <- c('Ano', 'Faixa_RDPC', 'Evasao', 'Contagem', 'Proporcao')
+
+# Gerar o título dinâmico para a tabela
+titulo_dinamico <- 'Proporção de Evasão por Faixas de RDPC Segmentada por Ano'
+
+# Exportar tabela com stargazer (HTML)
+tabela_html <- stargazer(
+  tabela_rdpc_ano,
+  type = 'html',
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Renderizar a tabela no Viewer do RStudio
+htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## 1.5.2B Gráfico Inicial: Proporção de Evasão por Faixas de RDPC ####
+# Gráfico mostrando a proporção de evasão por faixas de RDPC para cada ano
+ggplot(base_evasao_filtrada %>%
+         mutate(
+           Faixa_RDPC = case_when(
+             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+             TRUE ~ 'Acima de 20 SM'
+           )
+         ),
+       aes(x = Faixa_RDPC, fill = as.factor(evasao))) +
+  geom_bar(position = 'fill', color = 'black') +
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+  labs(
+    title = 'Proporção de Evasão por Faixas de RDPC - Separado por Ano',
+    x = 'Faixa de RDPC',
+    y = 'Proporção (%)',
+    fill = 'Evasão (1=Sim)'
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.5.3B Gráfico com Percentuais no Topo ####
+# Gráfico com percentuais no topo das barras
+ggplot(tabela_rdpc_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evasao))) +
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Proporcao, '%')),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
+  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+  labs(
+    title = 'Evasão por Faixas de RDPC com Percentuais no Topo - Separado por Ano',
+    x = 'Faixa de RDPC',
+    y = 'Frequência',
+    fill = 'Evasão (1=Sim)'
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.5.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
+# Filtrar valores válidos (sem NAs em evasao e RDPC)
+base_evasao_filtrada_validos_ano <- base_evasao_filtrada %>%
+  filter(!is.na(evasao) & !is.na(RDPC))
+
+# Calcular percentuais com categorias ajustadas
+tabela_rdpc_validos_ano <- base_evasao_filtrada_validos_ano %>%
+  mutate(
+    Faixa_RDPC = case_when(
+      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+      TRUE ~ 'Acima de 20 SM'
+    )
+  ) %>%
+  group_by(Ano, Faixa_RDPC, evasao) %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
+  group_by(Ano, Faixa_RDPC) %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+  ungroup()
+
+# Gráfico com percentuais no topo (sem NAs)
+ggplot(tabela_rdpc_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(evasao))) +
+  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+  geom_text(aes(label = paste0(Proporcao, '%')),
+            position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
+  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+  labs(
+    title = 'Evasão por Faixas de RDPC (Sem NAs) com Percentuais no Topo - Separado por Ano',
+    x = 'Faixa de RDPC',
+    y = 'Frequência',
+    fill = 'Evasão (1=Sim)'
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.5.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
+# Consolidar a tabela final sem NAs
+tabela_rdpc_clean_ano <- tabela_rdpc_ano %>%
+  filter(!is.na(Faixa_RDPC) & !is.na(Evasao))  # Remove NAs das colunas relevantes
 
+# Exportar a tabela como HTML com stargazer
+titulo_dinamico <- 'Proporção de Evasão por Faixas de RDPC (Sem NAs) - Segmentada por Ano'
+tabela_html <- stargazer(
+  tabela_rdpc_clean_ano,
+  type = 'html',
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
 
+# Renderizar a tabela no Viewer do RStudio
+htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -1347,15 +1480,144 @@ htmltools::html_print(HTML(html_output))
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 head(base_evasao_filtrada, 2)
 
-## 1.6.1B Resumo Descritivo do RDPC por Região** ####
+## 1.6.1B Resumo Descritivo do RDPC por Região ####
+# Adicionar o salário mínimo à base
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  mutate(Salario_Minimo = sal_min(Ano))
+
+# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
+base_evasao_filtrada <- base_evasao_filtrada %>%
+  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
+
+# Calcular contagem e proporção de evasão por faixas de RDPC, região e ano
+tabela_rdpc_regiao_ano <- base_evasao_filtrada %>%
+  mutate(
+    Faixa_RDPC = case_when(
+      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+      TRUE ~ 'Acima de 20 SM'
+    )
+  ) %>%
+  group_by(Ano, regiao, Faixa_RDPC, evasao) %>%
+  summarise(Contagem = n(), .groups = "drop") %>%
+  group_by(Ano, regiao, Faixa_RDPC) %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+  ungroup()
+
+# Renomear colunas para maior clareza
+colnames(tabela_rdpc_regiao_ano) <- c("Ano", "Regiao", "Faixa_RDPC", "Evasao", "Contagem", "Proporcao")
+
+# Gerar título dinâmico
+titulo_dinamico <- "Proporção de Evasão por Faixas de RDPC por Região Segmentada por Ano"
+
+# Exportar tabela como HTML
+tabela_html <- stargazer(
+  tabela_rdpc_regiao_ano,
+  type = "html",
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
 
 ## 1.6.2B Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Região ####
+# Gráfico inicial mostrando a proporção de evasão por faixas de RDPC para cada região e ano
+ggplot(base_evasao_filtrada %>%
+         mutate(
+           Faixa_RDPC = case_when(
+             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+             TRUE ~ 'Acima de 20 SM'
+           )
+         ),
+       aes(x = Faixa_RDPC, fill = as.factor(evasao))) +
+  geom_bar(position = "fill", color = "black") +
+  facet_wrap(~Ano + regiao, ncol = 2) +  # Facetar por região e ano
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Proporção de Evasão por Faixas de RDPC por Região e Ano",
+    x = "Faixa de RDPC",
+    y = "Proporção (%)",
+    fill = "Evasão (1=Sim)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.6.3B Gráfico com Percentuais no Topo ####
+# Criar gráfico com percentuais no topo das barras segmentado por região e ano
+ggplot(tabela_rdpc_regiao_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evasao))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+  geom_text(
+    aes(label = paste0(Proporcao, "%")),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3.5
+  ) +
+  facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
+  labs(
+    title = "Evasão por Faixas de RDPC com Percentuais no Topo por Região e Ano",
+    x = "Faixa de RDPC",
+    y = "Frequência",
+    fill = "Evasão (1=Sim)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.6.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
+# Filtrar valores válidos (sem NAs em evasao e regiao)
+tabela_rdpc_regiao_validos_ano <- tabela_rdpc_regiao_ano %>%
+  filter(!is.na(Evasao) & !is.na(Regiao))
+
+# Gráfico com percentuais no topo (Sem NAs)
+ggplot(tabela_rdpc_regiao_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(Evasao))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9), color = "black") +
+  geom_text(
+    aes(label = paste0(Proporcao, "%")),
+    position = position_dodge(width = 0.9),
+    vjust = -0.5,
+    size = 3.5
+  ) +
+  facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
+  labs(
+    title = "Evasão por Faixas de RDPC (Sem NAs) com Percentuais no Topo por Região e Ano",
+    x = "Faixa de RDPC",
+    y = "Frequência",
+    fill = "Evasão (1=Sim)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ## 1.6.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
+# Consolidar a tabela final sem NAs
+tabela_rdpc_regiao_clean_ano <- tabela_rdpc_regiao_ano %>%
+  filter(!is.na(Faixa_RDPC) & !is.na(Evasao) & !is.na(Regiao))
+
+# Gerar título dinâmico
+titulo_dinamico <- "Proporção de Evasão por Faixas de RDPC (Sem NAs) por Região e Ano"
+
+# Exportar a tabela como HTML
+tabela_html <- stargazer(
+  tabela_rdpc_regiao_clean_ano,
+  type = "html",
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -1804,7 +2066,6 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-
 
 ## 1.9.2A Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Ensino Médio ####
 ggplot(base_evasao_filtrada %>%
