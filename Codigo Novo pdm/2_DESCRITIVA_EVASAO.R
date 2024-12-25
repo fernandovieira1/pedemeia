@@ -3230,11 +3230,56 @@ htmltools::html_print(HTML(html_output))
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 head(base_evasao_filtrada, 2)
 
-## 1.12.1B Resumo Descritivo de Evasão** ####
+## 1.12.1B Resumo Descritivo da Evasão (Segmentado por Ano)** ####
+# Calcular a contagem e proporção de evasão por ano
+tabela_evasao_ano <- base_evasao_filtrada %>%
+  group_by(Ano, evasao) %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
+  group_by(Ano) %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+  ungroup()
 
-## 1.12.2B Gráfico Inicial: Proporção de Evasão** ####
+# Renomear colunas para melhor clareza
+colnames(tabela_evasao_ano) <- c("Ano", "Evasao", "Contagem", "Proporcao")
 
-## 1.12.3B Exportação Final da Tabela (Sem NAs em Evasao)** ####
+# Gerar título dinâmico com período
+titulo_dinamico <- "Resumo Descritivo da Evasão Segmentada por Ano"
+
+# Exportar tabela com stargazer
+tabela_html <- stargazer(
+  tabela_evasao_ano,
+  type = "html",
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(paste(tabela_html, collapse = "\n")))
+
+## 1.12.2B Gráfico Inicial: Proporção de Evasão Segmentada por Ano** ####
+# Gerar título dinâmico
+titulo_dinamico <- "Proporção de Evasão Segmentada por Ano"
+
+# Gráfico mostrando a proporção de evasão por ano
+ggplot(tabela_evasao_ano, aes(x = as.factor(Ano), y = Contagem, fill = as.factor(Evasao))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8), color = "black") +
+  geom_text(
+    aes(label = paste0(Proporcao, "%")),
+    position = position_dodge(width = 0.8),
+    vjust = -0.5,
+    size = 4
+  ) +
+  labs(
+    title = titulo_dinamico,  # Título dinâmico
+    x = "Ano",
+    y = "Frequência",
+    fill = "Evasão (1=Sim)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 ## | ####
