@@ -150,6 +150,7 @@ variaveis_interesse <- c(
   'V3014',   # Concluiu este curso que frequentou anteriormente?
   
   # TRABALHO E RENDA
+  'V4001',   # Trabalhou na semana de referência?
   'VD4013',  # Faixa das horas habitualmente trabalhadas por semana em todos os trabalhos (14 anos ou mais)
   'VD4014',  # Faixa das horas efetivamente trabalhadas por semana em todos os trabalhos  (14 anos ou mais)
   'VD4016',  # Rendimento mensal HABITUAL do trabalho principal (FIXO) (R$)
