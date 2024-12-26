@@ -13,4 +13,4 @@ local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\US
 
 ### Carregar script de configuração do ambiente ####
 # AVISO: Não mexer
-source('Codigo Novo pdm\\Script pdm\\0_config_amb.R')
+source('Codigo Novo pdm\\Script pdm\\0_config.R')
