@@ -13,7 +13,7 @@ str(base_evasao_filtrada)
 names(base_evasao_filtrada)
 nrow(base_evasao_filtrada)
 ncol(base_evasao_filtrada)
-summary(base_evasao_filtrada) # ver coluna 'transferencias_sociais'
+summary(base_evasao_filtrada)
 
 # View(base_evasao_filtrada)
 

@@ -11,7 +11,7 @@ ETAPAS:
     iii) Construir Script - Base Evasão e Base Abandono (x)
      iv) Testar o código (x)
       v) Validar com Daniel (x)
-     vi) Refatorar código para apenas 'DESAFIO_pdm.R' ( )
+     vi) Refatorar código - 0 (CONFIG), 1 (EVASAO), 2 (ABANDONO) (x)
     vii) Adaptar (ifelse e merge) para todos os períodos ( )
       
 2) DESCRITIVA
