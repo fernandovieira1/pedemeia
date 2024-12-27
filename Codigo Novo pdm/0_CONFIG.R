@@ -5,7 +5,9 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 
 ### Definir período ####
 # AVISO: Definir anos inicial e final
+# AVISO: A análise da evasão escolar sempre requer mais de um ano e a inclusão do 1º semestre.
 anos <- c(2022, 2023)
+trimestres <- c(1, 2, 3, 4)
 
 ### Local de trabalho ####
 # AVISO: Verifique abaixo o caminho do arquivo e altere-o (se ainda não o fez)

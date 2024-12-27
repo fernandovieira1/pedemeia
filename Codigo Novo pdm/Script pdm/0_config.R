@@ -50,10 +50,6 @@ load_install <- function(pacote) {
 }
 
 ### 0.4 Definir anos e trimestres ####
-# AVISO: Pode especificar um ou mais (anos ou trimestres)
-# anos <- c(2022, 2023)     
-trimestres <- c(1, 2, 3, 4)
-
 ano_inicial <- min(anos)
 n_anos <- length(unique(anos))
 
