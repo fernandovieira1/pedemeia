@@ -9,11 +9,16 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 
 ## Digite o ano inicial e o final
 # Anos disponíveis: de 2015 até 2024
-anos <- seq(2015, 2019)
+anos <- c(2016, 2017)
 
 ## Digite o trimestre inicial e final
-# Se a análise for de evasão, recomendada a inclusão apenas do 1º trimestre (1, 1) p/ economizar RAM
-trimestres <- seq(1, 1)
+# P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) 
+# Se a análise for de evasão, recomendada a inclusão apenas do 1º trimestre (1) p/ economizar RAM
+trimestres <- c(1)
+
+### Tipo da análise ####
+# 'amostra' ou 'censo'
+tipo_analise <- 'amostra' 
 
 ### Local de trabalho ####
 ## AVISO: Verifique abaixo o caminho do arquivo e altere-o (se ainda não o fez)
@@ -24,6 +29,10 @@ dir(local)
 ## AVISO: Não mexer
 source('Codigo Novo pdm\\Script pdm\\0_config.R')
 
+## Verificar dados
 glimpse(publico_alvo_filtrado)
 table(publico_alvo_filtrado$Ano)
 table(publico_alvo_filtrado$Trimestre)
+
+# Limpar o ambiente
+gc(); cat('\014')

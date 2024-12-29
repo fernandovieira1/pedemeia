@@ -57,34 +57,71 @@ n_anos <- length(unique(anos))
 # AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
 # AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: '1.4_Notas_Metodologicas.R' >>> '0.5 Dados PNADc'
 
-### Carregar múltiplos arquivos com base nos anos selecionados
-carregar_dados_pnad <- function(local, anos) {
-  # Listar arquivos disponíveis no diretório
-  arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
+if (tipo_analise == 'censo') {
+  ### Carregar múltiplos arquivos com base nos anos selecionados
+  carregar_dados_pnad <- function(local, anos) {
+    # Listar arquivos disponíveis no diretório
+    arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
+    
+    # Filtrar arquivos com base nos anos desejados
+    arquivos_filtrados <- arquivos_disponiveis[
+      sapply(arquivos_disponiveis, function(x) {
+        # Extrair anos do nome do arquivo
+        anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
+        any(anos %in% anos_arquivo)
+      })
+    ]
+    
+    # Carregar e combinar os arquivos filtrados
+    dados_combinados <- arquivos_filtrados %>%
+      map_dfr(~ readRDS(.))  # Combina os dados em um único data.frame
+    
+    return(dados_combinados)
+  }
   
-  # Filtrar arquivos com base nos anos desejados
-  arquivos_filtrados <- arquivos_disponiveis[
-    sapply(arquivos_disponiveis, function(x) {
-      # Extrair anos do nome do arquivo
-      anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
-      any(anos %in% anos_arquivo)
-    })
-  ]
+  ### Carregar os dados com base nos períodos selecionados
+  dados_pnad <- tryCatch({
+    carregar_dados_pnad(local, anos)
+  }, error = function(e) {
+    warning('Erro ao carregar os arquivos de dados.')
+    NULL
+  })
+} else {
+  ### Carregar múltiplos arquivos com base nos anos selecionados
+  carregar_dados_pnad <- function(local, anos, n_linhas = NULL) {
+    # Listar arquivos disponíveis no diretório
+    arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
+    
+    # Filtrar arquivos com base nos anos desejados
+    arquivos_filtrados <- arquivos_disponiveis[
+      sapply(arquivos_disponiveis, function(x) {
+        # Extrair anos do nome do arquivo
+        anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
+        any(anos %in% anos_arquivo)
+      })
+    ]
+    
+    # Carregar e combinar os arquivos filtrados
+    dados_combinados <- arquivos_filtrados %>%
+      map_dfr(function(arquivo) {
+        dados <- readRDS(arquivo) # Ler o arquivo
+        if (!is.null(n_linhas)) {
+          dados <- dados %>% slice_sample(n = min(n_linhas, nrow(dados))) # Amostra de n linhas
+        }
+        return(dados)
+      })
+    
+    return(dados_combinados)
+  }
   
-  # Carregar e combinar os arquivos filtrados
-  dados_combinados <- arquivos_filtrados %>%
-    map_dfr(~ readRDS(.))  # Combina os dados em um único data.frame
-  
-  return(dados_combinados)
+  ### Carregar os dados com base nos períodos selecionados
+  dados_pnad <- tryCatch({
+    carregar_dados_pnad(local, anos, n_linhas = 1000) # Defina n_linhas para limitar ou NULL para carregar tudo
+  }, error = function(e) {
+    warning('Erro ao carregar os arquivos de dados.')
+    NULL
+  })
 }
-
-### Carregar os dados com base nos períodos selecionados
-dados_pnad <- tryCatch({
-  carregar_dados_pnad(local, anos)
-}, error = function(e) {
-  warning('Erro ao carregar os arquivos de dados.')
-  NULL
-})
 
 
 # nrow(dados_pnad)
