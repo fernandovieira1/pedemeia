@@ -117,16 +117,16 @@ base_evasao <- base_evasao %>%
   ) %>%
   ungroup()
 
-base_evasao %>%
-  select(educacao_mae, educacao_pai) %>%
-  summary()
+# base_evasao %>%
+#   select(educacao_mae, educacao_pai) %>%
+#   summary()
 
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
 base_evasao <- base_evasao %>% 
   arrange(id_individuo, Ano, Trimestre)
 
-base_evasao %>%
-  summary() 
+# base_evasao %>%
+#   summary() 
 
 ## *Criar a dummy de evasão ####
 base_evasao <- base_evasao %>%
@@ -169,21 +169,23 @@ base_evasao %>%
   select(id_individuo, Ano, Trimestre, V3003A) %>%
   head()
 # --> Muitos NAs porque há muitos registros têm V3003A == NA, o que impede a criação da dummy.
-# A semântica e a sintaze fazem sentido e permitem prosseguir para a análise, mas valeria a pena tentar contornar isso?
+# A semântica e a sintaxe fazem sentido e permitem prosseguir para a análise, mas valeria a pena tentar contornar isso?
 
 ### 1.2 df Evasão Filtrado ####
 # - Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1,
 # considerando indivíduos com continuidade de presença em dois anos consecutivos no mesmo 
 # trimestre (1º Trimestre).
 base_evasao_filtrada <- base_evasao %>%
-  group_by(id_individuo) %>%
   filter(
-    any(map_lgl(map2(anos[-length(anos)], anos[-1], ~ c(.x, .y)), ~ {
-      any(Ano == .x[1] & Trimestre == 1) &
-        any(Ano == .x[2] & Trimestre == 1)
-    }))
+    Ano %in% anos & Trimestre == 1
   ) %>%
-  ungroup()
+  group_by(id_individuo) %>%
+  summarise(anos = list(unique(Ano))) %>%
+  filter(any(diff(sort(unlist(anos))) == 1))
+
+# Merge para incluir as variáveis do dataframe original
+base_evasao_filtrada <- base_evasao %>%
+  inner_join(base_evasao_filtrada, by = 'id_individuo')
 
 ## Removendo observações onde V20082 é igual a 9999
 base_evasao_filtrada <- base_evasao_filtrada %>%
@@ -209,10 +211,10 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
   )
 
 summary(base_evasao_filtrada)
-str(base_evasao_filtrada)
-# table(base_evasao_filtrada$Ano)
-# table(base_evasao_filtrada$Trimestre)
+glimpse(base_evasao_filtrada)
+table(base_evasao_filtrada$Ano)
+table(base_evasao_filtrada$Trimestre)
 
-# table(base_evasao_filtrada$evasao)
-# prop.table(round(table(base_evasao_filtrada$evasao)))
+table(base_evasao_filtrada$evasao)
+prop.table(round(table(base_evasao_filtrada$evasao)))
 # O percentual de evasão escolar (=1) pode ser visto aqui

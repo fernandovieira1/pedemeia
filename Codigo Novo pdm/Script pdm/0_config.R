@@ -56,16 +56,36 @@ n_anos <- length(unique(anos))
 ### 0.5 Dados PNADc ####
 # AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
 # AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: '1.4_Notas_Metodologicas.R' >>> '0.5 Dados PNADc'
-# --> adaptar para mais anos (ifelse e merge)
-df <- file.path(local, 'dados_pnad_2022-2023.rds')
 
-## *df (DF)  ####
+### Carregar múltiplos arquivos com base nos anos selecionados
+carregar_dados_pnad <- function(local, anos) {
+  # Listar arquivos disponíveis no diretório
+  arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
+  
+  # Filtrar arquivos com base nos anos desejados
+  arquivos_filtrados <- arquivos_disponiveis[
+    sapply(arquivos_disponiveis, function(x) {
+      # Extrair anos do nome do arquivo
+      anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
+      any(anos %in% anos_arquivo)
+    })
+  ]
+  
+  # Carregar e combinar os arquivos filtrados
+  dados_combinados <- arquivos_filtrados %>%
+    map_dfr(~ readRDS(.))  # Combina os dados em um único data.frame
+  
+  return(dados_combinados)
+}
+
+### Carregar os dados com base nos períodos selecionados
 dados_pnad <- tryCatch({
-  readRDS(df)
+  carregar_dados_pnad(local, anos)
 }, error = function(e) {
-  warning('Erro ao carregar o arquivo de dados.')
+  warning('Erro ao carregar os arquivos de dados.')
   NULL
 })
+
 
 # nrow(dados_pnad)
 # ncol(dados_pnad)
@@ -107,6 +127,7 @@ variaveis_interesse <- c(
   # DOMICÍLIO
   'VD2004',   # Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
   'VD2002',   # Condição/Parentesco no domicílio (responsável, cônjuge, filho, etc.)
+  'V1022',    # Rural ou Urbana
   
   # FAMÍLIA
   'V2001',   # Tamanho da família (nr. de pessoas no domicílio)
