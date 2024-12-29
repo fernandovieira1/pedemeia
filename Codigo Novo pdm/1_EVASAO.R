@@ -117,7 +117,7 @@ tabela_html <- stargazer(
   resumo_idade_ano,
   type = 'html',
   summary = FALSE,
-  title = 'Resumo Estatístico da Idade por Ano'
+  title = 'Resumo Estatístico das Idades'
 )
 
 # Renderizar no Viewer
@@ -151,7 +151,7 @@ tabela_html <- stargazer(
   tabela_completa,
   type = 'html',            # Exportar como HTML
   summary = FALSE,          # Sem resumo
-  title = 'Contagem de Idades Válidas (14-24 Anos) Segmentada por Ano',
+  title = 'Contagem de Idades Válidas (14-24 Anos) Segmentada por Idade',
   digits = 0,               # Número de casas decimais
   rownames = FALSE          # Sem nomes de linha
 )
@@ -169,7 +169,7 @@ ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill 
             position = position_dodge(width = 0.8), 
             vjust = -0.5, size = 3) + # Adiciona os totais acima das barras
   labs(
-    title = 'Distribuição de Idades Válidas (14-24 Anos) Segmentada por Ano',
+    title = 'Distribuição de Idades Válidas (14-24 Anos) Segmentada por Idade',
     x = 'Idade',
     y = 'Contagem',
     fill = 'Ano'
@@ -184,7 +184,7 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
   scale_x_continuous(breaks = seq(min(base_evasao_filtrada$V2009), max(base_evasao_filtrada$V2009), by = 5)) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Distribuição Etária por Evasão Escolar - Separado por Ano',
+    title = 'Distribuição Etária por Evasão Escolar - Separado por Idade',
     x = 'Idade',
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
@@ -206,7 +206,7 @@ ggplot(base_evasao_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fill 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +  # Inserir percentuais
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Distribuição Etária por Evasão Escolar (Idades 14-24) - Separado por Ano',
+    title = 'Distribuição Etária por Evasão Escolar (Idades 14-24)',
     x = 'Idade',
     
     y = 'Frequência',
