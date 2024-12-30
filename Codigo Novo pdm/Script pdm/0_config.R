@@ -116,7 +116,7 @@ if (tipo_analise == 'censo') {
   
   ### Carregar os dados com base nos períodos selecionados
   dados_pnad <- tryCatch({
-    carregar_dados_pnad(local, anos, n_linhas = 1000) # Defina n_linhas para limitar ou NULL para carregar tudo
+    carregar_dados_pnad(local, anos, n_linhas = 10000) # Defina n_linhas para limitar ou NULL para carregar tudo
   }, error = function(e) {
     warning('Erro ao carregar os arquivos de dados.')
     NULL
