@@ -20,40 +20,11 @@
 # EVASAO: 1 e 5 tri - merge sexo da amostra que ingressou no 1 tri
 # ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
 
-### 0.3 Bibliotecas ####
-## Função para instalar e carregar pacotes
-load_install <- function(pacote) {
-  if (!require(pacote, character.only = TRUE)) {
-    install.packages(pacote, dependencies = TRUE)
-    library(pacote, character.only = TRUE)
-  }
-}
-
-{ ## Manipulação de dados 
-  load_install('PNADcIBGE') # Dados PNADc
-  load_install('survey') # Estratificação e Clusterização de dados - cálculo dos pesos
-  load_install('convey') # Cálculo de medidas de desigualdade
-  load_install('tidyverse') # Manipulação do df e Gráficos
-  load_install('janitor') # Limpeza de dados
-  load_install('scales')  # Formatação de gráficos
-  
-  ## Modelos econométricos
-  load_install('fixest') # Estimação de modelos fixos
-  load_install('lme4') # Estimação de modelos mistos
-  load_install('plm') # Estimação de modelos de painel
-  load_install('glmnet') # Regularização de modelos
-  
-  ## Visualização de dados
-  load_install('gt')  # Criar Tabelas
-  load_install('stargazer') # Tabelas de resultados
-  load_install('htmltools') # Exportar tabelas para HTML
-}
-
-### 0.4 Definir anos e trimestres ####
+### 0.2 Definir anos e trimestres ####
 ano_inicial <- min(anos)
 n_anos <- length(unique(anos))
 
-### 0.5 Dados PNADc ####
+### 0.3 Dados PNADc ####
 # AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
 # AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: '1.4_Notas_Metodologicas.R' >>> '0.5 Dados PNADc'
 
@@ -129,7 +100,7 @@ if (tipo_analise == 'censo') {
 # table(dados_pnad$Ano)
 # table(dados_pnad$Trimestre)
 
-### 0.6 Variáveis interesse ####
+### 0.4 Variáveis interesse ####
 
 ## Verificar a presença das variáveis de transferências sociais
 # variaveis_transferencias <- intersect(c('VD4047', 'VDI4047'), names(dados_pnad))

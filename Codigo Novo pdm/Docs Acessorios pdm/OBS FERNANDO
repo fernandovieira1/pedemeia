@@ -75,3 +75,7 @@ pnadc: Pnad com pesos --> para regressões
 pdmc: público alvo em pdm com pesos --: estimar público alvo pdm
 emc: público ensino médio com pesos --> estimar público ensino médio
 pms == pnadas
+
+============================================
+Evasão  : estudante deixa de frequentar a escola entre anos: comparar o 1º trimestre do ano 0 com o do ano 1
+Abandono: estudante deixa de frequentar a escola entre trimestres: comparar frequência entre trimestres: 1º para o 2º. 2º para 3º, 3º para o 4º

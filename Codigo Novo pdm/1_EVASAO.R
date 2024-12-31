@@ -3,7 +3,9 @@
 # - Dados empilhados e longitudinais, 
 # - Análise prelimar que pode indicar variáveis a serem testadas 
 # nos modelos probit, logit e heckit.
-cat('\014')
+
+# Limpar o ambiente
+gc(); cat('\014')
 
 ## Carregar script Evasão Escolar ####
 # AVISO: Não mexer
@@ -17,10 +19,26 @@ str(base_evasao_filtrada)
 names(base_evasao_filtrada)
 nrow(base_evasao_filtrada)
 ncol(base_evasao_filtrada)
+head(base_evasao_filtrada)
+tail(base_evasao_filtrada)
 # summary(base_evasao_filtrada)
 
-# View(base_evasao_filtrada)
+View(base_evasao_filtrada)
 
+# Qtde domicílios (EVASAO)
+base_evasao_filtrada %>% 
+  group_by(ID_DOMICILIO) %>%
+  count()
+
+# Qtde indivíduos (EVASAO)
+base_evasao_filtrada %>% 
+  group_by(id_individuo) %>%
+  count()
+
+# Contar a frequência de valores na variável evasao, incluindo NAs
+table(base_evasao_filtrada$evasao, useNA = 'ifany')
+prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
+  
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 #### 1.1 FAIXA ETÁRIA ####
 
@@ -35,10 +53,6 @@ sum(is.na(base_evasao_filtrada$V2009))
 # Verificar os valores únicos de idade
 unique(base_evasao_filtrada$V2009)
 
-# Contar a frequência de valores na variável evasao, incluindo NAs
-table(base_evasao_filtrada$evasao, useNA = 'ifany')
-prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
-
 # Verificar a presença de valores suspeitos (ex.: 0, 9999, negativos)
 base_evasao_filtrada %>% 
   filter(V2009 <= 0 | V2009 >= 100) %>%
@@ -49,12 +63,12 @@ base_evasao_filtrada %>%
 base_evasao_pdm <- base_evasao_filtrada %>%
   filter(V2009 >= 14 & V2009 <= 24 & !is.na(evasao))
 
-summary(base_evasao_pdm)
-nrow(base_evasao_pdm)
-
 # Contar a frequência de valores na variável evasao, incluindo NAs
 table(base_evasao_pdm$evasao, useNA = 'ifany')
 prop.table(table(base_evasao_pdm$evasao, useNA = 'ifany'))
+
+summary(base_evasao_pdm)
+nrow(base_evasao_pdm)
 
 ## 1.1.3A Gráfico Inicial: Distribuição Etária por Evasão** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -3294,7 +3308,6 @@ ggplot(tabela_rdpc_evasao_ensino_validos,
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
-
 
 ## 1.11.5A Exportação Final da Tabela (Sem NAs em Evasao e Ensino Médio)** #### 
 # Gerar título dinâmico com período

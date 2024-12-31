@@ -16,21 +16,20 @@ base_evasao <- base_evasao %>%
   mutate(
     id_individuo = paste0(UPA, '_', # Unidade Primária de Amostragem
                           V1008, '_', # Nr. de diferenciação de domicílios na mesma UPA
-                          V1014, '_', # Domicílios que permanecem na amostra da PNAD
+                          V1014, '_', # Grupo de amostra  
                           V2003, '_', # Nr. de ordem (de registro na pnad) do morador no domicílio
                           V2008, '_', # Dia de nascimento
                           V20081, '_', # Mês de nascimento
                           V20082) # Ano de nascimento
   )
 
-## *Ordenar por id_individuo, ano e trimestre ####
+## *Ordenar por ID_DOMICILIO, ano e trimestre ####
 base_evasao <- base_evasao %>%
-  arrange(id_individuo, Ano, Trimestre) 
+  arrange(ID_DOMICILIO, Ano, Trimestre) 
 
 ## *Critérios Pé-de-Meia ####
 # V2009: Idade
 # V3003A: qual curso frequenta
-# VD2004: Condição de ocupação do domicílio
 base_evasao <- base_evasao %>%
   mutate(
     # Critério unificado para Geral e EJA
@@ -45,7 +44,7 @@ base_evasao <- base_evasao %>%
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_evasao <- base_evasao %>%
-  group_by(ID_DOMICILIO) %>%
+  group_by(ID_DOMICILIO, Ano) %>%
   mutate(
     RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
   ) %>%
@@ -53,7 +52,7 @@ base_evasao <- base_evasao %>%
 
 ## *Calcular RDPC (Renda Domiciliar Per Capita) ####
 base_evasao <- base_evasao %>%
-  group_by(ID_DOMICILIO) %>%
+  group_by(ID_DOMICILIO, Ano) %>%
   mutate(
     RDPC = RD/V2001, # V2001: Qtde residentes no domicílio
   ) %>%
@@ -145,10 +144,10 @@ base_evasao <- base_evasao %>%
   mutate(
     evasao = ifelse(
       # Condição principal: Matriculado no 1º trimestre do ano T, mas não aparece no 1º trimestre do ano T+1
-      Trimestre == 1 & V3003A == 'Regular do ensino médio' &
+      Trimestre == 1 & ensino_medio == 1 &
         !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
             dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
-            dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio'),
+            dplyr::lead(ensino_medio) == 1),
       1,  # Marca como evasão
       0   # Caso contrário, não há evasão
     )
@@ -195,17 +194,21 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
 base_evasao_filtrada <- base_evasao_filtrada %>%
   select( 
     id_individuo,
+    ID_DOMICILIO,
+    V2009, # Idade
+    V2001,
+    VD2002,
     Ano, 
     Trimestre, 
     ensino_medio,
     VD4020, # Rendimento mensal todos os trabalhos
     RD, 
     RDPC, 
-    RDPC_menor_meio_sm, 
+    RDPC_menor_meio_sm,
+    evasao,
     regiao, 
     educacao_mae, 
     educacao_pai, 
-    evasao,
     salario_minimo, 
     everything()
   )
@@ -218,3 +221,7 @@ table(base_evasao_filtrada$Trimestre)
 table(base_evasao_filtrada$evasao)
 prop.table(round(table(base_evasao_filtrada$evasao)))
 # O percentual de evasão escolar (=1) pode ser visto aqui
+
+## Na aplicação dos filtros de ensino médio e idade, alguns registros de indivíduos que proveem 
+# renda para o domicílio podem ser excluídos, mas os valores continuar a ser computados nas colunas
+# RD e RDPC, pois a renda é do domicílio, não do indivíduo.

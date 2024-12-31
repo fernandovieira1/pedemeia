@@ -9,7 +9,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 
 ## Digite o ano inicial e o final
 # Anos disponíveis: de 2015 até 2024
-anos <- c(2018, 2019, 2020)
+anos <- c(2022, 2023)
 
 ## Digite o trimestre inicial e final
 # P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) 
@@ -19,7 +19,14 @@ trimestres <- c(1)
 ### Tipo da análise ####
 # 'amostra' ou 'censo'
 # amostra com 10 mil observações.
-tipo_analise <- 'amostra' 
+tipo_analise <- 'censo' 
+
+
+#### CARREGAR AMBIENTE ####
+
+### Carregar Bibliotecas ####
+## AVISO: Não mexer
+source('Codigo Novo pdm\\Script pdm\\bibliotecas.R')
 
 ### Local de trabalho ####
 ## AVISO: Verifique abaixo o caminho do arquivo e altere-o (se ainda não o fez)
@@ -30,10 +37,7 @@ dir(local)
 ## AVISO: Não mexer
 source('Codigo Novo pdm\\Script pdm\\0_config.R')
 
-## Verificar dados
+## Verificar dados ####
 glimpse(publico_alvo_filtrado)
 table(publico_alvo_filtrado$Ano)
 table(publico_alvo_filtrado$Trimestre)
-
-# Limpar o ambiente
-gc(); cat('\014')
