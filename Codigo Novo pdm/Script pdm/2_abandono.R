@@ -10,7 +10,7 @@ base_abandono <- publico_alvo_filtrado %>%
     Trimestre = as.integer(Trimestre),
     Ano = as.integer(Ano),
     V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
-  ) 
+  )
 
 ## *Criar Coluna id_individuo ####
 base_abandono <- base_abandono %>%
@@ -24,9 +24,9 @@ base_abandono <- base_abandono %>%
                           V20082) # Ano de nascimento
   )
 
-## *Ordenar por id_individuo, ano e trimestre ####
+## *Ordenar por ID_DOMICILIO, ano e trimestre ####
 base_abandono <- base_abandono %>%
-  arrange(id_individuo, Ano, Trimestre)
+  arrange(ID_DOMICILIO, Ano, Trimestre)
 
 ## *Critérios Pé-de-Meia ####
 # V2009: Idade
@@ -46,7 +46,7 @@ base_abandono <- base_abandono %>%
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_abandono <- base_abandono %>%
-  group_by(ID_DOMICILIO) %>%
+  group_by(ID_DOMICILIO, Ano) %>%
   mutate(
     RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
   ) %>%
@@ -54,7 +54,7 @@ base_abandono <- base_abandono %>%
 
 ## *Calcular RDPC (Renda Domiciliar Per Capita) ####
 base_abandono <- base_abandono %>%
-  group_by(ID_DOMICILIO) %>%
+  group_by(ID_DOMICILIO, Ano) %>%
   mutate(
     RDPC = RD/V2001, # V2001: Qtde residentes no domicílio
   ) %>%
@@ -65,6 +65,7 @@ base_abandono$RDPC <- round(base_abandono$RDPC, 0)
 # Função salários mínimos
 sal_min <- function(ano) {
   case_when(
+    ano == 2024 ~ 1412,
     ano == 2023 ~ 1320,
     ano == 2022 ~ 1212,
     ano == 2021 ~ 1100,
@@ -118,59 +119,46 @@ base_abandono <- base_abandono %>%
   ) %>%
   ungroup()
 
-## *Criar a dummy de abandono ####
+## *Criar a dummy de abandono escolar ####
 base_abandono <- base_abandono %>%
-  # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
     Trimestre = as.integer(Trimestre),
     Ano = as.integer(Ano),
-    V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
+    V3003A = as.character(V3003A)
   ) %>%
-  # Filtrar apenas indivíduos com mais de uma entrada válida
-  group_by(id_individuo) %>%
-  filter(n_distinct(Trimestre) > 1) %>%
-  # Ordenar os dados por Ano e Trimestre dentro de cada indivíduo
   arrange(Ano, Trimestre, .by_group = TRUE) %>%
-  # Criar a dummy de abandono
   mutate(
     abandono = ifelse(
-      # Apenas considerar trimestres 2, 3 e 4 para cálculo de abandono
       Trimestre > 1 & (
-        # Condição 1: Entre T1 e T2 do mesmo ano
-        (Trimestre == 2 & V3003A == 'Regular do ensino médio' &
+        (Trimestre == 2 & ensino_medio == 1 &
            !(dplyr::lead(Trimestre, default = NA_integer_) == 3 &
-               dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
-          # Condição 2: Entre T2 e T3 do mesmo ano
-          (Trimestre == 3 & V3003A == 'Regular do ensino médio' &
+               dplyr::lead(ensino_medio) == 1)) |
+          (Trimestre == 3 & ensino_medio == 1 &
              !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
-                 dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio')) |
-          # Condição 3: Entre T3 e T4 do mesmo ano
-          (Trimestre == 4 & V3003A == 'Regular do ensino médio' &
-             !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
-                 dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
-                 dplyr::lead(V3003A, default = 'NA') == 'Regular do ensino médio'))
+                 dplyr::lead(ensino_medio) == 1)) |
+          (Trimestre == 4 & ensino_medio == 1 &
+             !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
+                 dplyr::lead(ensino_medio) == 1))
       ),
       1,  # Marca como abandono
       0   # Caso contrário, não há abandono
     )
-  ) %>%
-  # Remover o agrupamento
-  ungroup()
-# Obs.: demora o processamento aqui
+  )
 
 ## Verificar abandono por trimestre
 cat('Distribuição por trimestre e abandono:\n')
 base_abandono %>%
-  filter(!is.na(abandono)) %>%  
-  count(Trimestre, abandono) %>%
+  filter(!is.na(abandono)) %>%  # Exclui NAs em 'abandono'
+  count(Trimestre, abandono) %>%  # Conta a frequência por trimestre e abandono
   pivot_wider(
     names_from = abandono,
     values_from = n,
     names_prefix = 'Absoluto_'
   ) %>%
+  # Garante que as colunas Absoluto_0 e Absoluto_1 existam
   mutate(
-    Absoluto_0 = replace_na(Absoluto_0, 0),  
-    Absoluto_1 = replace_na(Absoluto_1, 0),
+    Absoluto_0 = ifelse(is.na(Absoluto_0), 0, Absoluto_0),
+    Absoluto_1 = ifelse(is.na(Absoluto_1), 0, Absoluto_1),
     Relativo_1 = round((Absoluto_1 / (Absoluto_0 + Absoluto_1)) * 100, 5)  
   ) %>%
   select(Trimestre, Absoluto_0, Absoluto_1, Relativo_1) %>% 
@@ -178,7 +166,7 @@ base_abandono %>%
 
 ## Verificar taxa de abandono
 cat('\nTaxa de abandono (4 trimestres):\n')
-# print(prop.table(table(base_abandono$abandono)))
+print(prop.table(table(base_abandono$abandono)))
 
 # table(base_abandono$Ano)
 # table(base_abandono$Trimestre)
@@ -188,17 +176,21 @@ cat('\nTaxa de abandono (4 trimestres):\n')
 base_abandono_filtrada <- base_abandono %>%
   select( 
     id_individuo,
+    ID_DOMICILIO,
+    V2009, # Idade
+    V2001,
+    VD2002,
     Ano, 
     Trimestre, 
     ensino_medio,
     VD4020, # Rendimento mensal todos os trabalhos
     RD, 
     RDPC, 
-    RDPC_menor_meio_sm, 
+    RDPC_menor_meio_sm,
+    abandono,
     regiao, 
     educacao_mae, 
     educacao_pai, 
-    abandono,
     salario_minimo, 
     everything()
   )

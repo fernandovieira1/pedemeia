@@ -63,6 +63,7 @@ base_evasao$RDPC <- round(base_evasao$RDPC, 0)
 # Função salários mínimos
 sal_min <- function(ano) {
   case_when(
+    ano == 2024 ~ 1412,
     ano == 2023 ~ 1320,
     ano == 2022 ~ 1212,
     ano == 2021 ~ 1100,

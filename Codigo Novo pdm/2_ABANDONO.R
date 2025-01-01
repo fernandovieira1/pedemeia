@@ -21,7 +21,7 @@ nrow(base_abandono_filtrada)
 ncol(base_abandono_filtrada)
 # summary(base_abandono_filtrada)
 
-# View(base_abandono_filtrada)
+View(base_abandono_filtrada)
 
 # Qtde domicílios (ABANDONO)
 base_abandono_filtrada %>% 

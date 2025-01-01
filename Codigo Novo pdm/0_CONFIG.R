@@ -14,7 +14,7 @@ anos <- c(2022, 2023)
 ## Digite o trimestre inicial e final
 # P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) 
 # Se a análise for de evasão, recomendada a inclusão apenas do 1º trimestre (1) p/ economizar RAM
-trimestres <- c(1)
+trimestres <- c(1, 2, 3, 4)
 
 ### Tipo da análise ####
 # 'amostra' ou 'censo'
