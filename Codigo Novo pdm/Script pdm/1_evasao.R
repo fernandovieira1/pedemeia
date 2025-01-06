@@ -35,7 +35,7 @@ base_evasao <- base_evasao %>%
     # Critério unificado para Geral e EJA
     ensino_medio = ifelse(
       (V2009 >= 14 & V2009 <= 24 & 
-         V3002A == 'Rede pública' & 
+         V3002A %in% c('Rede pública', 'Rede privada') & 
          V3003A == 'Regular do ensino médio'),
       1, 0
     )
