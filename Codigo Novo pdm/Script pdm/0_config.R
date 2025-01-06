@@ -149,6 +149,7 @@ variaveis_interesse <- c(
   'VD2003',  # Nr. de componentes/moradores
   
   # EDUCAÇÃO
+  'VD2006',  # Faixa etária do morador
   'V3002',   # Frequenta escola?
   'V3002A',  # Tipo de escola (pública, privada, etc.)
   'V3003A',  # Curso atual ou série frequentada

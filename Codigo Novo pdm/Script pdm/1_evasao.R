@@ -29,18 +29,21 @@ base_evasao <- base_evasao %>%
 
 ## *Critérios Pé-de-Meia ####
 # V2009: Idade
+# VD2006: Faixa etária
+# V3002: Frequenta escola
+# V3002A: frequenta escola regular
 # V3003A: qual curso frequenta
 base_evasao <- base_evasao %>%
   mutate(
-    # Critério unificado para Geral e EJA
     ensino_medio = ifelse(
-      (V2009 >= 14 & V2009 <= 24 & 
-         V3002A %in% c('Rede pública', 'Rede privada') & 
-         V3003A == 'Regular do ensino médio'),
+      !is.na(V2009) & !is.na(VD2006) & !is.na(V3002) & !is.na(V3003A) & !is.na(V3006) & 
+        V2009 >= 14 & V2009 <= 24 &
+        (VD2006 == '14 a 19 anos' | VD2006 == '20 a 24 anos') &
+        V3002 == 'Sim' & # en algum momento respondeu sim
+        V3003A == 'Regular do ensino médio',
       1, 0
     )
-  ) # (?) Considerar 'NA's' como 0?
-# Retirado EJA (Fazer em separado depois) - em 'modelo_pdm7.R' (27/11/2024)
+  ) 
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_evasao <- base_evasao %>%
@@ -128,13 +131,14 @@ base_evasao <- base_evasao %>%
 # base_evasao %>%
 #   summary() 
 
-## *Criar a dummy de evasão ####
+## *Criar a dummy de evasão ajustada ####
 base_evasao <- base_evasao %>%
   # Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
   mutate(
     Trimestre = as.integer(Trimestre),
     Ano = as.integer(Ano),
-    V3003A = as.character(V3003A)  # Garantir que 'V3003A' seja comparável
+    V3003A = as.character(V3003A),  # Garantir que 'V3003A' seja comparável
+    V3006 = as.character(V3006)     # Garantir que 'V3006' seja comparável (série do aluno)
   ) %>%
   # Filtrar apenas indivíduos com mais de uma entrada
   group_by(id_individuo) %>%
@@ -145,7 +149,8 @@ base_evasao <- base_evasao %>%
   mutate(
     evasao = ifelse(
       # Condição principal: Matriculado no 1º trimestre do ano T, mas não aparece no 1º trimestre do ano T+1
-      Trimestre == 1 & ensino_medio == 1 &
+      # Exclui os alunos do terceiro ano (V3006 == 'Terceira (o)')
+      Trimestre == 1 & ensino_medio == 1 & V3006 != 'Terceira (o)' &
         !(dplyr::lead(Trimestre, default = NA_integer_) == 1 &
             dplyr::lead(Ano, default = NA_integer_) == Ano + 1 &
             dplyr::lead(ensino_medio) == 1),
@@ -156,20 +161,11 @@ base_evasao <- base_evasao %>%
   # Remover o agrupamento
   ungroup()
 
-# Verificação da Quantidade de NAs
-base_evasao %>%
-  summarise(
-    total = n(),
-    n_NAs_evasao = sum(is.na(evasao)),
-    proporcao_NAs = mean(is.na(evasao))
-  )
 
-base_evasao %>%
-  filter(is.na(evasao)) %>%
-  select(id_individuo, Ano, Trimestre, V3003A) %>%
-  head()
-# --> Muitos NAs porque há muitos registros têm V3003A == NA, o que impede a criação da dummy.
-# A semântica e a sintaxe fazem sentido e permitem prosseguir para a análise, mas valeria a pena tentar contornar isso?
+base_evasao <- base_evasao %>%
+  mutate(
+    evasao = replace_na(evasao, 1)  # Substitui NA por 1
+  )
 
 ### 1.2 df Evasão Filtrado ####
 # - Filtrar os indivíduos que responderam tanto no T1 do ano T quanto no T1 do ano T+1,
@@ -213,16 +209,3 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     salario_minimo, 
     everything()
   )
-
-summary(base_evasao_filtrada)
-glimpse(base_evasao_filtrada)
-table(base_evasao_filtrada$Ano)
-table(base_evasao_filtrada$Trimestre)
-
-table(base_evasao_filtrada$evasao)
-prop.table(round(table(base_evasao_filtrada$evasao)))
-# O percentual de evasão escolar (=1) pode ser visto aqui
-
-## Na aplicação dos filtros de ensino médio e idade, alguns registros de indivíduos que proveem 
-# renda para o domicílio podem ser excluídos, mas os valores continuar a ser computados nas colunas
-# RD e RDPC, pois a renda é do domicílio, não do indivíduo.

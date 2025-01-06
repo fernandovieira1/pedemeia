@@ -13,7 +13,8 @@ source('Codigo Novo pdm\\Script pdm\\1_evasao.R')
 glimpse(base_evasao_filtrada)
 
 ######################## 1. BASE EVASÃO ########################
-cat('\014')
+# Limpar o ambiente
+gc(); cat('\014')
 
 str(base_evasao_filtrada)
 names(base_evasao_filtrada)
@@ -38,9 +39,22 @@ base_evasao_filtrada %>%
 # Contar a frequência de valores na variável evasao, incluindo NAs
 table(base_evasao_filtrada$evasao, useNA = 'ifany')
 prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
-  
+
+base_evasao_filtrada %>% 
+  filter(Ano == 2017) %>% 
+  count(evasao) %>% 
+  summarise(
+    total_0 = sum(n[evasao == 0]),
+    total_1 = sum(n[evasao == 1]),
+    taxa_evasao = (total_1 / total_0) * 100
+  )
+
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.1 FAIXA ETÁRIA ####
+
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.1.1A Resumo Descritivo da Idade ####
@@ -233,6 +247,9 @@ ggplot(base_evasao_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fill 
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.2 COR ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -499,6 +516,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 ## 1.3 SEXO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -764,6 +784,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.4 REGIÃO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -1003,6 +1026,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.5 RDPC ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -1340,6 +1366,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.6 RDPC POR REGIÃO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -1727,6 +1756,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.7 RDPC POR COR ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -2085,6 +2117,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.8 RDPC POR SEXO** ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -2452,6 +2487,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.9 RDPC POR ENSINO MÉDIO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -2826,6 +2864,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.10 RDPC POR EVASÃO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -3204,6 +3245,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.11 RDPC POR EVASÃO E ENSINO MÉDIO** ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -3486,6 +3530,9 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
 #### 1.12 RESUMO EVASÃO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
@@ -3606,6 +3653,8 @@ ggplot(tabela_evasao_ano, aes(x = as.factor(Ano), y = Contagem, fill = as.factor
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 ## | ####
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
 
 #### 1.13 POPULAÇÃO (RURAL VS URBANA) ####
 
@@ -3702,8 +3751,8 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 ## 1.13.1B Resumo Descritivo da População Segmentada por Ano ####
 ## Tratar valores ausentes (Substituir NA por um nível válido se possível)
 base_evasao_filtrada <- base_evasao_filtrada %>%
-  mutate(V1022 = ifelse(is.na(V1022), "Desconhecido", as.character(V1022))) %>%
-  mutate(V1022 = factor(V1022, levels = c("Urbana", "Rural", "Desconhecido")))
+  mutate(V1022 = ifelse(is.na(V1022), 'Desconhecido', as.character(V1022))) %>%
+  mutate(V1022 = factor(V1022, levels = c('Urbana', 'Rural', 'Desconhecido')))
 
 ## Resumo descritivo por Ano e População
 tabela_populacao_ano <- base_evasao_filtrada %>%
@@ -3799,6 +3848,132 @@ tabela_html <- stargazer(
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+## | ####
+## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# Limpar o ambiente
+gc(); cat('\014')
+
+#### 1.14 RESUMO EVASÃO ####
+
+#### ////// TEMPO: DADOS EMPILHADOS ////// ####
+## 1.14.1A Resumo Descritivo da Evasão** ####
+tabela_evasao <- base_evasao_filtrada %>%
+  group_by(evasao) %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2))
+tabela_evasao
+
+## 1.14.2A Gráfico Inicial: Proporção de Evasão** #### 
+# Gerar título dinâmico com período
+titulo_dinamico <- paste0(
+  'Proporção de Evasão - Período: ',
+  inicio, '-', fim
+)
+
+# Gráfico inicial: proporção de evasão
+ggplot(tabela_evasao, aes(x = '', y = Contagem, fill = as.factor(evasao))) +
+  geom_bar(stat = 'identity', color = 'black') +
+  geom_text(aes(label = paste0(Proporcao, '%')), vjust = -0.5, size = 5) +
+  labs(
+    title = titulo_dinamico,  # Título dinâmico
+    x = '',
+    y = 'Frequência',
+    fill = 'Evasão (1=Sim)'
+  ) +
+  theme_minimal()
+
+## 1.14.3A Exportação Final da Tabela (Sem NAs em Evasao)** #### 
+# Gerar título dinâmico com período
+titulo_dinamico <- paste0(
+  'Proporção de Evasão (Sem NAs) - Período: ',
+  inicio, '-', fim
+)
+
+# Exportar tabela limpa com stargazer
+stargazer(tabela_evasao, type = 'text', summary = FALSE,
+          title = titulo_dinamico,  # Título dinâmico
+          digits = 2)
+
+# Estes valores batem com: 
+prop.table(round(table(base_evasao_filtrada$evasao)))
+
+# Gerar a tabela em formato HTML com stargazer
+tabela_html <- stargazer(
+  tabela_evasao,
+  type = 'html',            # Exportar como HTML
+  summary = FALSE,          # Sem resumo
+  title = titulo_dinamico,  # Título dinâmico
+  digits = 2                # Número de casas decimais
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = '\n')
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
+#### ////// TEMPO: DADOS LONGITUDINAIS ////// ####
+## 1.14.1B Resumo Descritivo da Evasão** ####
+# Calcular proporções de evasão por ano
+tabela_evasao_longitudinal <- base_evasao_filtrada %>% 
+  group_by(Ano, evasao) %>%
+  summarise(Contagem = n(), .groups = 'drop') %>%
+  group_by(Ano) %>%
+  mutate(Proporcao = round((Contagem / sum(Contagem)) * 100, 2)) %>%
+  filter(!is.na(evasao)) # Remover NAs de evasão
+
+tabela_evasao_longitudinal
+
+## 1.14.2B Gráfico Inicial: Proporção de Evasão** #### 
+# Criar o gráfico longitudinal
+ggplot(tabela_evasao_longitudinal, aes(x = Ano, y = Proporcao, color = as.factor(evasao), group = evasao)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = 'Proporção de Evasão Escolar no Ensino Médio por Ano',
+    x = 'Ano',
+    y = 'Proporção (%)',
+    color = 'Evasão (1=Sim, 0=Não)'
+  ) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  theme_minimal()
+
+## 1.14.3B Exportação Final da Tabela (Sem NAs em Evasao)** #### 
+# Gerar título dinâmico com período
+inicio <- min(tabela_evasao_longitudinal$Ano)
+fim <- max(tabela_evasao_longitudinal$Ano)
+titulo_dinamico <- paste0(
+  'Proporção de Evasão (Sem NAs) - Período: ',
+  inicio, '-', fim
+)
+
+# Exportar tabela para o console
+stargazer(
+  tabela_evasao_longitudinal,
+  type = 'text',
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Exportar tabela para HTML
+tabela_html <- stargazer(
+  tabela_evasao_longitudinal,
+  type = 'html',
+  summary = FALSE,
+  title = titulo_dinamico,
+  digits = 2,
+  rownames = FALSE
+)
+
+# Unir o vetor HTML em uma única string
+html_output <- paste(tabela_html, collapse = '\n')
+
+# Renderizar no Viewer do RStudio
+htmltools::html_print(HTML(html_output))
+
+## ++++++++++++++++++++++++++++++++ INÍCIO +++++++++++++++++++++++++++++++ ####
 
 ## DICIONÁRIO DFs PRINCIPAIS ####
 # Todos os dfs secundários/intermediários devem se originar destes
