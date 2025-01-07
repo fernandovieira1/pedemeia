@@ -19,106 +19,7 @@
 ## *Evasão e abandono ####
 # EVASAO: 1 e 5 tri - merge sexo da amostra que ingressou no 1 tri
 # ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
-
-### 0.2 Definir anos e trimestres ####
-ano_inicial <- min(anos)
-n_anos <- length(unique(anos))
-
-### 0.3 Dados PNADc ####
-# AVISO 1: Verifique o nome do arquivo e altere-o, se for o caso
-# AVISO 2: Os dados da PNAD entre 2015 e 2024 encontram-se disponíveis para download em: '1.4_Notas_Metodologicas.R' >>> '0.5 Dados PNADc'
-
-if (tipo_analise == 'censo') {
-  ### Carregar múltiplos arquivos com base nos anos selecionados
-  carregar_dados_pnad <- function(local, anos) {
-    # Listar arquivos disponíveis no diretório
-    arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
-    
-    # Filtrar arquivos com base nos anos desejados
-    arquivos_filtrados <- arquivos_disponiveis[
-      sapply(arquivos_disponiveis, function(x) {
-        # Extrair anos do nome do arquivo
-        anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
-        any(anos %in% anos_arquivo)
-      })
-    ]
-    
-    # Carregar e combinar os arquivos filtrados
-    dados_combinados <- arquivos_filtrados %>%
-      map_dfr(~ readRDS(.))  # Combina os dados em um único data.frame
-    
-    return(dados_combinados)
-  }
-  
-  ### Carregar os dados com base nos períodos selecionados
-  dados_pnad <- tryCatch({
-    carregar_dados_pnad(local, anos)
-  }, error = function(e) {
-    warning('Erro ao carregar os arquivos de dados.')
-    NULL
-  })
-} else {
-  ### Carregar múltiplos arquivos com base nos anos selecionados
-  carregar_dados_pnad <- function(local, anos, n_linhas = NULL) {
-    # Listar arquivos disponíveis no diretório
-    arquivos_disponiveis <- list.files(local, pattern = 'dados_pnad_.*\\.rds$', full.names = TRUE)
-    
-    # Filtrar arquivos com base nos anos desejados
-    arquivos_filtrados <- arquivos_disponiveis[
-      sapply(arquivos_disponiveis, function(x) {
-        # Extrair anos do nome do arquivo
-        anos_arquivo <- as.numeric(unlist(regmatches(x, gregexpr('\\d{4}', x))))
-        any(anos %in% anos_arquivo)
-      })
-    ]
-    
-    # Carregar e combinar os arquivos filtrados
-    dados_combinados <- arquivos_filtrados %>%
-      map_dfr(function(arquivo) {
-        dados <- readRDS(arquivo) # Ler o arquivo
-        if (!is.null(n_linhas)) {
-          dados <- dados %>% slice_sample(n = min(n_linhas, nrow(dados))) # Amostra de n linhas
-        }
-        return(dados)
-      })
-    
-    return(dados_combinados)
-  }
-  
-  ### Carregar os dados com base nos períodos selecionados
-  dados_pnad <- tryCatch({
-    carregar_dados_pnad(local, anos, n_linhas = 10000) # Defina n_linhas para limitar ou NULL para carregar tudo
-  }, error = function(e) {
-    warning('Erro ao carregar os arquivos de dados.')
-    NULL
-  })
-}
-
-
-# nrow(dados_pnad)
-# ncol(dados_pnad)
-# table(dados_pnad$Ano)
-# table(dados_pnad$Trimestre)
-
-### 0.4 Variáveis interesse ####
-
-## Verificar a presença das variáveis de transferências sociais
-# variaveis_transferencias <- intersect(c('VD4047', 'VDI4047'), names(dados_pnad))
-
-## Criar ou ajustar a variável de transferências sociais
-# if (length(variaveis_transferencias) > 0) {
-#   # Combinar as variáveis disponíveis, se existirem
-#   dados_pnad <- dados_pnad %>%
-#     mutate(transferencias_sociais = rowSums(select(., all_of(variaveis_transferencias)), na.rm = TRUE))
-# } else {
-#   # Adicionar uma coluna de transferências sociais com NA caso não existam as variáveis
-#   dados_pnad <- dados_pnad %>%
-#     mutate(transferencias_sociais = NA_real_)
-#   warning('Nenhuma variável de transferências sociais encontrada. Adicionando coluna com valores NA.')
-# }
-
-## Verificar estrutura do conjunto de dados atualizado
-# glimpse(dados_pnad)
+gc()
 
 ## Variáveis de interesse
 variaveis_interesse <- c(
@@ -206,10 +107,11 @@ if (!is.null(dados_pnad)) {
 # Filtrar as variáveis de interesse
 publico_alvo_filtrado <- dados_pnad  # Apenas mudei o nome pelo código legado de outras versões.
 
-nrow(publico_alvo_filtrado)
+# nrow(publico_alvo_filtrado)
 # table(publico_alvo_filtrado$Ano)
 # table(publico_alvo_filtrado$Trimestre)
 
 ## Remover df dados_pnad 
 # liberar RAM (COMENTAR OU DESCOMENTAR ABAIXO)
 rm(dados_pnad)
+gc()
