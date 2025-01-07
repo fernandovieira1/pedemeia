@@ -41,7 +41,7 @@ table(base_evasao_filtrada$evasao, useNA = 'ifany')
 prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
 
 base_evasao_filtrada %>% 
-  filter(Ano == 2017) %>% 
+  filter(Ano == 2023) %>% 
   count(evasao) %>% 
   summarise(
     total_0 = sum(n[evasao == 0]),
@@ -99,7 +99,7 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
        x = 'Idade',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> idades_evasao
 
 ## 1.1.4A Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Obter os valores mínimo e máximo da variável 'anos'

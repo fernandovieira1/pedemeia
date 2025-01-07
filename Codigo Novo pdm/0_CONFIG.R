@@ -9,7 +9,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 
 ## Digite o ano inicial e o final
 # Anos disponíveis: de 2015 até 2024
-anos <- c(2015, 2016, 2017)
+anos <- c(2021, 2022, 2023)
 
 ## Digite o trimestre inicial e final
 # - P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) 
