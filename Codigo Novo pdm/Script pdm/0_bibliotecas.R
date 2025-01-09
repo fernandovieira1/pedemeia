@@ -14,6 +14,8 @@ load_install <- function(pacote) {
   load_install('tidyverse') # Manipulação do df e Gráficos
   load_install('janitor') # Limpeza de dados
   load_install('scales')  # Formatação de gráficos
+  load_install('RSQLite') # Manipulação de bases de dados SQL
+  load_install('DBI') # Manipulação de grandes bases de dados
   
   ## Modelos econométricos
   load_install('fixest') # Estimação de modelos fixos

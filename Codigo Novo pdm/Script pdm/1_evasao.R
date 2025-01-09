@@ -209,3 +209,4 @@ base_evasao_filtrada <- base_evasao_filtrada %>%
     salario_minimo, 
     everything()
   )
+

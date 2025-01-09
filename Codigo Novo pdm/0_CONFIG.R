@@ -34,7 +34,7 @@ formato_arquivo <- 'sql'
 
 ### Carregar Bibliotecas ####
 ## AVISO: Não mexer (apenas execute)
-source('Codigo Novo pdm\\Script pdm\\bibliotecas.R')
+source('Codigo Novo pdm\\Script pdm\\0_bibliotecas.R')
 gc()
 
 ### Local de trabalho ####
@@ -42,7 +42,7 @@ gc()
 local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
 ## AVISO: Não mexer (apenas execute)
-source('Codigo Novo pdm\\Script pdm\\local.R')
+source('Codigo Novo pdm\\Script pdm\\0_local.R')
 gc()
 
 ### Carregar script de configuração do ambiente ####
