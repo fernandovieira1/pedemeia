@@ -1,6 +1,9 @@
 ### Local de trabalho ####
 local <- local
-banco_sql <- file.path(local, "pnad_dados.db")
+# banco_sql <- file.path(local, "pnad_dados.db")
+banco_sql <- paste0(local, "\\pnad_dados.db")
+
+
 
 #### Funções de Carregamento ####
 

@@ -28,7 +28,7 @@ tipo_analise <- 'censo'
 
 ### Formato dos arquivos da base de dados ####
 # Defina aqui: 'rds' ou 'sql'
-formato_arquivo <- 'rds'  
+formato_arquivo <- 'sql'  
 
 #### CARREGAR AMBIENTE ####
 
