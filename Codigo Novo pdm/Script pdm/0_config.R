@@ -1,117 +1,100 @@
-######################## 0. CONFIGURAR AMBIENTE ########################
-# Notas metodológicas
-# Carregar pacotes
-# Definir colunas pnad
-# Criar função pnad
-# Importar dados
-# setwd(local)
-# rm(list=ls(all=TRUE)); gc(); cat('\014')
+### Local de trabalho ####
 
-###  0. 1 Notas metodológicas ####
+# Define o caminho para o banco SQL
+banco_sql <- paste0(local, "\\pnad_dados.db")
 
-## *Dicionários PNADc #####
-# Descrição: Dicionários de variáveis PNADc
-# Arquivos na pasta 'Docs Acessórios pdm', ou links no arquivo '1.2_Colunas_Evasao.R'.
+#### Funções de Carregamento ####
 
-# Complementado em '1.3_Notas_Metodologicas.R'
-
-
-## *Evasão e abandono ####
-# EVASAO: 1 e 5 tri - merge sexo da amostra que ingressou no 1 tri
-# ABANDONO: 1 e 2 tri, 2 e 3, 3 e 4, 4 e 5 - merge sexo
-gc()
-
-## Variáveis de interesse
-variaveis_interesse <- c(
+# Carregar dados em formato SQL com filtro por anos
+carregar_dados_sql <- function(banco_sql, anos, trimestres) {
+  if (!file.exists(banco_sql)) {
+    stop("Banco de dados SQL não encontrado: ", banco_sql)
+  }
   
-  ## IDENTIFICAÇÃO
-  'ID_DOMICILIO',  # Identificador único do domicílio (não aparece dicionário)
-  'UPA',           # Unidade Primária de Amostragem (UPA)
-  'V1008',         # Nr. de seleção do domicílio (1 a 14)
-  'V1014',         # Painel (indicador de panel)
-  'V1016',         # Indica a entrevista (1 a 5)
-  'Ano',           # Ano
-  'Trimestre',     # Trimestre
+  # Estabelece a conexão
+  con <- tryCatch({
+    DBI::dbConnect(RSQLite::SQLite(), banco_sql)
+  }, error = function(e) {
+    stop("Erro ao conectar ao banco de dados: ", e$message)
+  })
   
-  # DOMICÍLIO
-  'VD2004',   # Espécie da unidade doméstica (1: unipessoal, 2: nuclear, 3: estendida, 4: composta)
-  'VD2002',   # Condição/Parentesco no domicílio (responsável, cônjuge, filho, etc.)
-  'V1022',    # Rural ou Urbana
+  # Garante que a conexão será fechada
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
   
-  # FAMÍLIA
-  'V2001',   # Tamanho da família (nr. de pessoas no domicílio)
-  'V2003',   # Ordem do morador na família
-  'V2007',   # Sexo do morador
-  'V2008',   # Dia de nascimento do morador
-  'V20081',  # Mês de nascimento do morador
-  'V20082',  # Ano de nascimento do morador
-  'V2009',   # Idade do morador
-  'V2010',   # Cor ou raça do morador
-  'VD2003',  # Nr. de componentes/moradores
+  # Lista as tabelas disponíveis e filtra pelas que contêm os anos
+  tabelas <- DBI::dbListTables(con)
+  tabelas_filtradas <- tabelas[sapply(tabelas, function(t) {
+    anos_tabela <- as.numeric(unlist(regmatches(t, gregexpr('\\d{4}', t))))
+    any(anos %in% anos_tabela)
+  })]
   
-  # EDUCAÇÃO
-  'VD2006',  # Faixa etária do morador
-  'V3002',   # Frequenta escola?
-  'V3002A',  # Tipo de escola (pública, privada, etc.)
-  'V3003A',  # Curso atual ou série frequentada
-  'V3006',   # Ano ou série que frequentava anteriormente
-  'V3009A',  # Maior escolaridade atual do morador
-  'VD3005',  # Anos de estudo completos do morador
-  'V3006',   # Qual é o ano/série/semestre que frequenta?
-  'V3008',   # Anteriormente frequentou escola?
-  'V3013',   # Qual foi o último ano/série que concluiu com aprovação no curso frequentado anteriormente
-  'V3014',   # Concluiu este curso que frequentou anteriormente?
+  # Inicializa lista para armazenar os dados
+  lista_dados <- list()
   
-  # TRABALHO E RENDA
-  'V4001',   # Trabalhou na semana de referência?
-  'VD4013',  # Faixa das horas habitualmente trabalhadas por semana em todos os trabalhos (14 anos ou mais)
-  'VD4014',  # Faixa das horas efetivamente trabalhadas por semana em todos os trabalhos  (14 anos ou mais)
-  'VD4016',  # Rendimento mensal HABITUAL do trabalho principal (FIXO) (R$)
-  'VD4017',  # Rendimento mensal EFETIVO do trabalho principal (FIXO + BICOS) (R$)
-  'VD4019',  # Rendimento mensal habitual (R$) de TODOS os trabalhos (apenas 1º trimestre)
-  'VD4020',  # Rendimento mensal todos os trabalhos
-  'V4012',   # Neste trabalho, era... (excluir militares e funcionários públicos da análise de salários)
-  'V4025',   # Nesse trabalho, ... era contratado(a) como empregado temporário ?
-  'V403312', # Qual era o rendimento bruto/retirada mensal que ... recebia/fazia normalmente nesse trabalho ?
-  'V4039C',  # Quantas horas ... trabalhou efetivamente na semana de referência nesse trabalho principal?
-  'V4040',   # Até o dia (último dia da semana de referência) fazia quanto tempo que estava nesse trabalho?
-  'V405012', # Valor em dinheiro do rendimento mensal que recebia normalmente nesse trabalho secundário
-  'V4056',   # Quantas horas ... trabalhava normalmente, por semana, nesse trabalho secundário?
-  'VD4018',  # Tipo de remuneração recebida em todos os trabalhos (1 = dinheiro, 2 = beneficios ou sem rem.)
-  'VD4019'  # Rendimento de todos os trabalhos (confirmar se é isso mesmo)
-  # 'transferencias_sociais'
-)
-
-## *dados_pnad - Variáveis de interesse ####
-dados_pnad <- dados_pnad %>%
-  select(all_of(variaveis_interesse))
-
-## *dados_pnad (DF) - Filtrar períodos ####
-# Filtrar ano(s) e trimestre(s) de interesse
-# Verificar se deu certo
-if (!is.null(dados_pnad)) {
-  dados_pnad <- as.data.frame(dados_pnad)
+  # Itera sobre as tabelas filtradas
+  for (tabela in tabelas_filtradas) {
+    message(sprintf("Tentando carregar dados da tabela: %s", tabela))
+    
+    # Verifica se a tabela contém as colunas necessárias
+    colunas <- DBI::dbListFields(con, tabela)
+    if (!("Ano" %in% colunas) || !("Trimestre" %in% colunas)) {
+      warning(sprintf("Tabela '%s' não contém as colunas necessárias ('Ano' e 'Trimestre').", tabela))
+      next
+    }
+    
+    # Adiciona aspas duplas ao nome da tabela
+    tabela_sql <- sprintf('"%s"', tabela)
+    
+    # Define a query para cada tabela
+    query <- sprintf(
+      "SELECT * FROM %s WHERE Ano IN (%s) AND Trimestre IN (%s)",
+      tabela_sql,
+      paste(anos, collapse = ","),
+      paste(trimestres, collapse = ",")
+    )
+    
+    # Tenta executar a query e armazenar os resultados
+    dados <- tryCatch({
+      DBI::dbGetQuery(con, query)
+    }, error = function(e) {
+      warning(sprintf("Erro ao carregar dados da tabela '%s': %s", tabela, e$message))
+      NULL
+    })
+    
+    # Adiciona os dados à lista se não for nulo
+    if (!is.null(dados) && nrow(dados) > 0) {
+      lista_dados[[tabela]] <- dados
+    } else {
+      warning(sprintf("Tabela '%s' não retornou resultados.", tabela))
+    }
+  }
   
-  dados_pnad <- dados_pnad %>%
-    filter(Ano %in% anos & Trimestre %in% trimestres)
-  
-} else {
-  warning('Os dados não foram carregados corretamente.')
+  # Combina os dados de todas as tabelas
+  if (length(lista_dados) > 0) {
+    return(dplyr::bind_rows(lista_dados))
+  } else {
+    stop("Nenhum dado foi carregado das tabelas disponíveis.")
+  }
 }
 
-# nrow(dados_pnad)
-# table(dados_pnad$Ano)
-# table(dados_pnad$Trimestre)
+# Verifique o formato e carregue os dados
+if (formato_arquivo == 'rds') {
+  message("Carregando dados no formato RDS...")
+  dados_pnad <- carregar_dados_rds(local, anos, trimestres)
+} else if (formato_arquivo == 'sql') {
+  message("Carregando dados no formato SQL...")
+  dados_pnad <- carregar_dados_sql(banco_sql, anos, trimestres)
+} else {
+  stop("Formato de arquivo inválido. Escolha 'rds' ou 'sql'.")
+}
+
+# Valide se o objeto foi criado
+if (!exists("dados_pnad") || is.null(dados_pnad)) {
+  stop("Erro: o objeto 'dados_pnad' não foi carregado corretamente.")
+} else {
+  message("Dados carregados com sucesso!")
+}
 
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
 publico_alvo_filtrado <- dados_pnad  # Apenas mudei o nome pelo código legado de outras versões.
-
-# nrow(publico_alvo_filtrado)
-# table(publico_alvo_filtrado$Ano)
-# table(publico_alvo_filtrado$Trimestre)
-
-## Remover df dados_pnad 
-# liberar RAM (COMENTAR OU DESCOMENTAR ABAIXO)
-rm(dados_pnad)
-gc()

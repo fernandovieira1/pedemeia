@@ -5,7 +5,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 # Marcar o início do processamento
 inicio <- Sys.time()
 
-#### CONFIGURAR AMBIENTE ####
+######################################## I. DEFINIR PERÍODOS ########################################
 
 ### Definir período ####
 ## AVISO: Definir anos inicial e final
@@ -13,7 +13,7 @@ inicio <- Sys.time()
 
 ## Digite o ano inicial e o final
 # Anos disponíveis: de 2015 até 2024
-anos <- c(2022, 2023)
+anos <- c(2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023)
 
 ## Digite o trimestre inicial e final
 # - P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) 
@@ -21,16 +21,23 @@ anos <- c(2022, 2023)
 # apenas do 1º trimestre (1) p/ economizar RAM
 trimestres <- c(1, 2, 3, 4)
 
+######################################## II. CONFIGURAR AMBIENTE ########################################
+
 ### Tipo da análise ####
 # 'amostra' ou 'censo'
 # amostra com 10 mil observações.
 tipo_analise <- 'censo' 
 
+### Tipo de processamento ####
+# 'original' ou 'compactado'
+# amostra com 10 mil observações.
+tipo_processamento <- 'original' 
+
 ### Formato dos arquivos da base de dados ####
 # Defina aqui: 'rds' ou 'sql'
-formato_arquivo <- 'sql'  
+formato_arquivo <- 'rds'  
 
-#### CARREGAR AMBIENTE ####
+######################################## III. EXECUTAR SCRIPT ########################################
 
 ### Carregar Bibliotecas ####
 ## AVISO: Não mexer (apenas execute)
@@ -47,13 +54,20 @@ gc()
 
 ### Carregar script de configuração do ambiente ####
 ## AVISO: Não mexer
-source('Codigo Novo pdm\\Script pdm\\0_config.R')
+if (tipo_processamento == 'compactado') {
+  source('Codigo Novo pdm\\Script pdm\\Docs Acessorios pdm\\0_config_teste.R') # testes
+} else {
+  source('Codigo Novo pdm\\Script pdm\\0_config.R')
+}
+
 gc()
 
+######################################## IV. RESULTADOS ########################################
+
 ## Verificar dados ####
-glimpse(publico_alvo_filtrado)
-table(publico_alvo_filtrado$Ano)
-table(publico_alvo_filtrado$Trimestre)
+# glimpse(publico_alvo_filtrado)
+# table(publico_alvo_filtrado$Ano)
+# table(publico_alvo_filtrado$Trimestre)
 
 #### FIM ####
 # Marcar o final do processamento
@@ -62,3 +76,4 @@ fim <- Sys.time()
 # Calcular o tempo total de execução
 tempo_execucao <- fim - inicio
 print(paste("Tempo de execução (minutos):", tempo_execucao))
+gc()

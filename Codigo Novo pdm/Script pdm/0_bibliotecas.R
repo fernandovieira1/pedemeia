@@ -16,6 +16,8 @@ load_install <- function(pacote) {
   load_install('scales')  # Formatação de gráficos
   load_install('RSQLite') # Manipulação de bases de dados SQL
   load_install('DBI') # Manipulação de grandes bases de dados
+  load_install('future') # Paralelização
+  load_install('furrr') # Paralelização
   
   ## Modelos econométricos
   load_install('fixest') # Estimação de modelos fixos
