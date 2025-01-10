@@ -7,12 +7,15 @@
 # Limpar o ambiente
 gc(); cat('\014'); Sys.setlocale('LC_ALL', 'pt_BR.UTF-8')
 
+#### INÍCIO ####
+# Marcar o início do processamento
+inicio <- Sys.time()
 
 ## Carregar script Evasão Escolar ####
 # AVISO: Não mexer
 source('Codigo Novo pdm\\Script pdm\\1_evasao.R')
 # glimpse(base_evasao_filtrada)
-
+inicio2 <- Sys.time()
 ######################## 1. BASE EVASÃO ########################
 # Limpar o ambiente
 gc(); cat('\014')
@@ -55,7 +58,6 @@ tail(base_evasao_filtrada)
 gc(); cat('\014')
 
 #### 1.1 FAIXA ETÁRIA ####
-
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.1.1A Resumo Descritivo da Idade ####
@@ -100,7 +102,8 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
        x = 'Idade',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal() -> idades_evasao_graf_a
+  theme_minimal() -> a_graf_idades_evasao
+a_graf_idades_evasao
 
 ## 1.1.4A Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -124,10 +127,11 @@ ggplot(base_evasao_percentual, aes(x = as.factor(V2009), y = Contagem, fill = as
        x = 'Idade',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal() -> evasao_1424_graf_a
+  theme_minimal() -> a_graf_evasao_1424
+a_graf_evasao_1424
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-head(base_evasao_pdm, 4)
+# head(base_evasao_pdm, 4)
 
 ## 1.1.1B Resumo Descritivo da Idade ####
 resumo_idade_ano <- base_evasao_filtrada %>%
@@ -138,7 +142,6 @@ resumo_idade_ano <- base_evasao_filtrada %>%
     Média = round(mean(V2009, na.rm = TRUE), 2),
     Mediana = median(V2009, na.rm = TRUE),
     `Desvio Padrao` = round(sd(V2009, na.rm = TRUE), 2),
-    `Valores Ausentes` = sum(is.na(V2009))
   )
 
 # Gerar tabela HTML com stargazer
@@ -151,8 +154,8 @@ tabela_html <- stargazer(
 
 # Renderizar no Viewer
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> resumo_idades_b
-htmltools::html_print(resumo_idades_b)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_idades
+htmltools::html_print(b_tab_resumo_idades)
 
 ## 1.1.2B Filtragem de Idades Válidas ####
 
@@ -191,7 +194,7 @@ tabela_html <- stargazer(
 html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer
-htmltools::html_print(HTML(html_output)) # Salvar
+htmltools::html_print(HTML(html_output)) 
 
 # Criar o gráfico com os totais acima das barras
 ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill = as.factor(Ano))) +
@@ -220,7 +223,8 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_idades_evasao
+b_graf_idades_evasao
 
 ## 1.1.4B Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Calcular percentuais por idade, evasao e ano
@@ -243,7 +247,8 @@ ggplot(base_evasao_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fill 
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_evasao_1424
+b_graf_evasao_1424
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -287,6 +292,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer
 htmltools::html_print(HTML(html_output))
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_cor
+htmltools::html_print(a_tab_resumo_cor)
 
 ## 1.2.2A Gráfico Inicial: Proporção de Evasão por Cor/Raça ####
 ggplot(base_evasao_filtrada, aes(x = V2010, fill = as.factor(evasao))) +
@@ -320,7 +327,8 @@ ggplot(base_evasao_percentual_cor, aes(x = V2010, y = Contagem, fill = as.factor
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Melhor visualização
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_cor_percentual
+a_graf_cor_percentual
 
 ## 1.2.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 
@@ -412,6 +420,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_cor_raca
+htmltools::html_print(b_tab_cor_raca)
 
 ## 1.2.2B Gráfico Inicial: Proporção de Evasão por Cor/Raça ####
 # Gráfico mostrando a proporção de evasão por cor/raça para cada ano
@@ -450,7 +460,8 @@ ggplot(base_evasao_percentual_ano, aes(x = V2010, y = Contagem, fill = as.factor
     fill = 'Evasão (1=Sim)'
   ) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_cor_percentual
+b_graf_cor_percentual
 
 
 ## 1.2.4B Gráfico com Percentuais no Topo (Sem NAs)***####
@@ -475,7 +486,8 @@ ggplot(base_evasao_percentual_ano, aes(x = V2010, y = Contagem, fill = as.factor
     fill = 'Evasão (1=Sim)'
   ) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_cor_percentual_sem_na
+b_graf_cor_percentual_sem_na
 
 ## 1.2.5B Exportação Final da Tabela (Sem NAs)** ####
 # Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
@@ -513,6 +525,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_cor_percentual_sem_na
+htmltools::html_print(b_tab_cor_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -554,6 +568,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo
+htmltools::html_print(a_tab_resumo_sexo)
 
 ## 1.3.2A Gráfico Inicial: Proporção de Evasão por Sexo ####
 ggplot(base_evasao_filtrada, aes(x = V2007, fill = as.factor(evasao))) +
@@ -586,7 +602,8 @@ ggplot(base_evasao_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.facto
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> a_graf_sexo_percentual
+a_graf_sexo_percentual
 
 ## 1.3.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -609,7 +626,8 @@ ggplot(base_evasao_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.facto
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> a_graf_cor_percentual_sem_na
+a_graf_cor_percentual_sem_na
 
 ## 1.3.5A Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Filtrar valores válidos (remover NAs da variável Evasao)
@@ -649,6 +667,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo_sem_na
+htmltools::html_print(a_tab_resumo_sexo_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 head(base_evasao_filtrada, 2)
@@ -686,6 +706,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_sexo
+htmltools::html_print(b_tab_resumo_sexo)
 
 ## 1.3.2B Gráfico Inicial: Proporção de Evasão por Sexo ####
 # Gráfico de proporção por sexo segmentada por ano
@@ -721,7 +743,8 @@ ggplot(base_evasao_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as.f
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_sexo_percentual
+b_graf_sexo_percentual
 
 ## 1.3.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de evasão por sexo por ano
@@ -743,7 +766,8 @@ ggplot(base_evasao_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as.f
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_sexo_percentual_sem_na
+b_graf_sexo_percentual_sem_na
 
 ## 1.3.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Criar um mapeamento para os valores de Sexo
@@ -781,6 +805,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_sexo_percentual_sem_na
+htmltools::html_print(b_tab_sexo_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -823,6 +849,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_regiao
+htmltools::html_print(a_tab_resumo_regiao)
 
 ## 1.4.2A Gráfico Inicial: Proporção de Evasão por Região ####
 ggplot(base_evasao_filtrada, aes(x = regiao, fill = as.factor(evasao))) +
@@ -856,7 +884,8 @@ ggplot(base_evasao_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.fa
        x = 'Região',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> a_graf_regiao_percentual
+a_graf_regiao_percentual
 
 ## 1.4.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de evasão por região
@@ -875,7 +904,8 @@ ggplot(base_evasao_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.fa
        x = 'Região',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> a_graf_regiao_percentual_sem_na
+a_graf_regiao_percentual_sem_na
 
 ## 1.4.5A Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Filtrar valores válidos (remover NAs da variável Evasao) (ESTE!)
@@ -912,6 +942,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_regiao_sem_na
+htmltools::html_print(a_tab_resumo_regiao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # Cabeçalho inicial para mostrar a estrutura da base
@@ -944,6 +976,8 @@ tabela_html <- stargazer(
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_regiao
+htmltools::html_print(b_tab_resumo_regiao)
 
 ## 1.4.2B Gráfico Inicial: Proporção de Evasão por Região ####
 # Gráfico mostrando a proporção de evasão por região para cada ano
@@ -980,7 +1014,8 @@ ggplot(base_evasao_percentual_regiao_ano, aes(x = regiao, y = Contagem, fill = a
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_regiao_percentual
+b_graf_regiao_percentual
 
 ## 1.4.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de evasão por região e ano
@@ -1003,7 +1038,8 @@ ggplot(base_evasao_percentual_regiao_validos_ano, aes(x = regiao, y = Contagem, 
     y = 'Frequência',
     fill = 'Evasão (1=Sim)'
   ) +
-  theme_minimal()
+  theme_minimal() -> b_graf_regiao_percentual_sem_na
+b_graf_regiao_percentual_sem_na
 
 ## 1.4.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
 # Consolidar a tabela final sem NAs
@@ -1023,6 +1059,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_regiao_sem_na
+htmltools::html_print(b_tab_resumo_regiao_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -3983,3 +4021,13 @@ cat('\014')
 # Todos os dfs secundários/intermediários devem se originar destes
 # - base_evasao_filtrada: Dados de evasão filtrados (T1 e T1+1)
 # - base_evasao_pdm: base_evasao_filtrada reduzida ap público-alvo do pdm (14-24 anos)
+
+#### FIM ####
+# Marcar o final do processamento
+fim <- Sys.time()
+gc()
+
+# Calcular o tempo total de execução
+tempo_execucao <- fim - inicio2
+print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
+gc()
