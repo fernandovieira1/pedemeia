@@ -1,22 +1,23 @@
-### DADOS PNAD -- Estatística Descritiva
-# - Análise descritiva dos dados de evasão escolar.
+### DADOS PNAD -- AED
+# - Análise exploratória dos dados de evasão escolar.
 # - Dados empilhados e longitudinais, 
 # - Análise prelimar que pode indicar variáveis a serem testadas 
 # nos modelos probit, logit e heckit.
 
 # Limpar o ambiente
-gc(); cat('\014')
+gc(); cat('\014'); Sys.setlocale('LC_ALL', 'pt_BR.UTF-8')
+
 
 ## Carregar script Evasão Escolar ####
 # AVISO: Não mexer
 source('Codigo Novo pdm\\Script pdm\\1_evasao.R')
-glimpse(base_evasao_filtrada)
+# glimpse(base_evasao_filtrada)
 
 ######################## 1. BASE EVASÃO ########################
 # Limpar o ambiente
 gc(); cat('\014')
 
-str(base_evasao_filtrada)
+# str(base_evasao_filtrada)
 names(base_evasao_filtrada)
 nrow(base_evasao_filtrada)
 ncol(base_evasao_filtrada)
@@ -24,30 +25,30 @@ head(base_evasao_filtrada)
 tail(base_evasao_filtrada)
 # summary(base_evasao_filtrada)
 
-View(base_evasao_filtrada)
+# View(base_evasao_filtrada)
 
 # Qtde domicílios (EVASAO)
-base_evasao_filtrada %>% 
-  group_by(ID_DOMICILIO) %>%
-  count()
+# base_evasao_filtrada %>% 
+#   group_by(ID_DOMICILIO) %>%
+#   count()
 
 # Qtde indivíduos (EVASAO)
-base_evasao_filtrada %>% 
-  group_by(id_individuo) %>%
-  count()
+# base_evasao_filtrada %>% 
+#   group_by(id_individuo) %>%
+#   count()
 
 # Contar a frequência de valores na variável evasao, incluindo NAs
-table(base_evasao_filtrada$evasao, useNA = 'ifany')
-prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
+# table(base_evasao_filtrada$evasao, useNA = 'ifany')
+# prop.table(table(base_evasao_filtrada$evasao, useNA = 'ifany'))
 
-base_evasao_filtrada %>% 
-  filter(Ano == 2023) %>% 
-  count(evasao) %>% 
-  summarise(
-    total_0 = sum(n[evasao == 0]),
-    total_1 = sum(n[evasao == 1]),
-    taxa_evasao = (total_1 / total_0) * 100
-  )
+# base_evasao_filtrada %>% 
+#   filter(Ano == 2023) %>% 
+#   count(evasao) %>% 
+#   summarise(
+#     total_0 = sum(n[evasao == 0]),
+#     total_1 = sum(n[evasao == 1]),
+#     taxa_evasao = (total_1 / total_0) * 100
+#   )
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 # Limpar o ambiente
@@ -59,7 +60,7 @@ gc(); cat('\014')
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.1.1A Resumo Descritivo da Idade ####
 # Resumo estatístico da variável idade
-summary(base_evasao_filtrada$V2009)
+# summary(base_evasao_filtrada$V2009)
 
 # Quantidade de valores ausentes (NAs) na variável idade
 sum(is.na(base_evasao_filtrada$V2009))
@@ -68,9 +69,9 @@ sum(is.na(base_evasao_filtrada$V2009))
 unique(base_evasao_filtrada$V2009)
 
 # Verificar a presença de valores suspeitos (ex.: 0, 9999, negativos)
-base_evasao_filtrada %>% 
-  filter(V2009 <= 0 | V2009 >= 100) %>%
-  count(V2009) %>% head()
+# base_evasao_filtrada %>% 
+#   filter(V2009 <= 0 | V2009 >= 100) %>%
+#   count(V2009) %>% head()
 
 ## 1.1.2A Filtragem de Idades Válidas ####
 # Filtrar apenas idades entre 14 e 24 anos e garantir que a variável evasao não tenha NAs
@@ -81,7 +82,7 @@ base_evasao_pdm <- base_evasao_filtrada %>%
 table(base_evasao_pdm$evasao, useNA = 'ifany')
 prop.table(table(base_evasao_pdm$evasao, useNA = 'ifany'))
 
-summary(base_evasao_pdm)
+# summary(base_evasao_pdm)
 nrow(base_evasao_pdm)
 
 ## 1.1.3A Gráfico Inicial: Distribuição Etária por Evasão** ####
@@ -99,7 +100,7 @@ ggplot(base_evasao_filtrada, aes(x = V2009, fill = as.factor(evasao))) +
        x = 'Idade',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal() -> idades_evasao
+  theme_minimal() -> idades_evasao_graf_a
 
 ## 1.1.4A Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -123,7 +124,7 @@ ggplot(base_evasao_percentual, aes(x = as.factor(V2009), y = Contagem, fill = as
        x = 'Idade',
        y = 'Frequência',
        fill = 'Evasão (1=Sim)') +
-  theme_minimal()
+  theme_minimal() -> evasao_1424_graf_a
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 head(base_evasao_pdm, 4)
@@ -136,7 +137,7 @@ resumo_idade_ano <- base_evasao_filtrada %>%
     Máximo = max(V2009, na.rm = TRUE),
     Média = round(mean(V2009, na.rm = TRUE), 2),
     Mediana = median(V2009, na.rm = TRUE),
-    `Desvio Padrão` = round(sd(V2009, na.rm = TRUE), 2),
+    `Desvio Padrao` = round(sd(V2009, na.rm = TRUE), 2),
     `Valores Ausentes` = sum(is.na(V2009))
   )
 
@@ -145,11 +146,13 @@ tabela_html <- stargazer(
   resumo_idade_ano,
   type = 'html',
   summary = FALSE,
-  title = 'Resumo Estatístico das Idades'
+  title = 'Resumo Estatístico das Idades'  
 )
 
 # Renderizar no Viewer
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+HTML(paste(tabela_html, collapse = '\n')) -> resumo_idades_b
+htmltools::html_print(resumo_idades_b)
 
 ## 1.1.2B Filtragem de Idades Válidas ####
 
@@ -188,7 +191,7 @@ tabela_html <- stargazer(
 html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer
-htmltools::html_print(HTML(html_output))
+htmltools::html_print(HTML(html_output)) # Salvar
 
 # Criar o gráfico com os totais acima das barras
 ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill = as.factor(Ano))) +
@@ -3973,7 +3976,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
 
-## ++++++++++++++++++++++++++++++++ INÍCIO +++++++++++++++++++++++++++++++ ####
+## ++++++++++++++++++++++++++++++++ FIM +++++++++++++++++++++++++++++++ ####
+cat('\014')
 
 ## DICIONÁRIO DFs PRINCIPAIS ####
 # Todos os dfs secundários/intermediários devem se originar destes
