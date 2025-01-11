@@ -4,7 +4,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 #### INÍCIO ####
 # Marcar o início do processamento
 inicio <- Sys.time()
-
+ 
 ###################################### I. DEFINIR PERÍODOS ######################################
 
 ### Definir período ####

@@ -2825,7 +2825,7 @@ ggplot(tabela_rdpc_ensino_medio_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+ 
 ## 1.9.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Adicionar o salário mínimo à base, calculado para cada ano
 base_evasao_pdm <- base_evasao_pdm %>%
