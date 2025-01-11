@@ -89,7 +89,7 @@ b_graf_sexo_percentual
 b_graf_sexo_percentual_sem_na
 
 ## 1.3.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
-b_tab_sexo_percentual_sem_na
+htmltools::html_print(b_tab_sexo_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -147,7 +147,8 @@ htmltools::html_print(a_tab_resumo_rdpc_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # 1.5.1B Resumo Descritivo do RDPC Segmentado por Ano ####
-htmltools::html_print(a_tab_resumo_rdpc_ano)
+htmltools::html_print(b_tab_resumo_rdpc_ano)
+
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -159,16 +160,16 @@ htmltools::html_print(a_tab_resumo_rdpc_ano)
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.6.1A Resumo Descritivo do RDPC por Região ####
 htmltools::html_print(a_tab_resumo_rdpc_regiao)
-
-## 1.6.4A Exportação Final ####
-htmltools::html_print(a_tab_resumo_rdpc_regiao_clean)
+''
+## 1.6.5A Exportação Final da Tabela (Sem NAs em Evasao)** ####
+htmltools::html_print(a_tab_resumo_rdpc_regiao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.6.1B Resumo Descritivo do RDPC por Região ####
 htmltools::html_print(b_tab_resumo_rdpc_regiao)
 
-## 1.6.4B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_regiao_clean)
+## 1.6.5B Exportação Final da Tabela (Sem NAs em Evasao)** ####
+htmltools::html_print(b_tab_resumo_rdpc_regiao_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -181,44 +182,38 @@ htmltools::html_print(b_tab_resumo_rdpc_regiao_clean)
 ## 1.7.1A Resumo Descritivo do RDPC por Cor ####
 htmltools::html_print(a_tab_resumo_rdpc_cor)
 
-## 1.7.2A Gráfico Inicial ####
-a_graf_rdpc_cor
-
 ## 1.7.3A Gráfico com Percentuais no Topo ####
-a_graf_rdpc_cor_topo
+a_graf_rdpc_cor_percentual
 
-## 1.7.4A Exportação Final ####
-htmltools::html_print(a_tab_resumo_rdpc_cor_clean)
+## 1.7.5A Exportação Final da Tabela (Sem NAs em Evasao e Cor)** ####
+htmltools::html_print(a_tab_resumo_rdpc)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.7.1B Resumo Descritivo do RDPC por Cor ####
 htmltools::html_print(b_tab_resumo_rdpc_cor)
 
-## 1.7.4B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_cor_clean)
+## 1.7.5B Exportação Final da Tabela (Sem NAs em Evasao e Cor)** ####
+htmltools::html_print(b_tab_resumo_rdpc_cor_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-# Limpar o ambiente
-gc(); cat('\014')
-
 #### 1.8 RDPC POR SEXO ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.8.1A Resumo Descritivo do RDPC por Sexo ####
 htmltools::html_print(a_tab_resumo_rdpc_sexo)
 
-## 1.8.2A Gráfico Inicial: Proporção de Evasão por Faixas de RDPC por Sexo ####
+## 1.8.2A Gráfico Inicial ####
 a_graf_rdpc_sexo
 
 ## 1.8.3A Gráfico com Percentuais no Topo ####
 a_graf_rdpc_sexo_topo
 
 ## 1.8.4A Exportação Final ####
-htmltools::html_print(a_tab_resumo_rdpc_sexo_clean)
+htmltools::html_print(a_tab_resumo_rdpc_sexo_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.8.1B Resumo Descritivo do RDPC por Sexo ####
@@ -231,7 +226,7 @@ b_graf_rdpc_sexo
 b_graf_rdpc_sexo_topo
 
 ## 1.8.4B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_sexo_clean)
+htmltools::html_print(b_tab_resumo_rdpc_sexo_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -251,14 +246,20 @@ a_graf_rdpc_ensino_medio
 a_graf_rdpc_ensino_medio_topo
 
 ## 1.9.4A Exportação Final ####
-htmltools::html_print(a_tab_resumo_rdpc_ensino_medio_clean)
+htmltools::html_print(a_tab_resumo_rdpc_ensino_medio_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.9.1B Resumo Descritivo ####
 htmltools::html_print(b_tab_resumo_rdpc_ensino_medio)
 
+## 1.9.2B Gráfico Inicial ####
+b_graf_rdpc_ensino_medio
+
+## 1.9.3B Gráfico com Percentuais no Topo ####
+b_graf_rdpc_ensino_medio_topo
+
 ## 1.9.4B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_ensino_medio_clean)
+htmltools::html_print(b_tab_resumo_rdpc_ensino_medio_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -278,7 +279,7 @@ a_graf_rdpc_evasao
 a_graf_rdpc_evasao_topo
 
 ## 1.10.4A Exportação Final ####
-htmltools::html_print(a_tab_resumo_rdpc_evasao_clean)
+htmltools::html_print(a_tab_resumo_rdpc_evasao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.10.1B Resumo Descritivo ####
@@ -291,7 +292,7 @@ b_graf_rdpc_evasao
 b_graf_rdpc_evasao_topo
 
 ## 1.10.4B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_evasao_clean)
+htmltools::html_print(b_tab_resumo_rdpc_evasao_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -305,17 +306,20 @@ htmltools::html_print(b_tab_resumo_rdpc_evasao_clean)
 htmltools::html_print(a_tab_resumo_rdpc_evasao_ensino)
 
 ## 1.11.4A Gráfico com Percentuais no Topo ####
-a_graf_rdpc_evasao_ensino_topo
+a_graf_rdpc_evasao_ensino
+
+## 1.11.5A Exportação Final ####
+htmltools::html_print(a_tab_resumo_rdpc_evasao_ensino_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.11.1B Resumo Descritivo ####
 htmltools::html_print(b_tab_resumo_rdpc_evasao_ensino)
 
-## 1.11.3B Gráfico com Percentuais no Topo ####
-b_graf_rdpc_evasao_ensino_topo
+## 1.11.4B Gráfico com Percentuais no Topo ####
+b_graf_rdpc_evasao_ensino
 
 ## 1.11.5B Exportação Final ####
-htmltools::html_print(b_tab_resumo_rdpc_evasao_ensino_clean)
+htmltools::html_print(b_tab_resumo_rdpc_evasao_ensino_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -332,7 +336,7 @@ htmltools::html_print(a_tab_resumo_populacao)
 a_graf_populacao_percentual
 
 ## 1.12.5A Exportação Final ####
-htmltools::html_print(a_tab_resumo_populacao_clean)
+htmltools::html_print(a_tab_resumo_populacao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.12.1B Resumo Descritivo ####
@@ -353,30 +357,14 @@ b_graf_populacao_percentual
 ## 1.13.2A Gráfico Inicial: Proporção de Evasão** ####
 a_graf_evasao
 
-## 1.13.3A Exportação Final da Tabela (Sem NAs em Evasao)** #### 
-htmltools::html_print(a_tab_evasao)
+
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
+## 1.13.2B Gráfico Inicial: Proporção de Evasão** #### 
+b_graf_evasao_ano
+
 ## 1.13.3B Exportação Final da Tabela (Sem NAs em Evasao)** #### 
 htmltools::html_print(b_tab_resumo_idades)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
-## | ####
-
-## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-
-#### 1.14 RESUMO EVASÃO ####
-
-#### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.14.2A Gráfico Inicial: Proporção de Evasão** #### 
-a_graf_evasao_pdm
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-## 1.14.2B Gráfico Inicial: Proporção de Evasão Segmentada por Ano** ####
-b_graf_evasao_pdm
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-# Salve seu ambiente no R
-# save.image("1.1_Descritiva_Evasaoe.RData")
