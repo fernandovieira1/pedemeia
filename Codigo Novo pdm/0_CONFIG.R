@@ -78,7 +78,7 @@ fim <- Sys.time()
 
 # Calcular o tempo total de execução
 tempo_execucao <- fim - inicio
-print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
+print(paste('Tempo de execução (minutos):', round(tempo_execucao, 2)))
 
 Sys.sleep(5)
 gc()

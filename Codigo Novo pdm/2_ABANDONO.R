@@ -18,7 +18,7 @@ source('Codigo Novo pdm\\Script pdm\\2_abandono.R')
 inicio2 <- Sys.time()
 ######################## 1. BASE Abandono ########################
 # Limpar o ambiente
-gc(); cat('\014')
+gc()
 
 # str(base_abandono_filtrada)
 names(base_abandono_filtrada)

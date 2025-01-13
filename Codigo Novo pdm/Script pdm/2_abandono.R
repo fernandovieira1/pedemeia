@@ -7,63 +7,47 @@
 
 ## *Criar Coluna id_individuo ####
 base_abandono <- publico_alvo_filtrado %>%
-  mutate(
-    id_individuo = paste0(UPA, '_', # Unidade Primária de Amostragem
-                          V1008, '_', # Nr. de diferenciação de domicílios na mesma UPA
-                          V1014, '_', # Domicílios que permanecem na amostra da PNAD
-                          V2003, '_', # Nr. de ordem (de registro na pnad) do morador no domicílio
-                          V2008, '_', # Dia de nascimento
-                          V20081, '_', # Mês de nascimento
-                          V20082) # Ano de nascimento
+  transmute( # Use transmute para criar apenas a coluna necessária
+    id_individuo = paste0(UPA, '_', V1008, '_', V1014, '_', V2003, '_', V2008, '_', V20081, '_', V20082),
+    across(everything()) # Preserve as outras colunas
   )
 
 rm(publico_alvo_filtrado)
-gc()
+gc() # rápido
 
 ## *Ordenar por ID_DOMICILIO, ano e trimestre ####
+# Use arrange diretamente com as colunas necessárias
 base_abandono <- base_abandono %>%
-  arrange(ID_DOMICILIO, Ano, Trimestre) # otiizar o código aqui
-gc()
+  arrange(ID_DOMICILIO, Ano, Trimestre)
+gc() # demora
 
 ## *Critérios Pé-de-Meia ####
-# V2009: Idade
-# VD2006: Faixa etária
-# V3002: Frequenta escola
-# V3002A: frequenta escola regular
-# V3003A: qual curso frequenta
+# Evite reprocessamento e use mutate com lógica simplificada
 base_abandono <- base_abandono %>%
   mutate(
     ensino_medio = ifelse(
-      !is.na(V2009) & !is.na(VD2006) & !is.na(V3002) & !is.na(V3003A) & !is.na(V3006) & 
-        V2009 >= 14 & V2009 <= 24 &
-        (VD2006 == '14 a 19 anos' | VD2006 == '20 a 24 anos') &
-        V3002 == 'Sim' & # en algum momento respondeu Sim
+      V2009 >= 14 & V2009 <= 24 &
+        VD2006 %in% c('14 a 19 anos', '20 a 24 anos') &
+        V3002 == 'Sim' &
         V3003A == 'Regular do ensino médio',
       1, 0
     )
-  ) 
+  ) # rápido
 
 ## *Calcular RD (Renda Domiciliar) #####
 base_abandono <- base_abandono %>%
   group_by(ID_DOMICILIO, Ano) %>%
-  mutate(
-    RD = sum(VD4020, na.rm = TRUE), # Rendimento domiciliar total
-  ) %>%
+  mutate(RD = sum(VD4020, na.rm = TRUE)) %>%
   ungroup()
-gc()
+gc() # rápido
 
 ## *Calcular RDPC (Renda Domiciliar Per Capita) ####
 base_abandono <- base_abandono %>%
-  group_by(ID_DOMICILIO, Ano) %>%
-  mutate(
-    RDPC = RD/V2001, # V2001: Qtde residentes no domicílio
-  ) %>%
-  ungroup()
-base_abandono$RDPC <- round(base_abandono$RDPC, 0)
-gc()
+  mutate(RDPC = round(RD / V2001, 0)) # Combine cálculo e arredondamento em um passo
+gc() # rápido
 
 ## *Criar dummy renda per capita < 1/2 Sal. Mín. ####
-# Função salários mínimos
+# Função salários mínimos - otimizada para vetores
 sal_min <- function(ano) {
   case_when(
     ano == 2024 ~ 1412,
@@ -83,151 +67,120 @@ sal_min <- function(ano) {
     ano == 2010 ~ 510,
     TRUE ~ NA_real_
   )
-}
+} # rápido
 
-# Criar a variável dummy sm/2
+# Criar dummy RDPC menor que meio salário mínimo
 base_abandono <- base_abandono %>%
   mutate(
     salario_minimo = sal_min(Ano),
-    RDPC_menor_meio_sm = if_else(RDPC < (sal_min(Ano)/2), 1, 0) 
-  )
+    RDPC_menor_meio_sm = as.integer(RDPC < (salario_minimo / 2))
+  ) # rápido
 
 ## *Adicionar a coluna de região ####
 base_abandono <- base_abandono %>%
   mutate(
     regiao = case_when(
-      substr(UPA, start = 1, stop = 1) == '1' ~ 'Norte',
-      substr(UPA, start = 1, stop = 1) == '2' ~ 'Nordeste',
-      substr(UPA, start = 1, stop = 1) == '3' ~ 'Sudeste',
-      substr(UPA, start = 1, stop = 1) == '4' ~ 'Sul',
-      substr(UPA, start = 1, stop = 1) == '5' ~ 'Centro-Oeste',
+      substr(UPA, 1, 1) == '1' ~ 'Norte',
+      substr(UPA, 1, 1) == '2' ~ 'Nordeste',
+      substr(UPA, 1, 1) == '3' ~ 'Sudeste',
+      substr(UPA, 1, 1) == '4' ~ 'Sul',
+      substr(UPA, 1, 1) == '5' ~ 'Centro-Oeste',
       TRUE ~ NA_character_
-    ))
+    )
+  ) # rápido
 gc()
 
-# table(base_abandono$regiao)
-# prop.table(table(base_abandono$regiao))
-
 ## *Identificar a educação da mãe e do pai ####
-# V2007: Sexo
-# VD2002: Condição no domicílio (01: Condição no domicílio; 02: Cônjuge ou companheiro(a); 06: Pai, mãe, padrasto ou madrasta)
-# VD3005: Grau de instrução (ensino fund. com 9 anos)
 base_abandono <- base_abandono %>%
-  group_by(ID_DOMICILIO) %>%  # Substitua ID_DOMICILIO pelo identificador do grupo familiar, se for diferente
+  group_by(ID_DOMICILIO) %>%
   mutate(
-    is_mae = as.numeric(V2007) == 2 & as.numeric(VD2002) %in% c(1, 2, 6),
-    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA),
-    is_pai = as.numeric(V2007) == 1 & as.numeric(VD2002) %in% c(1, 2, 6),
-    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA)
+    is_mae = V2007 == 2 & VD2002 %in% c(1, 2, 6),
+    educacao_mae = ifelse(any(is_mae), first(VD3005[is_mae]), NA),
+    is_pai = V2007 == 1 & VD2002 %in% c(1, 2, 6),
+    educacao_pai = ifelse(any(is_pai), first(VD3005[is_pai]), NA)
   ) %>%
-  ungroup()
+  ungroup() # demora
 gc()
 
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
 base_abandono <- base_abandono %>%
-  arrange(id_individuo, Ano, Trimestre) # aqui demora
+  arrange(id_individuo, Ano, Trimestre) # demora
 gc()
 
-# Transformar 'Trimestre', 'Ano' e 'V3003A' para os tipos adequados
+## Transformar colunas para os tipos adequados
+# base_abandono <- base_abandono %>%
+#   mutate(
+#     Trimestre = as.integer(Trimestre),
+#     Ano = as.integer(Ano),
+#     V3003A = as.character(V3003A),
+#     V3006 = as.character(V3006)
+#   )
+
+## CRIAR ABANDONO ####
+gc()
+
+# Filtrar indivíduos com mais de uma entrada
 base_abandono <- base_abandono %>%
-  mutate(
-    Trimestre = as.integer(Trimestre),
-    Ano = as.integer(Ano),
-    V3003A = as.character(V3003A),  # Garantir que 'V3003A' seja comparável
-    V3006 = as.character(V3006)     # Garantir que 'V3006' seja comparável (série do aluno)
-  )
-
-
-
-## CRIAR ABANDONO
-base_abandono <- base_abandono %>%
-  # Filtrar apenas indivíduos com mais de uma entrada
   group_by(id_individuo) %>%
   filter(n() > 1) %>%
-  # Ordenar os dados por Ano e Trimestre dentro de cada indivíduo
-  arrange(Ano, Trimestre, .by_group = TRUE) %>%
-  mutate(
-    abandono = ifelse(
-      Trimestre > 1 & (
-        (Trimestre == 2 & ensino_medio == 1 &
-           !(dplyr::lead(Trimestre, default = NA_integer_) == 3 &
-               dplyr::lead(ensino_medio) == 1)) |
-          (Trimestre == 3 & ensino_medio == 1 &
-             !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
-                 dplyr::lead(ensino_medio) == 1)) |
-          (Trimestre == 4 & ensino_medio == 1 &
-             !(dplyr::lead(Trimestre, default = NA_integer_) == 4 &
-                 dplyr::lead(ensino_medio) == 1))
-      ),
-      1,  # Marca como abandono
-      0   # Caso contrário, não há abandono
-    )
-  ) %>%
-  # Remover o agrupamento
-  ungroup() # aqui demora
+  ungroup() # demora muito
 gc()
 
-## Em comparação a evasão
-# não teve:
-# - # Substitui NA por 1
-# - 1.2 df Evasão Filtrado
-# - Merge para incluir as variáveis do dataframe original
-# - 
+# Ordenar os dados por Ano e Trimestre
+base_abandono <- base_abandono %>%
+  arrange(id_individuo, Ano, Trimestre) # demora muito
+gc()
 
-## Verificar abandono por trimestre
-# cat('Distribuição por trimestre e abandono:\n')
-# base_abandono %>%
-#   filter(!is.na(abandono)) %>%  # Exclui NAs em 'abandono'
-#   count(Trimestre, abandono) %>%  # Conta a frequência por trimestre e abandono
-#   pivot_wider(
-#     names_from = abandono,
-#     values_from = n,
-#     names_prefix = 'Absoluto_'
-#   ) %>%
-#   # Garante que as colunas Absoluto_0 e Absoluto_1 existam
-#   mutate(
-#     Absoluto_0 = ifelse(is.na(Absoluto_0), 0, Absoluto_0),
-#     Absoluto_1 = ifelse(is.na(Absoluto_1), 0, Absoluto_1),
-#     Relativo_1 = round((Absoluto_1 / (Absoluto_0 + Absoluto_1)) * 100, 5)  
-#   ) %>%
-#   select(Trimestre, Absoluto_0, Absoluto_1, Relativo_1) %>% 
-#   arrange(Trimestre)
-# 
-# ## Verificar taxa de abandono
-# cat('\nTaxa de abandono (4 trimestres):\n')
-# print(prop.table(table(base_abandono$abandono)))
+# Dividir a criação da coluna 'abandono' em partes
+base_abandono_filtrada <- base_abandono %>%
+  mutate(
+    abandono_cond_1 = Trimestre == 2 & ensino_medio == 1 &
+      !(dplyr::lead(Trimestre) == 3 & dplyr::lead(ensino_medio) == 1),
+    abandono_cond_2 = Trimestre == 3 & ensino_medio == 1 &
+      !(dplyr::lead(Trimestre) == 4 & dplyr::lead(ensino_medio) == 1),
+    abandono_cond_3 = Trimestre == 4 & ensino_medio == 1 &
+      !(dplyr::lead(Trimestre) == 4 & dplyr::lead(ensino_medio) == 1)
+  ) # rápido
+gc()
 
-# table(base_abandono$Ano)
-# table(base_abandono$Trimestre)
+# Criar a coluna final de 'abandono' com base nas condições
+base_abandono_filtrada <- base_abandono_filtrada %>%
+  mutate(
+    abandono = ifelse(
+      Trimestre > 1 & (abandono_cond_1 | abandono_cond_2 | abandono_cond_3),
+      1, 0
+    )
+  ) %>%
+  select(-abandono_cond_1, -abandono_cond_2, -abandono_cond_3) # rápido
+gc()
 
 ## Removendo observações onde V20082 é igual a 9999
-base_evasao_filtrada <- base_abandono %>%
-  filter(V20082 != 9999) # V20082: Ano de nascimento
+base_abandono_filtrada <- base_abandono_filtrada %>%
+  filter(V20082 != 9999) # demora muito
+gc()
 
 ### 2.2 df Abandono Filtrado ####
-# Reorganizando as colunas para trazer as novas variáveis para o começo
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  select( 
+base_abandono_filtrada <- base_evasao_filtrada %>%
+  select(
     id_individuo,
     ID_DOMICILIO,
     V2009, # Idade
     V2001,
     VD2002,
-    Ano, 
-    Trimestre, 
+    Ano,
+    Trimestre,
     ensino_medio,
     VD4020, # Rendimento mensal todos os trabalhos
-    RD, 
-    RDPC, 
+    RD,
+    RDPC,
     RDPC_menor_meio_sm,
     abandono,
-    regiao, 
-    educacao_mae, 
-    educacao_pai, 
-    salario_minimo, 
+    regiao,
+    educacao_mae,
+    educacao_pai,
+    salario_minimo,
     everything()
   )
 
-# table(base_abandono_filtrada$abandono)
-# prop.table(round(table(base_abandono_filtrada$abandono)))
-# O percentual de abandono escolar (todos os períodos) pode ser visto aqui
+# Resultados finais
+cat('Processamento concluído. Dados prontos para análise!\n')
