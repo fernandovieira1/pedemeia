@@ -98,3 +98,5 @@ if (!exists("dados_pnad") || is.null(dados_pnad)) {
 ## *publico_alvo_filtrado (DF) #### 
 # Filtrar as variáveis de interesse
 publico_alvo_filtrado <- dados_pnad  # Apenas mudei o nome pelo código legado de outras versões.
+
+rm(dados_pnad)

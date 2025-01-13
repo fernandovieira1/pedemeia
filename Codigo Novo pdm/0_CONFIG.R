@@ -4,7 +4,7 @@ rm(list=ls(all=TRUE)); gc(); cat('\014')
 #### INÍCIO ####
 # Marcar o início do processamento
 inicio <- Sys.time()
- 
+
 ###################################### I. DEFINIR PERÍODOS ######################################
 
 ### Definir período ####
@@ -62,6 +62,9 @@ if (tipo_processamento == 'compactado') {
 
 gc()
 
+#3 Otimizar publico_alvo_filtrado
+source('Codigo Novo pdm\\Script pdm\\0_otimizar.R')
+
 ######################################## IV. RESULTADOS ########################################
 
 ## Verificar dados ####
@@ -76,4 +79,6 @@ fim <- Sys.time()
 # Calcular o tempo total de execução
 tempo_execucao <- fim - inicio
 print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
+
+Sys.sleep(5)
 gc()

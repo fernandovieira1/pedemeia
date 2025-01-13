@@ -3172,7 +3172,7 @@ tabela_evasao_longitudinal
 titulo_dinamico <- 'Proporção de Evasão Segmentada por Ano'
 
 # Gráfico mostrando a proporção de evasão por ano
-ggplot(tabela_evasao_ano, aes(x = as.factor(Ano), y = Contagem, fill = as.factor(Evasao))) +
+ggplot(tabela_evasao_longitudinal, aes(x = as.factor(Ano), y = Contagem, fill = as.factor(evasao))) +
   geom_bar(stat = 'identity', position = position_dodge(width = 0.8), color = 'black') +
   geom_text(
     aes(label = paste0(Proporcao, '%')),

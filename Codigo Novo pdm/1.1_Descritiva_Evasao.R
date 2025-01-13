@@ -357,8 +357,6 @@ b_graf_populacao_percentual
 ## 1.13.2A Gráfico Inicial: Proporção de Evasão** ####
 a_graf_evasao
 
-
-
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.13.2B Gráfico Inicial: Proporção de Evasão** #### 
 b_graf_evasao_ano
