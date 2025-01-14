@@ -9,23 +9,38 @@ gc(); cat('\014'); Sys.setlocale('LC_ALL', 'pt_BR.UTF-8')
 
 #### INÍCIO ####
 # Marcar o início do processamento
-inicio <- Sys.time()
+ini <- Sys.time()
 
 ## Carregar script Evasão Escolar ####
 # AVISO: Não mexer
-source('Codigo Novo pdm\\Script pdm\\1_evasao.R')
-# glimpse(base_evasao_filtrada)
-inicio2 <- Sys.time()
+### Carregar Dados ####
+if (local_bd == 'processar') {
+  # Carregar base de dados
+  source('Codigo Novo pdm\\Script pdm\\1_evasao.R')
+  gc()
+} else {
+  rm(publico_alvo_filtrado)
+  
+  # Use o caminho completo para o arquivo Feather
+  caminho_feather <- file.path(local, '1_base_evasao_filtrada_2015-2023.feather')
+  
+  if (!file.exists(caminho_feather)) {
+    stop('Arquivo Feather não encontrado: ', caminho_feather)
+    gc()
+  }
+  base_evasao_filtrada <- read_feather(caminho_feather)
+}
+
 ######################## 1. BASE EVASÃO ########################
 # Limpar o ambiente
 gc(); cat('\014')
 
 # str(base_evasao_filtrada)
-names(base_evasao_filtrada)
-nrow(base_evasao_filtrada)
-ncol(base_evasao_filtrada)
-head(base_evasao_filtrada)
-tail(base_evasao_filtrada)
+# names(base_evasao_filtrada)
+# nrow(base_evasao_filtrada)
+# ncol(base_evasao_filtrada)
+# head(base_evasao_filtrada)
+# tail(base_evasao_filtrada)
 # summary(base_evasao_filtrada)
 
 # View(base_evasao_filtrada)
@@ -3228,7 +3243,6 @@ HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_idades
 htmltools::html_print(b_tab_resumo_idades)
 
 ## ++++++++++++++++++++++++++++++++ FIM +++++++++++++++++++++++++++++++ ####
-cat('\014')
 
 ## DICIONÁRIO DFs PRINCIPAIS ####
 # Todos os dfs secundários/intermediários devem se originar destes
@@ -3238,9 +3252,10 @@ cat('\014')
 #### FIM ####
 # Marcar o final do processamento
 fim <- Sys.time()
-gc()
 
 # Calcular o tempo total de execução
-tempo_execucao <- fim - inicio2
-print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
+tempo_execucao <- fim - ini
+print(paste('Tempo de execução (minutos):', round(tempo_execucao, 2)))
+
+Sys.sleep(5)
 gc()

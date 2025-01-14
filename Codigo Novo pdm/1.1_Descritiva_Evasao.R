@@ -365,4 +365,4 @@ b_graf_evasao_ano
 htmltools::html_print(b_tab_resumo_idades)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
+gc()

@@ -19,7 +19,7 @@ gc() # rápido
 # Use arrange diretamente com as colunas necessárias
 base_abandono <- base_abandono %>%
   arrange(ID_DOMICILIO, Ano, Trimestre)
-gc() # demora
+gc() # demora muito
 
 ## *Critérios Pé-de-Meia ####
 # Evite reprocessamento e use mutate com lógica simplificada
@@ -104,7 +104,7 @@ gc()
 
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
 base_abandono <- base_abandono %>%
-  arrange(id_individuo, Ano, Trimestre) # demora
+  arrange(id_individuo, Ano, Trimestre) # demora muito
 gc()
 
 ## Transformar colunas para os tipos adequados
@@ -141,6 +141,8 @@ base_abandono_filtrada <- base_abandono %>%
     abandono_cond_3 = Trimestre == 4 & ensino_medio == 1 &
       !(dplyr::lead(Trimestre) == 4 & dplyr::lead(ensino_medio) == 1)
   ) # rápido
+
+rm(base_abandono)
 gc()
 
 # Criar a coluna final de 'abandono' com base nas condições
@@ -160,7 +162,7 @@ base_abandono_filtrada <- base_abandono_filtrada %>%
 gc()
 
 ### 2.2 df Abandono Filtrado ####
-base_abandono_filtrada <- base_evasao_filtrada %>%
+base_abandono_filtrada <- base_abandono_filtrada %>%
   select(
     id_individuo,
     ID_DOMICILIO,
@@ -181,6 +183,8 @@ base_abandono_filtrada <- base_evasao_filtrada %>%
     salario_minimo,
     everything()
   )
+
+gc()
 
 # Resultados finais
 cat('Processamento concluído. Dados prontos para análise!\n')

@@ -9,23 +9,41 @@ gc(); cat('\014'); Sys.setlocale('LC_ALL', 'pt_BR.UTF-8')
 
 #### INÍCIO ####
 # Marcar o início do processamento
-inicio <- Sys.time()
+ini <- Sys.time()
 
 ## Carregar script Abandono Escolar ####
 # AVISO: Não mexer
-source('Codigo Novo pdm\\Script pdm\\2_abandono.R')
-# glimpse(base_abandono_filtrada)
-inicio2 <- Sys.time()
-######################## 1. BASE Abandono ########################
+### Carregar Dados ####
+if (local_bd == 'processar') {
+  # Carregar base de dados
+  source('Codigo Novo pdm\\Script pdm\\2_abandono.R')
+  gc()
+} else {
+  rm(publico_alvo_filtrado)
+  Sys.sleep(15)
+  gc()
+  Sys.sleep(5)
+  
+  # Use o caminho completo para o arquivo Feather
+  caminho_feather <- file.path(local, '2_base_abandono_filtrada_2015-2023.feather')
+  
+  if (!file.exists(caminho_feather)) {
+    stop('Arquivo Feather não encontrado: ', caminho_feather)
+    gc()
+  }
+  base_abandono_filtrada <- read_feather(caminho_feather)
+}
+
+######################## 1. BASE ABANDONO ########################
 # Limpar o ambiente
 gc()
 
 # str(base_abandono_filtrada)
-names(base_abandono_filtrada)
-nrow(base_abandono_filtrada)
-ncol(base_abandono_filtrada)
-head(base_abandono_filtrada)
-tail(base_abandono_filtrada)
+# names(base_abandono_filtrada)
+# nrow(base_abandono_filtrada)
+# ncol(base_abandono_filtrada)
+# # head(base_abandono_filtrada)
+# tail(base_abandono_filtrada)
 # summary(base_abandono_filtrada)
 
 # View(base_abandono_filtrada)
@@ -55,7 +73,9 @@ tail(base_abandono_filtrada)
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 # Limpar o ambiente
-gc(); cat('\014')
+Sys.sleep(7)
+gc()
+Sys.sleep(3)
 
 #### 1.1 FAIXA ETÁRIA ####
 
@@ -65,27 +85,30 @@ gc(); cat('\014')
 # summary(base_abandono_filtrada$V2009)
 
 # Quantidade de valores ausentes (NAs) na variável idade
-sum(is.na(base_abandono_filtrada$V2009))
+# sum(is.na(base_abandono_filtrada$V2009))
 
 # Verificar os valores únicos de idade
-unique(base_abandono_filtrada$V2009)
+# unique(base_abandono_filtrada$V2009)
 
 # Verificar a presença de valores suspeitos (ex.: 0, 9999, negativos)
 # base_abandono_filtrada %>% 
 #   filter(V2009 <= 0 | V2009 >= 100) %>%
-#   count(V2009) %>% head()
+#   count(V2009) %>% # head()
 
 ## 1.1.2A Filtragem de Idades Válidas ####
 # Filtrar apenas idades entre 14 e 24 anos e garantir que a variável abandono não tenha NAs
 base_abandono_pdm <- base_abandono_filtrada %>%
-  filter(V2009 >= 14 & V2009 <= 24 & !is.na(abandono))
+  filter(V2009 >= 14 & V2009 <= 24 & !is.na(abandono)) # demora muito
+Sys.sleep(7)
+gc()
+Sys.sleep(3)
 
 # Contar a frequência de valores na variável abandono, incluindo NAs
-table(base_abandono_pdm$abandono, useNA = 'ifany')
-prop.table(table(base_abandono_pdm$abandono, useNA = 'ifany'))
+# table(base_abandono_pdm$abandono, useNA = 'ifany')
+# prop.table(table(base_abandono_pdm$abandono, useNA = 'ifany'))
 
 # summary(base_abandono_pdm)
-nrow(base_abandono_pdm)
+# nrow(base_abandono_pdm)
 
 ## 1.1.3A Gráfico Inicial: Distribuição Etária por Abandono** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -104,6 +127,8 @@ ggplot(base_abandono_filtrada, aes(x = V2009, fill = as.factor(abandono))) +
        fill = 'Abandono (1=Sim)') +
   theme_minimal() -> a_graf_idades_abandono
 a_graf_idades_abandono
+Sys.sleep(3)
+gc()
 
 ## 1.1.4A Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -129,9 +154,11 @@ ggplot(base_abandono_percentual, aes(x = as.factor(V2009), y = Contagem, fill = 
        fill = 'Abandono (1=Sim)') +
   theme_minimal() -> a_graf_abandono_1424
 a_graf_abandono_1424
+Sys.sleep(3)
+gc()
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-# head(base_abandono_pdm, 4)
+# # head(base_abandono_pdm, 4)
 
 ## 1.1.1B Resumo Descritivo da Idade ####
 resumo_idade_ano <- base_abandono_filtrada %>%
@@ -156,6 +183,8 @@ tabela_html <- stargazer(
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_idades
 htmltools::html_print(b_tab_resumo_idades)
+Sys.sleep(3)
+gc()
 
 ## 1.1.2B Filtragem de Idades Válidas ####
 
@@ -194,37 +223,41 @@ tabela_html <- stargazer(
 html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer
-htmltools::html_print(HTML(html_output)) 
+htmltools::html_print(HTML(html_output))
+Sys.sleep(3)
+gc()
 
 # Criar o gráfico com os totais acima das barras
-ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill = as.factor(Ano))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.8), color = 'black') +
-  geom_text(aes(label = Contagem), 
-            position = position_dodge(width = 0.8), 
-            vjust = -0.5, size = 3) + # Adiciona os totais acima das barras
-  labs(
-    title = 'Distribuição de Idades Válidas (14-24 Anos) Segmentada por Idade',
-    x = 'Idade',
-    y = 'Contagem',
-    fill = 'Ano'
-  ) +
-  scale_fill_brewer(palette = 'Set2') +
-  theme_minimal()
+# ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill = as.factor(Ano))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.8), color = 'black') +
+#   geom_text(aes(label = Contagem), 
+#             position = position_dodge(width = 0.8), 
+#             vjust = -0.5, size = 3) + # Adiciona os totais acima das barras
+#   labs(
+#     title = 'Distribuição de Idades Válidas (14-24 Anos) Segmentada por Idade',
+#     x = 'Idade',
+#     y = 'Contagem',
+#     fill = 'Ano'
+#   ) +
+#   scale_fill_brewer(palette = 'Set2') +
+#   theme_minimal()
+# Não fez sentido
 
 ## 1.1.3B Gráfico Inicial: Distribuição Etária por Abandono** ####
 # Gráfico para cada ano
-ggplot(base_abandono_filtrada, aes(x = V2009, fill = as.factor(abandono))) +
-  geom_histogram(binwidth = 1, position = 'dodge', color = 'black') +
-  scale_x_continuous(breaks = seq(min(base_abandono_filtrada$V2009), max(base_abandono_filtrada$V2009), by = 5)) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Distribuição Etária por Abandono Escolar - Separado por Idade',
-    x = 'Idade',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() -> b_graf_idades_abandono
-b_graf_idades_abandono
+# ggplot(base_abandono_filtrada, aes(x = V2009, fill = as.factor(abandono))) +
+#   geom_histogram(binwidth = 1, position = 'dodge', color = 'black') +
+#   scale_x_continuous(breaks = seq(min(base_abandono_filtrada$V2009), max(base_abandono_filtrada$V2009), by = 5)) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Distribuição Etária por Abandono Escolar - Separado por Idade',
+#     x = 'Idade',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() -> b_graf_idades_abandono
+# b_graf_idades_abandono
+# Este gráfico trava o RStudio
 
 ## 1.1.4B Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
 # Calcular percentuais por idade, abandono e ano
@@ -249,6 +282,8 @@ ggplot(base_abandono_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fil
   ) +
   theme_minimal() -> b_graf_abandono_1424
 b_graf_abandono_1424
+Sys.sleep(3)
+gc()
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -294,16 +329,18 @@ html_output <- paste(tabela_html, collapse = '\n')
 htmltools::html_print(HTML(html_output))
 HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_cor
 htmltools::html_print(a_tab_resumo_cor)
+gc()
 
 ## 1.2.2A Gráfico Inicial: Proporção de Abandono por Cor/Raça ####
-ggplot(base_abandono_filtrada, aes(x = V2010, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = 'Proporção de Abandono por Cor/Raça',
-       x = 'Cor/Raça',
-       y = 'Proporção (%)',
-       fill = 'Abandono (1=Sim)') +
-  theme_minimal()
+# ggplot(base_abandono_filtrada, aes(x = V2010, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(title = 'Proporção de Abandono por Cor/Raça',
+#        x = 'Cor/Raça',
+#        y = 'Proporção (%)',
+#        fill = 'Abandono (1=Sim)') +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.2.3A Gráfico com Percentuais no Topo ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -381,7 +418,7 @@ tabela_html <- stargazer(
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-head(base_abandono_pdm, 2)
+# head(base_abandono_pdm, 2)
 
 ## 1.2.1B Resumo Descritivo da Cor/Raça ####
 # Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
@@ -425,17 +462,18 @@ htmltools::html_print(b_tab_cor_raca)
 
 ## 1.2.2B Gráfico Inicial: Proporção de Abandono por Cor/Raça ####
 # Gráfico mostrando a proporção de Abandono por cor/raça para cada ano
-ggplot(base_abandono_filtrada, aes(x = V2010, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~Ano, ncol = 2) + # Facetar por ano
-  labs(
-    title = 'Proporção de Abandono por Cor/Raça - Separado por Ano',
-    x = 'Cor/Raça',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal()
+# ggplot(base_abandono_filtrada, aes(x = V2010, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   facet_wrap(~Ano, ncol = 2) + # Facetar por ano
+#   labs(
+#     title = 'Proporção de Abandono por Cor/Raça - Separado por Ano',
+#     x = 'Cor/Raça',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.2.3B Gráfico com Percentuais no Topo ####
 # Filtrar idades válidas (14-24 anos) e remover NAs na abandono
@@ -572,14 +610,15 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo
 htmltools::html_print(a_tab_resumo_sexo)
 
 ## 1.3.2A Gráfico Inicial: Proporção de Abandono por Sexo ####
-ggplot(base_abandono_filtrada, aes(x = V2007, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = 'Proporção de Abandono por Sexo',
-       x = 'Sexo',
-       y = 'Proporção (%)',
-       fill = 'Abandono (1=Sim)') +
-  theme_minimal()
+# ggplot(base_abandono_filtrada, aes(x = V2007, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(title = 'Proporção de Abandono por Sexo',
+#        x = 'Sexo',
+#        y = 'Proporção (%)',
+#        fill = 'Abandono (1=Sim)') +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.3.3A Gráfico com Percentuais no Topo ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -671,7 +710,7 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo_sem_na
 htmltools::html_print(a_tab_resumo_sexo_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-head(base_abandono_filtrada, 2)
+# head(base_abandono_filtrada, 2)
 
 ## 1.3.1B Resumo Descritivo de Sexo ####
 # Criar um mapeamento para os valores de Sexo
@@ -711,17 +750,18 @@ htmltools::html_print(b_tab_resumo_sexo)
 
 ## 1.3.2B Gráfico Inicial: Proporção de Abandono por Sexo ####
 # Gráfico de proporção por sexo segmentada por ano
-ggplot(base_abandono_filtrada, aes(x = V2007, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Proporção de Abandono por Sexo - Separado por Ano',
-    x = 'Sexo',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal()
+# ggplot(base_abandono_filtrada, aes(x = V2007, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Proporção de Abandono por Sexo - Separado por Ano',
+#     x = 'Sexo',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.3.3B Gráfico com Percentuais no Topo ####
 # Calcular os percentuais de Abandono por sexo por ano
@@ -732,19 +772,20 @@ base_abandono_percentual_sexo_ano <- base_abandono_filtrada %>%
   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2))
 
 # Gráfico com percentuais no topo, separado por ano
-ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(aes(label = paste0(Percentual, '%')), 
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Proporção de Abandono por Sexo com Percentuais no Topo - Separado por Ano',
-    x = 'Sexo',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() -> b_graf_sexo_percentual
-b_graf_sexo_percentual
+# ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(aes(label = paste0(Percentual, '%')), 
+#             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Proporção de Abandono por Sexo com Percentuais no Topo - Separado por Ano',
+#     x = 'Sexo',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() -> b_graf_sexo_percentual
+# b_graf_sexo_percentual
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.3.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de Abandono por sexo por ano
@@ -853,15 +894,15 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_regiao
 htmltools::html_print(a_tab_resumo_regiao)
 
 ## 1.4.2A Gráfico Inicial: Proporção de Abandono por Região ####
-ggplot(base_abandono_filtrada, aes(x = regiao, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  labs(title = 'Proporção de Abandono por Região',
-       x = 'Região',
-       y = 'Proporção (%)',
-       fill = 'Abandono (1=Sim)') +
-  theme_minimal()
-
+# ggplot(base_abandono_filtrada, aes(x = regiao, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(title = 'Proporção de Abandono por Região',
+#        x = 'Região',
+#        y = 'Proporção (%)',
+#        fill = 'Abandono (1=Sim)') +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.4.3A Gráfico com Percentuais no Topo ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -947,7 +988,7 @@ htmltools::html_print(a_tab_resumo_regiao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # Cabeçalho inicial para mostrar a estrutura da base
-head(base_abandono_filtrada, 2)
+# head(base_abandono_filtrada, 2)
 
 ## 1.4.1B Resumo Descritivo da Região ####
 # Calcular contagem e proporção de Abandono por região e ano
@@ -981,17 +1022,18 @@ htmltools::html_print(b_tab_resumo_regiao)
 
 ## 1.4.2B Gráfico Inicial: Proporção de Abandono por Região ####
 # Gráfico mostrando a proporção de Abandono por região para cada ano
-ggplot(base_abandono_filtrada, aes(x = regiao, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Proporção de Abandono por Região - Separado por Ano',
-    x = 'Região',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal()
+# ggplot(base_abandono_filtrada, aes(x = regiao, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Proporção de Abandono por Região - Separado por Ano',
+#     x = 'Região',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal()
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.4.3B Gráfico com Percentuais no Topo ####
 # Calcular os percentuais de Abandono por região e ano
@@ -1126,33 +1168,34 @@ html_output <- paste(tabela_html, collapse = '\n')
 htmltools::html_print(HTML(html_output))
 HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
 htmltools::html_print(a_tab_resumo_rdpc)
-
+gc()
 
 ## 1.5.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC ####
 # Gráfico inicial: proporção de Abandono por faixas de RDPC ajustadas pelo salário mínimo
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC (Ajustadas pelo Salário Mínimo)',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC (Ajustadas pelo Salário Mínimo)',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.5.3A Gráfico com Percentuais no Topo ####
 # Criar gráfico com os percentuais no topo das barras
@@ -1173,6 +1216,7 @@ ggplot(tabela_rdpc, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono)
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual
 a_graf_rdpc_percentual
+gc()
 
 ## 1.5.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar valores válidos (sem NAs em abandono e RDPC)
@@ -1259,7 +1303,7 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sem_na
 htmltools::html_print(a_tab_resumo_rdpc_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-head(base_abandono_filtrada, 2)
+# head(base_abandono_filtrada, 2)
 
 ## 1.5.1B Resumo Descritivo do RDPC ####
 # Adicionar o salário mínimo à base, calculado para cada ano
@@ -1628,7 +1672,7 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao_sem_na
 htmltools::html_print(a_tab_resumo_rdpc_regiao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
-head(base_abandono_filtrada, 2)
+# head(base_abandono_filtrada, 2)
 
 ## 1.6.1B Resumo Descritivo do RDPC por Região ####
 # Adicionar o salário mínimo à base
@@ -3241,6 +3285,6 @@ fim <- Sys.time()
 gc()
 
 # Calcular o tempo total de execução
-tempo_execucao <- fim - inicio2
+tempo_execucao <- fim - ini
 print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
 gc()

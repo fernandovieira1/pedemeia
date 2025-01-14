@@ -1,9 +1,9 @@
 # Limpar o ambiente
-rm(list=ls(all=TRUE)); gc(); cat('\014')
+rm(list = ls(all = TRUE)); gc(); cat('\014')
 
 #### INÍCIO ####
 # Marcar o início do processamento
-inicio <- Sys.time()
+ini <- Sys.time()
 
 ###################################### I. DEFINIR PERÍODOS ######################################
 
@@ -25,45 +25,56 @@ trimestres <- c(1, 2, 3, 4)
 ## Critérios que interferem na qtde. de informações analisadas e no processamento dos scripts.
 
 ### Tipo da análise ####
-# 'amostra' ou 'censo'
+# 'amostra' ou 'censo' (recomendado)
 # amostra com 10 mil observações.
 tipo_analise <- 'censo' 
 
 ### Tipo de processamento ####
-# 'original' ou 'compactado' (otimiza o bd sql. DEMORA!).
+# 'original' (recomendado) ou 'compactado' (otimiza o bd sql. DEMORA!).
 tipo_processamento <- 'original' 
 
+### Local do banco de dados ####
+# Defina aqui: 'salvo' (arquivo feather previamente salvo) ou 'processar' (carregar os dados rds e processá-los).
+local_bd <- 'salvo'
+
 ### Formato dos arquivos da base de dados ####
-# Defina aqui: 'rds' ou 'sql'.
-formato_arquivo <- 'rds'  
+# No caso de banco de dados do tipo 'processar'.
+# Defina aqui: 'rds' (recomendado) ou 'sql'.
+formato_arquivo <- 'rds'
 
 ##################################### III. EXECUTAR SCRIPTS #####################################
 
 ### Carregar Bibliotecas ####
 ## AVISO: Não mexer (apenas execute).
 source('Codigo Novo pdm\\Script pdm\\0_bibliotecas.R')
-gc()
 
 ### Local de trabalho ####
 ## AVISO: Verifique abaixo o caminho do arquivo e altere-o (se ainda não o fez).
 local <- 'C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia'
 
-## AVISO: Não mexer (apenas execute).
-source('Codigo Novo pdm\\Script pdm\\0_local.R')
-gc()
-
-### Carregar script de configuração do ambiente ####
-## AVISO: Não mexer.
-if (tipo_processamento == 'compactado') {
-  source('Codigo Novo pdm\\Script pdm\\Docs Acessorios pdm\\0_config_teste.R') # testes
+### Carregar Dados ####
+if (local_bd == 'processar') {
+  if (tipo_processamento == 'compactado') {
+    source('Codigo Novo pdm\\Script pdm\\Docs Acessorios pdm\\0_config_teste.R') # testes
+  } else {
+    source('Codigo Novo pdm\\Script pdm\\0_config.R')
+  }
+  source('Codigo Novo pdm\\Script pdm\\0_local.R')
+  # Otimizar publico_alvo_filtrado
+  source('Codigo Novo pdm\\Script pdm\\0_otimizar.R')
+  gc()
 } else {
-  source('Codigo Novo pdm\\Script pdm\\0_config.R')
+  # Use o caminho completo para o arquivo Feather
+  caminho_feather <- file.path(local, '0_publico_alvo_filtrado_2015-2023.feather')
+  
+  if (!file.exists(caminho_feather)) {
+    stop('Arquivo Feather não encontrado: ', caminho_feather)
+    gc()
+  }
+  
+  publico_alvo_filtrado <- read_feather(caminho_feather)
 }
 
-gc()
-
-#3 Otimizar publico_alvo_filtrado
-source('Codigo Novo pdm\\Script pdm\\0_otimizar.R')
 
 ######################################## IV. RESULTADOS ########################################
 
@@ -71,14 +82,13 @@ source('Codigo Novo pdm\\Script pdm\\0_otimizar.R')
 # glimpse(publico_alvo_filtrado)
 # table(publico_alvo_filtrado$Ano)
 # table(publico_alvo_filtrado$Trimestre)
+Sys.sleep(5)
+gc()
 
 #### FIM ####
 # Marcar o final do processamento
 fim <- Sys.time()
 
 # Calcular o tempo total de execução
-tempo_execucao <- fim - inicio
+tempo_execucao <- fim - ini
 print(paste('Tempo de execução (minutos):', round(tempo_execucao, 2)))
-
-Sys.sleep(5)
-gc()

@@ -1,6 +1,6 @@
 # Exibir os tipos originais das colunas
 cat('Tipos originais das colunas:\n')
-str(publico_alvo_filtrado)
+# str(publico_alvo_filtrado)
 
 # Identificar colunas string (character) e numeric
 string_cols <- names(publico_alvo_filtrado)[sapply(publico_alvo_filtrado, is.character)]
@@ -32,4 +32,4 @@ if (length(numeric_cols) > 0) {
 
 # Exibir os tipos finais das colunas
 cat('\nTipos finais das colunas após otimização:\n')
-str(publico_alvo_filtrado)
+# str(publico_alvo_filtrado)

@@ -62,29 +62,6 @@ base_evasao <- base_evasao %>%
   ungroup()
 base_evasao$RDPC <- round(base_evasao$RDPC, 0)
 
-## *Criar dummy renda per capita < 1/2 Sal. Mín. ####
-# Função salários mínimos
-sal_min <- function(ano) {
-  case_when(
-    ano == 2024 ~ 1412,
-    ano == 2023 ~ 1320,
-    ano == 2022 ~ 1212,
-    ano == 2021 ~ 1100,
-    ano == 2020 ~ 1039,
-    ano == 2019 ~ 998,
-    ano == 2018 ~ 954,
-    ano == 2017 ~ 937,
-    ano == 2016 ~ 880,
-    ano == 2015 ~ 788,
-    ano == 2014 ~ 724,
-    ano == 2013 ~ 678,
-    ano == 2012 ~ 622,
-    ano == 2011 ~ 545,
-    ano == 2010 ~ 510,
-    TRUE ~ NA_real_
-  )
-}
-
 # Criar a variável dummy sm/2
 base_evasao <- base_evasao %>%
   mutate(
