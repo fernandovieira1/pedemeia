@@ -37,6 +37,7 @@ if (local_bd == 'processar') {
 ######################## 1. BASE ABANDONO ########################
 # Limpar o ambiente
 gc()
+#P1 (ok)
 
 # str(base_abandono_filtrada)
 # names(base_abandono_filtrada)
@@ -97,11 +98,25 @@ Sys.sleep(3)
 
 ## 1.1.2A Filtragem de Idades Válidas ####
 # Filtrar apenas idades entre 14 e 24 anos e garantir que a variável abandono não tenha NAs
-base_abandono_pdm <- base_abandono_filtrada %>%
-  filter(V2009 >= 14 & V2009 <= 24 & !is.na(abandono)) # demora muito
-Sys.sleep(7)
-gc()
-Sys.sleep(3)
+if (local_bd == 'processar') {
+  base_abandono_pdm <- base_abandono_filtrada %>%
+    filter(V2009 >= 14 & V2009 <= 24 & !is.na(abandono)) # demora muito
+  Sys.sleep(7)
+  gc()
+  Sys.sleep(3)
+} else {
+  # Use o caminho completo para o arquivo Feather
+  caminho_feather <- file.path(local, '2_base_abandono_pdm_2015-2023.feather')
+  
+  if (!file.exists(caminho_feather)) {
+    stop('Arquivo Feather não encontrado: ', caminho_feather)
+    gc()
+  }
+  base_abandono_pdm <- read_feather(caminho_feather)
+  Sys.sleep(7)
+  gc()
+  Sys.sleep(3)
+}
 
 # Contar a frequência de valores na variável abandono, incluindo NAs
 # table(base_abandono_pdm$abandono, useNA = 'ifany')
@@ -176,7 +191,7 @@ tabela_html <- stargazer(
   resumo_idade_ano,
   type = 'html',
   summary = FALSE,
-  title = 'Resumo Estatístico das Idades'  
+  title = 'Resumo Estatístico das Idades (PNAD completa)'  
 )
 
 # Renderizar no Viewer
@@ -214,7 +229,7 @@ tabela_html <- stargazer(
   tabela_completa,
   type = 'html',            # Exportar como HTML
   summary = FALSE,          # Sem resumo
-  title = 'Contagem de Idades Válidas (14-24 Anos) Segmentada por Idade',
+  title = 'Contagem de Idades Válidas PDM (14-24 Anos) Segmentada por Idade',
   digits = 0,               # Número de casas decimais
   rownames = FALSE          # Sem nomes de linha
 )
@@ -274,7 +289,7 @@ ggplot(base_abandono_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fil
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3) +  # Inserir percentuais
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Distribuição Etária por Abandono Escolar (Idades 14-24)',
+    title = 'Distribuição Etária por Abandono Escolar (Idades PDM 14-24)',
     x = 'Idade',
     
     y = 'Frequência',
@@ -311,7 +326,7 @@ tabela_cor_raca <- base_abandono_filtrada %>%
 colnames(tabela_cor_raca) <- c('Cor_Raca', 'abandono', 'Contagem', 'Proporcao')
 
 # Gerar o título dinâmico com as variáveis 'inicio' e 'fim' sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Cor/Raça - Período: ', inicio, '-', fim)
+titulo_dinamico <- paste0('Proporção de Abandono por Cor/Raça (PNAD completa) - Período: ', inicio, '-', fim)
 
 # Exibir a tabela com stargazer (em HTML)
 tabela_html <- stargazer(
@@ -359,7 +374,7 @@ ggplot(base_abandono_percentual_cor, aes(x = V2010, y = Contagem, fill = as.fact
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Cor/Raça com Percentuais no Topo - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Cor/Raça com Percentuais no Topo - Acumulado (PNAD completa): Período ', inicio, '-', fim),
        x = 'Cor/Raça',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -381,7 +396,7 @@ ggplot(base_abandono_percentual_cor_validos, aes(x = V2010, y = Contagem, fill =
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Cor/Raça (Sem NAs) - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Cor/Raça (Sem NAs - Base PDM) - Acumulado: Período ', inicio, '-', fim),
        x = 'Cor/Raça',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -402,7 +417,7 @@ tabela_cor_sem_na <- tabela_cor_sem_na %>%
   filter(!is.na(V2010))  # Filtrar valores inválidos, se necessário
 
 # Gerar título dinâmico para a tabela
-titulo_dinamico <- paste0('Proporção de Abandono por Cor/Raça (Sem NAs) - Período: ', inicio, '-', fim)
+titulo_dinamico <- paste0('Proporção de Abandono por Cor/Raça (Sem NAs - Base PDM) - Período: ', inicio, '-', fim)
 
 # Exportar a tabela como HTML
 tabela_html <- stargazer(
@@ -445,7 +460,7 @@ tabela_cor_raca_ano <- base_abandono_filtrada %>%
 colnames(tabela_cor_raca_ano) <- c('Ano', 'Cor_Raca', 'abandono', 'Contagem', 'Proporcao')
 
 # Exportar a tabela com stargazer em HTML
-titulo_dinamico <- 'Proporção de Abandono por Cor/Raça Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono por Cor/Raça Segmentada por Ano (PNAD completa)'
 tabela_html <- stargazer(
   tabela_cor_raca_ano,
   type = 'html',
@@ -492,7 +507,7 @@ ggplot(base_abandono_percentual_ano, aes(x = V2010, y = Contagem, fill = as.fact
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) + # Facetar por ano
   labs(
-    title = 'Proporção de Abandono por Cor/Raça com Percentuais no Topo - Separado por Ano',
+    title = 'Proporção de Abandono por Cor/Raça com Percentuais no Topo (Base PDM) - Separado por Ano',
     x = 'Cor/Raça',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -518,7 +533,7 @@ ggplot(base_abandono_percentual_ano, aes(x = V2010, y = Contagem, fill = as.fact
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) + # Facetar por ano
   labs(
-    title = 'Proporção de Abandono por Cor/Raça com Percentuais no Topo - Separado por Ano',
+    title = 'Proporção de Abandono por Cor/Raça com Percentuais no Topo (Base PDM) - Separado por Ano',
     x = 'Cor/Raça',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -556,7 +571,7 @@ tabela_html <- stargazer(
   tabela_cor_raca_ano2,
   type = 'html',
   summary = FALSE,
-  title = 'Proporção de Abandono por Cor/Raça (Sem NAs) - Segmentada por Ano',
+  title = 'Proporção de Abandono por Cor/Raça (Sem NAs - Base PDM) - Segmentada por Ano',
   digits = 2,
   rownames = FALSE
 )
@@ -597,7 +612,7 @@ tabela_html <- stargazer(
   tabela_sexo,
   type = 'html',            # Exportar como HTML
   summary = FALSE,          # Sem resumo
-  title = 'Proporção de Abandono por Sexo',
+  title = 'Proporção de Abandono por Sexo (PNAD completa)',
   digits = 2                # Número de casas decimais
 )
 
@@ -637,7 +652,7 @@ ggplot(base_abandono_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.fac
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Sexo com Percentuais no Topo - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Sexo com Percentuais no Topo - Acumulado (Base PDM): Período  ', inicio, '-', fim),
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -661,7 +676,7 @@ ggplot(base_abandono_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.fac
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Sexo (Sem NAs) - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Sexo (Sem NAs - Base PDM) - Acumulado: Período ', inicio, '-', fim),
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -681,7 +696,7 @@ tabela_sexo_sem_na <- tabela_sexo %>%
 print(tabela_sexo_sem_na)
 
 # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Sexo (Recalculada para cada Sexo) - Período: ', inicio, '-', fim)
+titulo_dinamico <- paste0('Proporção de Abandono por Sexo (Base PDM) (Recalculada para cada Sexo) - Período: ', inicio, '-', fim)
 
 # Exportar tabela limpa com stargazer
 stargazer(tabela_sexo_sem_na, type = 'text', summary = FALSE,
@@ -733,7 +748,7 @@ tabela_sexo_ano <- base_abandono_filtrada %>%
 colnames(tabela_sexo_ano) <- c('Ano', 'Sexo', 'abandono', 'Contagem', 'Proporcao')
 
 # Exportar a tabela com stargazer em HTML
-titulo_dinamico <- 'Proporção de Abandono por Sexo Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono por Sexo Segmentada por Ano (PNAD completa)'
 tabela_html <- stargazer(
   tabela_sexo_ano,
   type = 'html',
@@ -765,11 +780,11 @@ htmltools::html_print(b_tab_resumo_sexo)
 
 ## 1.3.3B Gráfico com Percentuais no Topo ####
 # Calcular os percentuais de Abandono por sexo por ano
-base_abandono_percentual_sexo_ano <- base_abandono_filtrada %>%
-  group_by(Ano, V2007, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V2007) %>%
-  mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2))
+# base_abandono_percentual_sexo_ano <- base_abandono_filtrada %>%
+#   group_by(Ano, V2007, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V2007) %>%
+#   mutate(Percentual = round(Contagem / sum(Contagem) * 100, 2))
 
 # Gráfico com percentuais no topo, separado por ano
 # ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as.factor(abandono))) +
@@ -802,7 +817,7 @@ ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Proporção de Abandono por Sexo (Sem NAs) com Percentuais no Topo - Separado por Ano',
+    title = 'Proporção de Abandono por Sexo (Sem NAs - Base PDM) com Percentuais no Topo - Separado por Ano',
     x = 'Sexo',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -832,7 +847,7 @@ tabela_sexo_sem_na <- base_abandono_pdm %>%
 colnames(tabela_sexo_sem_na) <- c('Ano', 'Sexo', 'abandono', 'Contagem', 'Proporcao')
 
 # Criar um título dinâmico para a tabela
-titulo_dinamico <- 'Proporção de Abandono por Sexo (Sem NAs) - Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono por Sexo (Sem NAs - Base PDM) - Segmentada por Ano'
 
 # Exportar a tabela com stargazer (HTML)
 tabela_html <- stargazer(
@@ -881,7 +896,7 @@ tabela_html <- stargazer(
   tabela_regiao,
   type = 'html',            # Exportar como HTML
   summary = FALSE,          # Sem resumo
-  title = 'Proporção de Abandono por Região',
+  title = 'Proporção de Abandono por Região (PNAD completa)',
   digits = 2                # Número de casas decimais
 )
 
@@ -921,7 +936,7 @@ ggplot(base_abandono_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Região com Percentuais no Topo - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Região com Percentuais no Topo (PNAD completa) - Acumulado: Período ', inicio, '-', fim),
        x = 'Região',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -941,7 +956,7 @@ ggplot(base_abandono_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.
   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
   geom_text(aes(label = paste0(Percentual, '%')), 
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  labs(title = paste0('Abandono por Região (Sem NAs) - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Abandono por Região (Sem NAs - Base PDM) - Acumulado: Período ', inicio, '-', fim),
        x = 'Região',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -957,7 +972,7 @@ tabela_regiao_sem_na <- tabela_regiao %>%
 print(tabela_regiao_sem_na)
 
 # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Região (Sem NAs em abandono) - Período: ', inicio, '-', fim)
+titulo_dinamico <- paste0('Proporção de Abandono por Região (Sem NAs em abandono - PNAD completa) - Período: ', inicio, '-', fim)
 
 # Exportar tabela limpa com stargazer (ESTE!)
 stargazer(tabela_regiao_sem_na, type = 'text', summary = FALSE,
@@ -1003,7 +1018,7 @@ tabela_regiao_ano <- base_abandono_filtrada %>%
 colnames(tabela_regiao_ano) <- c('Ano', 'Regiao', 'abandono', 'Contagem', 'Proporcao')
 
 # Gerar o título dinâmico para a tabela
-titulo_dinamico <- 'Proporção de Abandono por Região Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono por Região Segmentada por Ano (PNAD completa)'
 
 # Exportar tabela com stargazer (HTML)
 tabela_html <- stargazer(
@@ -1051,7 +1066,7 @@ ggplot(base_abandono_percentual_regiao_ano, aes(x = regiao, y = Contagem, fill =
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Abandono por Região com Percentuais no Topo - Separado por Ano',
+    title = 'Abandono por Região com Percentuais no Topo (PNAD completa) - Separado por Ano',
     x = 'Região',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -1075,13 +1090,14 @@ ggplot(base_abandono_percentual_regiao_validos_ano, aes(x = regiao, y = Contagem
             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
   labs(
-    title = 'Abandono por Região (Sem NAs) com Percentuais no Topo - Separado por Ano',
+    title = 'Abandono por Região (Sem NAs) com Percentuais no Topo (Base PDM) - Separado por Ano',
     x = 'Região',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
   theme_minimal() -> b_graf_regiao_percentual_sem_na
 b_graf_regiao_percentual_sem_na
+gc()
 
 ## 1.4.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Consolidar a tabela final sem NAs
@@ -1089,7 +1105,7 @@ tabela_regiao_sem_na_ano <- tabela_regiao_ano %>%
   filter(!is.na(Regiao) & !is.na(abandono))  # Remove NAs da coluna abandono
 
 # Exportar a tabRegiao# Exportar a tabela como HTML com stargazer
-titulo_dinamico <- 'Proporção de Abandono por Região (Sem NAs) - Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono por Região (Sem NAs - PNAD completa) - Segmentada por Ano'
 tabela_html <- stargazer(
   tabela_regiao_sem_na_ano,
   type = 'html',
@@ -1104,71 +1120,74 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_regiao_sem_na
 htmltools::html_print(b_tab_resumo_regiao_sem_na)
 
+#P2 # Até aqui, roda.
+
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
 ## | ####
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 # Limpar o ambiente
-gc(); cat('\014')
+gc()
 
 #### 1.5 RDPC ####
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.5.1A Resumo Descritivo do RDPC ####
 # Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo e RDPC
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0)
-
-# Diagnóstico para verificar valores fora dos limites dos breaks
-ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
-
-# Criar categorias de RDPC com `case_when`, baseado nos diagnósticos
-tabela_rdpc <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc <- as.data.frame(tabela_rdpc)
-
-# Renomear colunas
-colnames(tabela_rdpc) <- c('Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar a tabela como HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = 'Proporção de Abandono por Faixas de RDPC (Ajustadas pelo Salário Mínimo)',
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
-htmltools::html_print(a_tab_resumo_rdpc)
-gc()
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo e RDPC
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0)
+# 
+# # Diagnóstico para verificar valores fora dos limites dos breaks
+# ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
+# 
+# # Criar categorias de RDPC com `case_when`, baseado nos diagnósticos
+# tabela_rdpc <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc <- as.data.frame(tabela_rdpc)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc) <- c('Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar a tabela como HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = 'Proporção de Abandono por Faixas de RDPC (PNAD completa) (Ajustadas pelo Salário Mínimo)',
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
+# htmltools::html_print(a_tab_resumo_rdpc)
+# gc()
+## Removi. Não acrescentava muito.
 
 ## 1.5.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC ####
 # Gráfico inicial: proporção de Abandono por faixas de RDPC ajustadas pelo salário mínimo
@@ -1199,261 +1218,263 @@ gc()
 
 ## 1.5.3A Gráfico com Percentuais no Topo ####
 # Criar gráfico com os percentuais no topo das barras
-ggplot(tabela_rdpc, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo (Ajustadas pelo Salário Mínimo)',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual
-a_graf_rdpc_percentual
-gc()
+# ggplot(tabela_rdpc, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo (PNAD completa) (Ajustadas pelo Salário Mínimo)',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual
+# a_graf_rdpc_percentual
+# gc()
 
+# Parei aqui
 ## 1.5.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Filtrar valores válidos (sem NAs em abandono e RDPC)
-base_abandono_pdm <- base_abandono_filtrada %>%
-  filter(!is.na(abandono) & !is.na(RDPC))
-
-# Calcular percentuais com categorias ajustadas
-tabela_rdpc_validos <- base_abandono_pdm %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Gerar título dinâmico com período
-titulo_dinamico <- paste0(
-  'Abandono por Faixas de RDPC (Sem NAs) - Ajustadas pelo Salário Mínimo - Período: ',
-  inicio, '-', fim
-)
-
-# Gráfico com percentuais no topo (sem NAs)
-ggplot(tabela_rdpc_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  labs(
-    title = titulo_dinamico,
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual_sem_na
-a_graf_rdpc_percentual_sem_na
+# base_abandono_pdm2 <- base_abandono_filtrada %>%
+#   filter(!is.na(abandono) & !is.na(RDPC))
+# 
+# # Calcular percentuais com categorias ajustadas
+# tabela_rdpc_validos <- base_abandono_pdm2 %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Gerar título dinâmico com período
+# titulo_dinamico <- paste0(
+#   'Abandono por Faixas de RDPC (Sem NAs) - Ajustadas pelo Salário Mínimo - Período: ',
+#   inicio, '-', fim
+# )
+# 
+# # Gráfico com percentuais no topo (sem NAs)
+# ggplot(tabela_rdpc_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   labs(
+#     title = titulo_dinamico,
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual_sem_na
+# a_graf_rdpc_percentual_sem_na
 
 ## 1.5.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Filtrar tabela sem NAs em abandono
-tabela_rdpc_sem_na <- tabela_rdpc %>%
-  filter(!is.na(abandono))  # Remove NAs apenas da coluna abandono
-
-# Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
-
-# Exportar tabela limpa com stargazer (ESTE!)
-stargazer(tabela_rdpc_sem_na, type = 'text', summary = FALSE,
-          title = titulo_dinamico,
-          digits = 2)
-
-# Filtrar para mostrar apenas Abandono = 1
-tabela_rdpc %>%
-  filter(!is.na(abandono)) %>%
-  filter(abandono == 1)
-
-# Gerar a tabela em formato HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc_sem_na,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = titulo_dinamico,  # Título dinâmico
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_sem_na)
+# tabela_rdpc_sem_na <- tabela_rdpc %>%
+#   filter(!is.na(abandono))  # Remove NAs apenas da coluna abandono
+# 
+# # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
+# titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
+# 
+# # Exportar tabela limpa com stargazer (ESTE!)
+# stargazer(tabela_rdpc_sem_na, type = 'text', summary = FALSE,
+#           title = titulo_dinamico,
+#           digits = 2)
+# 
+# # Filtrar para mostrar apenas Abandono = 1
+# tabela_rdpc %>%
+#   filter(!is.na(abandono)) %>%
+#   filter(abandono == 1)
+# 
+# # Gerar a tabela em formato HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc_sem_na,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = titulo_dinamico,  # Título dinâmico
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_sem_na)
+## Código trava aqui. Ver depois se vale a pena otimizar
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # head(base_abandono_filtrada, 2)
 
 ## 1.5.1B Resumo Descritivo do RDPC ####
 # Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo e RDPC
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0)
-
-# Calcular contagem e proporção de Abandono por faixas de RDPC e ano
-tabela_rdpc_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Renomear colunas para maior clareza
-colnames(tabela_rdpc_ano) <- c('Ano', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar o título dinâmico para a tabela
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano'
-
-# Exportar tabela com stargazer (HTML)
-tabela_html <- stargazer(
-  tabela_rdpc_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ano
-htmltools::html_print(b_tab_resumo_rdpc_ano)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo e RDPC
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0) # Trava aqui
+# 
+# # Calcular contagem e proporção de Abandono por faixas de RDPC e ano
+# tabela_rdpc_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Renomear colunas para maior clareza
+# colnames(tabela_rdpc_ano) <- c('Ano', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar o título dinâmico para a tabela
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano'
+# 
+# # Exportar tabela com stargazer (HTML)
+# tabela_html <- stargazer(
+#   tabela_rdpc_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ano
+# htmltools::html_print(b_tab_resumo_rdpc_ano)
 
 ## 1.5.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC ####
 # Gráfico mostrando a proporção de Abandono por faixas de RDPC para cada ano
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC - Separado por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.5.3B Gráfico com Percentuais no Topo ####
-# Gráfico com percentuais no topo das barras
-ggplot(tabela_rdpc_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(aes(label = paste0(Proporcao, '%')),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo - Separado por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.5.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
-# Filtrar valores válidos (sem NAs em abandono e RDPC)
-base_abandono_pdm_ano <- base_abandono_filtrada %>%
-  filter(!is.na(abandono) & !is.na(RDPC))
-
-# Calcular percentuais com categorias ajustadas
-tabela_rdpc_validos_ano <- base_abandono_pdm_ano %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Gráfico com percentuais no topo (sem NAs)
-ggplot(tabela_rdpc_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(aes(label = paste0(Proporcao, '%')),
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
-  facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
-  labs(
-    title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo - Separado por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.5.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
-# Consolidar a tabela final sem NAs
-tabela_rdpc_sem_na_ano <- tabela_rdpc_ano %>%
-  filter(!is.na(Faixa_RDPC) & !is.na(abandono))  # Remove NAs das colunas relevantes
-
-# Exportar a tabela como HTML com stargazer
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) - Segmentada por Ano'
-tabela_html <- stargazer(
-  tabela_rdpc_sem_na_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC - Separado por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.5.3B Gráfico com Percentuais no Topo ####
+# # Gráfico com percentuais no topo das barras
+# ggplot(tabela_rdpc_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(aes(label = paste0(Proporcao, '%')),
+#             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo - Separado por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.5.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
+# # Filtrar valores válidos (sem NAs em abandono e RDPC)
+# base_abandono_pdm_ano <- base_abandono_filtrada %>%
+#   filter(!is.na(abandono) & !is.na(RDPC))
+# 
+# # Calcular percentuais com categorias ajustadas
+# tabela_rdpc_validos_ano <- base_abandono_pdm_ano %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Gráfico com percentuais no topo (sem NAs)
+# ggplot(tabela_rdpc_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(aes(label = paste0(Proporcao, '%')),
+#             position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
+#   facet_wrap(~Ano, ncol = 2) +  # Facetar por ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo - Separado por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.5.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
+# # Consolidar a tabela final sem NAs
+# tabela_rdpc_sem_na_ano <- tabela_rdpc_ano %>%
+#   filter(!is.na(Faixa_RDPC) & !is.na(abandono))  # Remove NAs das colunas relevantes
+# 
+# # Exportar a tabela como HTML com stargazer
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) - Segmentada por Ano'
+# tabela_html <- stargazer(
+#   tabela_rdpc_sem_na_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -1468,1401 +1489,1401 @@ gc(); cat('\014')
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.6.1A Resumo Descritivo do RDPC por Região ####
 # Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
-
-# Diagnóstico para verificar valores fora dos limites dos breaks
-ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
-
-# Criar categorias de RDPC por região
-tabela_rdpc_regiao <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(regiao, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(regiao, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
-
-# Renomear colunas
-colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar a tabela como HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc_regiao,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = 'Proporção de Abandono por Faixas de RDPC por Região (Ajustadas pelo Salário Mínimo)',
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao
-htmltools::html_print(a_tab_resumo_rdpc_regiao)
-
-## 1.6.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
-# Gráfico inicial: proporção de Abandono por faixas de RDPC por região
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~regiao) +  # Facetar por região
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Região',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.3A Gráfico com Percentuais no Topo ####
-# Criar gráfico com os percentuais no topo das barras, segmentado por região
-ggplot(tabela_rdpc_regiao, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Regiao) +  # Facetar por região
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Região',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
-# Gráfico com percentuais no topo (sem NAs) por região, com texto rotacionado em 90 graus
-# Criar tabela filtrada sem valores NA em abandono
-# Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_pdm <- base_abandono_pdm %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
-base_abandono_pdm <- base_abandono_pdm %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
-
-# Diagnóstico para verificar valores fora dos limites dos breaks
-ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
-
-# Criar categorias de RDPC por região
-tabela_rdpc_regiao <- base_abandono_pdm %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(regiao, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(regiao, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
-
-# Renomear colunas
-colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Remover apenas os valores NA em abandono
-tabela_rdpc_regiao_validos <- tabela_rdpc_regiao %>%
-  filter(!is.na(abandono))  
-
-# Gerar título dinâmico com período
-titulo_dinamico <- paste0(
-  'Abandono por Faixas de RDPC (Sem NAs) por Região - Período: ',
-  inicio, '-', fim
-)
-
-ggplot(tabela_rdpc_regiao_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) + # (ESTE!)
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 1.9),
-    angle = 45,  # Rotação do texto
-    vjust = 0,  # Ajuste vertical para centralizar
-    hjust = 0.3,    # Ajuste horizontal para alinhar
-    size = 3
-  ) +
-  facet_wrap(~Regiao) +  # Facetar por região
-  labs(
-    title = titulo_dinamico,
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
-# Filtrar tabela sem NAs em abandono e regiao
-tabela_rdpc_regiao_sem_na <- tabela_rdpc_regiao %>%
-  filter(!is.na(abandono) & !is.na(Regiao))  # Remove NAs
-
-# Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC por Região (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
-
-# Exportar tabela limpa com stargazer (ESTE!)
-stargazer(tabela_rdpc_regiao_sem_na, type = 'text', summary = FALSE,
-          title = titulo_dinamico,
-          digits = 2)
-
-# Filtrar para mostrar apenas Abandono = 1
-tabela_rdpc_regiao %>%
-  filter(!is.na(abandono) & !is.na(Regiao)) %>%
-  filter(abandono == 1)
-
-# Gerar a tabela em formato HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc_regiao_sem_na,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = titulo_dinamico,  # Título dinâmico
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_regiao_sem_na)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-# head(base_abandono_filtrada, 2)
-
-## 1.6.1B Resumo Descritivo do RDPC por Região ####
-# Adicionar o salário mínimo à base
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
-
-# Calcular contagem e proporção de Abandono por faixas de RDPC, região e ano
-tabela_rdpc_regiao_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, regiao, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, regiao, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Renomear colunas para maior clareza
-colnames(tabela_rdpc_regiao_ano) <- c('Ano', 'Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar título dinâmico
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Região Segmentada por Ano'
-
-# Exportar tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_regiao_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao
-htmltools::html_print(b_tab_resumo_rdpc_regiao)
-
-## 1.6.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
-# Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada região e ano
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~Ano + regiao, ncol = 2) +  # Facetar por região e ano
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Região e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.3B Gráfico com Percentuais no Topo ####
-# Criar gráfico com percentuais no topo das barras segmentado por região e ano
-ggplot(tabela_rdpc_regiao_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Região e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
-# Filtrar valores válidos (sem NAs em abandono e regiao)
-base_abandono_pdm <- base_abandono_pdm %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
-base_abandono_pdm <- base_abandono_pdm %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
-
-# Diagnóstico para verificar valores fora dos limites dos breaks
-ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
-
-# Criar categorias de RDPC por região
-tabela_rdpc_regiao <- base_abandono_pdm %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(regiao, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(regiao, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
-
-# Renomear colunas
-colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Remover apenas os valores NA em abandono
-tabela_rdpc_regiao_validos_ano <- tabela_rdpc_regiao_ano %>%
-  filter(!is.na(abandono) & !is.na(Regiao))
-
-# Gráfico com percentuais no topo (Sem NAs)
-ggplot(tabela_rdpc_regiao_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
-  labs(
-    title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo por Região e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.6.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
-# Consolidar a tabela final sem NAs
-tabela_rdpc_regiao_sem_na_ano <- tabela_rdpc_regiao_ano %>%
-  filter(!is.na(Faixa_RDPC) & !is.na(abandono) & !is.na(Regiao))
-
-# Gerar título dinâmico
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) por Região e Ano'
-
-# Exportar a tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_regiao_sem_na_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_regiao_sem_na)
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-## | ####
-
-## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-# Limpar o ambiente
-gc(); cat('\014')
-
-#### 1.7 RDPC POR COR ####
-
-#### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.7.1A Resumo Descritivo do RDPC por Cor ####
-# Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
-
-# Diagnóstico para verificar valores fora dos limites dos breaks
-ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
-
-# Criar categorias de RDPC por cor
-tabela_rdpc_cor <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(V2010, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(V2010, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_cor <- as.data.frame(tabela_rdpc_cor)
-
-# Renomear colunas
-colnames(tabela_rdpc_cor) <- c('Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar a tabela como HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc_cor,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = 'Proporção de Abandono por Faixas de RDPC por Cor (Ajustadas pelo Salário Mínimo)',
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_cor
-htmltools::html_print(a_tab_resumo_rdpc_cor)
-
-## 1.7.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
-# Gráfico inicial: proporção de Abandono por faixas de RDPC por cor
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~V2010) +  # Facetar por cor
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Cor',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_cor
-a_graf_rdpc_cor
-
-## 1.7.3A Gráfico com Percentuais no Topo ####
-# Criar gráfico com os percentuais no topo das barras, segmentado por cor
-ggplot(tabela_rdpc_cor, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Cor) +  # Facetar por cor
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Cor',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))-> a_graf_rdpc_cor_percentual
-a_graf_rdpc_cor_percentual
-
-## 1.7.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
-# Filtrar apenas dados válidos (sem NAs em abandono e V2010)
-base_abandono_pdm <- base_abandono_pdm %>%
-  filter(!is.na(abandono) & !is.na(V2010) & !is.na(RDPC))
-
-# Criar categorias de RDPC por cor, filtrando valores válidos
-tabela_rdpc_cor_validos <- base_abandono_pdm %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(V2010, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(V2010, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Gerar título dinâmico com período
-titulo_dinamico <- paste0(
-  'Abandono por Faixas de RDPC (Sem NAs) por Cor - Período: ',
-  inicio, '-', fim
-)
-
-# Gráfico com percentuais no topo (sem NAs)
-ggplot(tabela_rdpc_cor_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    angle = 90,  # Rotação do texto
-    vjust = 0.5,
-    hjust = 1,
-    size = 3.5
-  ) +
-  facet_wrap(~V2010) +  # Facetar por cor
-  labs(
-    title = titulo_dinamico,  # Título dinâmico
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.7.5A Exportação Final da Tabela (Sem NAs em abandono e Cor)** ####
-# Filtrar tabela sem NAs em abandono e V2010
-tabela_rdpc_cor_sem_na <- tabela_rdpc_cor %>%
-  filter(!is.na(abandono) & !is.na(Cor))  # Remove NAs
-
-# Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC por Cor (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
-
-# Exportar tabela limpa com stargazer (ESTE!)
-stargazer(tabela_rdpc_cor_sem_na, type = 'text', summary = FALSE,
-          title = titulo_dinamico,
-          digits = 2)
-
-# Filtrar para mostrar apenas Abandono = 1
-tabela_rdpc_cor %>%
-  filter(!is.na(abandono) & !is.na(Cor)) %>%
-  filter(abandono == 1)
-
-# Gerar a tabela em formato HTML com stargazer
-tabela_html <- stargazer(
-  tabela_rdpc_cor_sem_na,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = titulo_dinamico,  # Título dinâmico
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
-htmltools::html_print(a_tab_resumo_rdpc)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-
-## 1.7.1B Resumo Descritivo do RDPC por Cor ####
-# Adicionar o salário mínimo à base
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
-
-# Criar categorias de RDPC por cor e ano
-tabela_rdpc_cor_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, V2010, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V2010, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Renomear colunas para maior clareza
-colnames(tabela_rdpc_cor_ano) <- c('Ano', 'Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Gerar título dinâmico
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Cor Segmentada por Ano'
-
-# Exportar tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_cor_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor
-htmltools::html_print(b_tab_resumo_rdpc_cor)
-
-## 1.7.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
-# Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada cor e ano
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~Ano + V2010, ncol = 2) +  # Facetar por cor e ano
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Cor e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.7.3B Gráfico com Percentuais no Topo ####
-# Criar gráfico com percentuais no topo das barras segmentado por cor e ano
-ggplot(tabela_rdpc_cor_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Cor, ncol = 2) +  # Facetar por cor e ano
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Cor e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.7.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
-# Filtrar valores válidos (sem NAs em abandono e cor)
-# Adicionar o salário mínimo à base
-base_abandono_pdm <- base_abandono_pdm %>%
-  mutate(Salario_Minimo = sal_min(Ano))
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
-base_abandono_pdm <- base_abandono_pdm %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
-
-# Criar categorias de RDPC por cor e ano
-tabela_rdpc_cor_ano <- base_abandono_pdm %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, V2010, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V2010, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Renomear colunas para maior clareza
-colnames(tabela_rdpc_cor_ano) <- c('Ano', 'Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-tabela_rdpc_cor_validos_ano <- tabela_rdpc_cor_ano %>%
-  filter(!is.na(Cor) & !is.na(abandono))
-
-# Gráfico com percentuais no topo (Sem NAs)
-ggplot(tabela_rdpc_cor_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Cor, ncol = 2) +  # Facetar por cor e ano
-  labs(
-    title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo por Cor e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-## 1.7.5B Exportação Final da Tabela (Sem NAs em abandono e Cor)** ####
-# Gerar título dinâmico
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) por Cor e Ano'
-
-# Exportar a tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_cor_validos_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_cor_sem_na)
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-## | ####
-
-## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-# Limpar o ambiente
-gc(); cat('\014')
-
-#### 1.8 RDPC POR SEXO ####
-
-#### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.8.1A Resumo Descritivo do RDPC por Sexo ####
-# Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2007 (sexo)
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2007))
-
-# Criar categorias de RDPC por sexo
-tabela_rdpc_sexo <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(V2007, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(V2007, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_sexo <- as.data.frame(tabela_rdpc_sexo)
-
-# Renomear colunas
-colnames(tabela_rdpc_sexo) <- c('Sexo', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Exportar a tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_sexo,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Sexo (Ajustadas pelo Salário Mínimo)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo
-htmltools::html_print(a_tab_resumo_rdpc_sexo)
-
-## 1.8.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Sexo ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~V2007) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Sexo',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo
-a_graf_rdpc_sexo
-
-## 1.8.3A Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_sexo, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Sexo) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Sexo',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo_topo
-a_graf_rdpc_sexo_topo
-
-## 1.8.4A Exportação Final ####
-tabela_rdpc_sexo_sem_na <- tabela_rdpc_sexo %>%
-  filter(!is.na(abandono))
-
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Sexo (Sem NAs)'
-tabela_html <- stargazer(
-  tabela_rdpc_sexo_sem_na,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_sexo_sem_na)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-## 1.8.1B Resumo Descritivo do RDPC por Sexo ####
-tabela_rdpc_sexo_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, V2007, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V2007, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-colnames(tabela_rdpc_sexo_ano) <- c('Ano', 'Sexo', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-tabela_html <- stargazer(
-  tabela_rdpc_sexo_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Sexo Segmentada por Ano',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo
-htmltools::html_print(b_tab_resumo_rdpc_sexo)
-
-## 1.8.2B Gráfico Inicial ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~Ano + V2007, ncol = 2) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Sexo e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo
-b_graf_rdpc_sexo
-
-## 1.8.3B Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_sexo_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Sexo, ncol = 2) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Sexo e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo_topo
-b_graf_rdpc_sexo_topo
-
-## 1.8.4B Exportação Final ####
-tabela_rdpc_sexo_sem_na_ano <- tabela_rdpc_sexo_ano %>%
-  filter(!is.na(abandono))
-
-titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Sexo e Ano (Sem NAs)'
-tabela_html <- stargazer(
-  tabela_rdpc_sexo_sem_na_ano,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_sexo_sem_na)
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-## | ####
-
-## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-# Limpar o ambiente
-gc(); cat('\014')
-
-#### 1.9 RDPC POR ENSINO MÉDIO ####
-
-#### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.9.1A Resumo Descritivo do RDPC por Ensino Médio ####
-# Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Ensino Médio
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V3002A))
-
-# Criar categorias de RDPC por ensino médio
-tabela_rdpc_ensino_medio <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(V3002A, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(V3002A, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_ensino_medio <- as.data.frame(tabela_rdpc_ensino_medio)
-
-# Renomear colunas
-colnames(tabela_rdpc_ensino_medio) <- c('Ensino_Medio', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-# Exportar tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_ensino_medio,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio (Ajustadas pelo Salário Mínimo)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio
-htmltools::html_print(a_tab_resumo_rdpc_ensino_medio)
-
-## 1.9.2A Gráfico Inicial ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~V3002A) +
-  scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, by = 0.1)) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio
-a_graf_rdpc_ensino_medio
-
-## 1.9.3A Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_ensino_medio, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ensino_Medio) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Ensino Médio',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio_topo
-a_graf_rdpc_ensino_medio_topo
-
-## 1.9.4A Exportação Final ####
-tabela_rdpc_ensino_medio_sem_na <- tabela_rdpc_ensino_medio %>%
-  filter(!is.na(abandono))
-
-tabela_html <- stargazer(
-  tabela_rdpc_ensino_medio_sem_na,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_ensino_medio_sem_na)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-## 1.9.1B Resumo Descritivo ####
-tabela_rdpc_ensino_medio_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, V3002A, Faixa_RDPC, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V3002A, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-colnames(tabela_rdpc_ensino_medio_ano) <- c('Ano', 'Ensino_Medio', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
-
-tabela_html <- stargazer(
-  tabela_rdpc_ensino_medio_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio Segmentada por Ano',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio
-htmltools::html_print(b_tab_resumo_rdpc_ensino_medio)
-
-## 1.9.2B Gráfico Inicial ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~Ano + V3002A, ncol = 2) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio
-b_graf_rdpc_ensino_medio
-
-## 1.9.3B Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_ensino_medio_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Ensino_Medio, ncol = 2) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Ensino Médio e Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio_topo
-b_graf_rdpc_ensino_medio_topo
-
-## 1.9.4B Exportação Final ####
-tabela_rdpc_ensino_medio_sem_na_ano <- tabela_rdpc_ensino_medio_ano %>%
-  filter(!is.na(abandono))
-
-tabela_html <- stargazer(
-  tabela_rdpc_ensino_medio_sem_na_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio e Ano (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_ensino_medio_sem_na)
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-## | ####
-
-## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-# Limpar o ambiente
-gc(); cat('\014')
-
-#### 1.10 RDPC POR Abandono ####
-
-#### ////// (A) DADOS EMPILHADOS ////// ####
-## 1.10.1A Resumo Descritivo do RDPC por Abandono ####
-# Adicionar o salário mínimo à base, calculado para cada ano
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
-
-# Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e abandono
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(abandono))
-
-# Criar categorias de RDPC por Abandono
-tabela_rdpc_abandono <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(abandono, Faixa_RDPC) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Converter o tibble para data.frame
-tabela_rdpc_abandono <- as.data.frame(tabela_rdpc_abandono)
-
-# Renomear colunas
-colnames(tabela_rdpc_abandono) <- c('abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
-
-# Exportar tabela como HTML
-tabela_html <- stargazer(
-  tabela_rdpc_abandono,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC (Ajustadas pelo Salário Mínimo)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono
-htmltools::html_print(a_tab_resumo_rdpc_abandono)
-
-## 1.10.2A Gráfico Inicial ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, by = 0.1)) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono
-a_graf_rdpc_abandono
-
-## 1.10.3A Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_abandono, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_topo
-a_graf_rdpc_abandono_topo
-
-## 1.10.4A Exportação Final ####
-tabela_rdpc_abandono_sem_na <- tabela_rdpc_abandono %>%
-  filter(!is.na(abandono))
-
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_sem_na,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_abandono_sem_na)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-## 1.10.1B Resumo Descritivo ####
-tabela_rdpc_abandono_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, abandono, Faixa_RDPC) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-colnames(tabela_rdpc_abandono_ano) <- c('Ano', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
-
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono
-htmltools::html_print(b_tab_resumo_rdpc_abandono)
-
-## 1.10.2B Gráfico Inicial ####
-ggplot(base_abandono_filtrada %>%
-         mutate(
-           Faixa_RDPC = case_when(
-             RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-             RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-             RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-             RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-             RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-             RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-             TRUE ~ 'Acima de 20 SM'
-           )
-         ),
-       aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
-  geom_bar(position = 'fill', color = 'black') +
-  facet_wrap(~Ano, ncol = 2) +
-  labs(
-    title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Proporção (%)',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono
-b_graf_rdpc_abandono
-
-## 1.10.3B Gráfico com Percentuais no Topo ####
-ggplot(tabela_rdpc_abandono_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano, ncol = 2) +
-  labs(
-    title = 'Abandono por Faixas de RDPC com Percentuais no Topo Segmentada por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_topo
-b_graf_rdpc_abandono_topo
-
-## 1.10.4B Exportação Final ####
-tabela_rdpc_abandono_sem_na_ano <- tabela_rdpc_abandono_ano %>%
-  filter(!is.na(abandono))
-
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_sem_na_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_abandono_sem_na)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
+# 
+# # Diagnóstico para verificar valores fora dos limites dos breaks
+# ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
+# 
+# # Criar categorias de RDPC por região
+# tabela_rdpc_regiao <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(regiao, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(regiao, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar a tabela como HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc_regiao,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = 'Proporção de Abandono por Faixas de RDPC por Região (Ajustadas pelo Salário Mínimo)',
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao
+# htmltools::html_print(a_tab_resumo_rdpc_regiao)
+# 
+# ## 1.6.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
+# # Gráfico inicial: proporção de Abandono por faixas de RDPC por região
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~regiao) +  # Facetar por região
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Região',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.3A Gráfico com Percentuais no Topo ####
+# # Criar gráfico com os percentuais no topo das barras, segmentado por região
+# ggplot(tabela_rdpc_regiao, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Regiao) +  # Facetar por região
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Região',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
+# # Gráfico com percentuais no topo (sem NAs) por região, com texto rotacionado em 90 graus
+# # Criar tabela filtrada sem valores NA em abandono
+# # Adicionar o salário mínimo à base, calculado para cada ano
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
+# 
+# # Diagnóstico para verificar valores fora dos limites dos breaks
+# ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
+# 
+# # Criar categorias de RDPC por região
+# tabela_rdpc_regiao <- base_abandono_pdm %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(regiao, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(regiao, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Remover apenas os valores NA em abandono
+# tabela_rdpc_regiao_validos <- tabela_rdpc_regiao %>%
+#   filter(!is.na(abandono))  
+# 
+# # Gerar título dinâmico com período
+# titulo_dinamico <- paste0(
+#   'Abandono por Faixas de RDPC (Sem NAs) por Região - Período: ',
+#   inicio, '-', fim
+# )
+# 
+# ggplot(tabela_rdpc_regiao_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) + # (ESTE!)
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 1.9),
+#     angle = 45,  # Rotação do texto
+#     vjust = 0,  # Ajuste vertical para centralizar
+#     hjust = 0.3,    # Ajuste horizontal para alinhar
+#     size = 3
+#   ) +
+#   facet_wrap(~Regiao) +  # Facetar por região
+#   labs(
+#     title = titulo_dinamico,
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
+# # Filtrar tabela sem NAs em abandono e regiao
+# tabela_rdpc_regiao_sem_na <- tabela_rdpc_regiao %>%
+#   filter(!is.na(abandono) & !is.na(Regiao))  # Remove NAs
+# 
+# # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
+# titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC por Região (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
+# 
+# # Exportar tabela limpa com stargazer (ESTE!)
+# stargazer(tabela_rdpc_regiao_sem_na, type = 'text', summary = FALSE,
+#           title = titulo_dinamico,
+#           digits = 2)
+# 
+# # Filtrar para mostrar apenas Abandono = 1
+# tabela_rdpc_regiao %>%
+#   filter(!is.na(abandono) & !is.na(Regiao)) %>%
+#   filter(abandono == 1)
+# 
+# # Gerar a tabela em formato HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc_regiao_sem_na,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = titulo_dinamico,  # Título dinâmico
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_regiao_sem_na)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# # head(base_abandono_filtrada, 2)
+# 
+# ## 1.6.1B Resumo Descritivo do RDPC por Região ####
+# # Adicionar o salário mínimo à base
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
+# 
+# # Calcular contagem e proporção de Abandono por faixas de RDPC, região e ano
+# tabela_rdpc_regiao_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, regiao, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, regiao, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Renomear colunas para maior clareza
+# colnames(tabela_rdpc_regiao_ano) <- c('Ano', 'Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar título dinâmico
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Região Segmentada por Ano'
+# 
+# # Exportar tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_regiao_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao
+# htmltools::html_print(b_tab_resumo_rdpc_regiao)
+# 
+# ## 1.6.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
+# # Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada região e ano
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~Ano + regiao, ncol = 2) +  # Facetar por região e ano
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Região e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.3B Gráfico com Percentuais no Topo ####
+# # Criar gráfico com percentuais no topo das barras segmentado por região e ano
+# ggplot(tabela_rdpc_regiao_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Região e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
+# # Filtrar valores válidos (sem NAs em abandono e regiao)
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Região
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(regiao))
+# 
+# # Diagnóstico para verificar valores fora dos limites dos breaks
+# ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
+# 
+# # Criar categorias de RDPC por região
+# tabela_rdpc_regiao <- base_abandono_pdm %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(regiao, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(regiao, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_regiao <- as.data.frame(tabela_rdpc_regiao)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_regiao) <- c('Regiao', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Remover apenas os valores NA em abandono
+# tabela_rdpc_regiao_validos_ano <- tabela_rdpc_regiao_ano %>%
+#   filter(!is.na(abandono) & !is.na(Regiao))
+# 
+# # Gráfico com percentuais no topo (Sem NAs)
+# ggplot(tabela_rdpc_regiao_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Regiao, ncol = 2) +  # Facetar por região e ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo por Região e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.6.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
+# # Consolidar a tabela final sem NAs
+# tabela_rdpc_regiao_sem_na_ano <- tabela_rdpc_regiao_ano %>%
+#   filter(!is.na(Faixa_RDPC) & !is.na(abandono) & !is.na(Regiao))
+# 
+# # Gerar título dinâmico
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) por Região e Ano'
+# 
+# # Exportar a tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_regiao_sem_na_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_regiao_sem_na)
+# 
+# ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+# 
+# ## | ####
+# 
+# ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# # Limpar o ambiente
+# gc(); cat('\014')
+# 
+# #### 1.7 RDPC POR COR ####
+# 
+# #### ////// (A) DADOS EMPILHADOS ////// ####
+# ## 1.7.1A Resumo Descritivo do RDPC por Cor ####
+# # Adicionar o salário mínimo à base, calculado para cada ano
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
+# 
+# # Diagnóstico para verificar valores fora dos limites dos breaks
+# ajuste <- 1e-4  # Ajuste para evitar problemas de precisão numérica
+# 
+# # Criar categorias de RDPC por cor
+# tabela_rdpc_cor <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(V2010, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(V2010, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_cor <- as.data.frame(tabela_rdpc_cor)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_cor) <- c('Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar a tabela como HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc_cor,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = 'Proporção de Abandono por Faixas de RDPC por Cor (Ajustadas pelo Salário Mínimo)',
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_cor
+# htmltools::html_print(a_tab_resumo_rdpc_cor)
+# 
+# ## 1.7.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
+# # Gráfico inicial: proporção de Abandono por faixas de RDPC por cor
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~V2010) +  # Facetar por cor
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Cor',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_cor
+# a_graf_rdpc_cor
+# 
+# ## 1.7.3A Gráfico com Percentuais no Topo ####
+# # Criar gráfico com os percentuais no topo das barras, segmentado por cor
+# ggplot(tabela_rdpc_cor, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Cor) +  # Facetar por cor
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Cor',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))-> a_graf_rdpc_cor_percentual
+# a_graf_rdpc_cor_percentual
+# 
+# ## 1.7.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
+# # Filtrar apenas dados válidos (sem NAs em abandono e V2010)
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   filter(!is.na(abandono) & !is.na(V2010) & !is.na(RDPC))
+# 
+# # Criar categorias de RDPC por cor, filtrando valores válidos
+# tabela_rdpc_cor_validos <- base_abandono_pdm %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(V2010, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(V2010, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Gerar título dinâmico com período
+# titulo_dinamico <- paste0(
+#   'Abandono por Faixas de RDPC (Sem NAs) por Cor - Período: ',
+#   inicio, '-', fim
+# )
+# 
+# # Gráfico com percentuais no topo (sem NAs)
+# ggplot(tabela_rdpc_cor_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     angle = 90,  # Rotação do texto
+#     vjust = 0.5,
+#     hjust = 1,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~V2010) +  # Facetar por cor
+#   labs(
+#     title = titulo_dinamico,  # Título dinâmico
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.7.5A Exportação Final da Tabela (Sem NAs em abandono e Cor)** ####
+# # Filtrar tabela sem NAs em abandono e V2010
+# tabela_rdpc_cor_sem_na <- tabela_rdpc_cor %>%
+#   filter(!is.na(abandono) & !is.na(Cor))  # Remove NAs
+# 
+# # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
+# titulo_dinamico <- paste0('Proporção de Abandono por Faixas de RDPC por Cor (Sem NAs e Ajustadas pelo Salário Mínimo) - Período: ', inicio, '-', fim)
+# 
+# # Exportar tabela limpa com stargazer (ESTE!)
+# stargazer(tabela_rdpc_cor_sem_na, type = 'text', summary = FALSE,
+#           title = titulo_dinamico,
+#           digits = 2)
+# 
+# # Filtrar para mostrar apenas Abandono = 1
+# tabela_rdpc_cor %>%
+#   filter(!is.na(abandono) & !is.na(Cor)) %>%
+#   filter(abandono == 1)
+# 
+# # Gerar a tabela em formato HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_rdpc_cor_sem_na,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = titulo_dinamico,  # Título dinâmico
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
+# htmltools::html_print(a_tab_resumo_rdpc)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# 
+# ## 1.7.1B Resumo Descritivo do RDPC por Cor ####
+# # Adicionar o salário mínimo à base
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
+# 
+# # Criar categorias de RDPC por cor e ano
+# tabela_rdpc_cor_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, V2010, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V2010, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Renomear colunas para maior clareza
+# colnames(tabela_rdpc_cor_ano) <- c('Ano', 'Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Gerar título dinâmico
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Cor Segmentada por Ano'
+# 
+# # Exportar tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_cor_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor
+# htmltools::html_print(b_tab_resumo_rdpc_cor)
+# 
+# ## 1.7.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
+# # Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada cor e ano
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~Ano + V2010, ncol = 2) +  # Facetar por cor e ano
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Cor e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.7.3B Gráfico com Percentuais no Topo ####
+# # Criar gráfico com percentuais no topo das barras segmentado por cor e ano
+# ggplot(tabela_rdpc_cor_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Cor, ncol = 2) +  # Facetar por cor e ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Cor e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.7.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
+# # Filtrar valores válidos (sem NAs em abandono e cor)
+# # Adicionar o salário mínimo à base
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   mutate(Salario_Minimo = sal_min(Ano))
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2010 (cor)
+# base_abandono_pdm <- base_abandono_pdm %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2010))
+# 
+# # Criar categorias de RDPC por cor e ano
+# tabela_rdpc_cor_ano <- base_abandono_pdm %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, V2010, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V2010, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Renomear colunas para maior clareza
+# colnames(tabela_rdpc_cor_ano) <- c('Ano', 'Cor', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# tabela_rdpc_cor_validos_ano <- tabela_rdpc_cor_ano %>%
+#   filter(!is.na(Cor) & !is.na(abandono))
+# 
+# # Gráfico com percentuais no topo (Sem NAs)
+# ggplot(tabela_rdpc_cor_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Cor, ncol = 2) +  # Facetar por cor e ano
+#   labs(
+#     title = 'Abandono por Faixas de RDPC (Sem NAs) com Percentuais no Topo por Cor e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# 
+# ## 1.7.5B Exportação Final da Tabela (Sem NAs em abandono e Cor)** ####
+# # Gerar título dinâmico
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC (Sem NAs) por Cor e Ano'
+# 
+# # Exportar a tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_cor_validos_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_cor_sem_na)
+# 
+# ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+# 
+# ## | ####
+# 
+# ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# # Limpar o ambiente
+# gc(); cat('\014')
+# 
+# #### 1.8 RDPC POR SEXO ####
+# 
+# #### ////// (A) DADOS EMPILHADOS ////// ####
+# ## 1.8.1A Resumo Descritivo do RDPC por Sexo ####
+# # Adicionar o salário mínimo à base, calculado para cada ano
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e V2007 (sexo)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V2007))
+# 
+# # Criar categorias de RDPC por sexo
+# tabela_rdpc_sexo <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(V2007, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(V2007, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_sexo <- as.data.frame(tabela_rdpc_sexo)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_sexo) <- c('Sexo', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Exportar a tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_sexo,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Sexo (Ajustadas pelo Salário Mínimo)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo
+# htmltools::html_print(a_tab_resumo_rdpc_sexo)
+# 
+# ## 1.8.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Sexo ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~V2007) +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Sexo',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo
+# a_graf_rdpc_sexo
+# 
+# ## 1.8.3A Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_sexo, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Sexo) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Sexo',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo_topo
+# a_graf_rdpc_sexo_topo
+# 
+# ## 1.8.4A Exportação Final ####
+# tabela_rdpc_sexo_sem_na <- tabela_rdpc_sexo %>%
+#   filter(!is.na(abandono))
+# 
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Sexo (Sem NAs)'
+# tabela_html <- stargazer(
+#   tabela_rdpc_sexo_sem_na,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_sexo_sem_na)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# ## 1.8.1B Resumo Descritivo do RDPC por Sexo ####
+# tabela_rdpc_sexo_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, V2007, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V2007, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# colnames(tabela_rdpc_sexo_ano) <- c('Ano', 'Sexo', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_sexo_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Sexo Segmentada por Ano',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo
+# htmltools::html_print(b_tab_resumo_rdpc_sexo)
+# 
+# ## 1.8.2B Gráfico Inicial ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~Ano + V2007, ncol = 2) +
+#   scale_y_continuous(labels = scales::percent) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Sexo e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo
+# b_graf_rdpc_sexo
+# 
+# ## 1.8.3B Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_sexo_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Sexo, ncol = 2) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Sexo e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo_topo
+# b_graf_rdpc_sexo_topo
+# 
+# ## 1.8.4B Exportação Final ####
+# tabela_rdpc_sexo_sem_na_ano <- tabela_rdpc_sexo_ano %>%
+#   filter(!is.na(abandono))
+# 
+# titulo_dinamico <- 'Proporção de Abandono por Faixas de RDPC por Sexo e Ano (Sem NAs)'
+# tabela_html <- stargazer(
+#   tabela_rdpc_sexo_sem_na_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_sexo_sem_na)
+# 
+# ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+# 
+# ## | ####
+# 
+# ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# # Limpar o ambiente
+# gc(); cat('\014')
+# 
+# #### 1.9 RDPC POR ENSINO MÉDIO ####
+# 
+# #### ////// (A) DADOS EMPILHADOS ////// ####
+# ## 1.9.1A Resumo Descritivo do RDPC por Ensino Médio ####
+# # Adicionar o salário mínimo à base, calculado para cada ano
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e Ensino Médio
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(V3002A))
+# 
+# # Criar categorias de RDPC por ensino médio
+# tabela_rdpc_ensino_medio <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(V3002A, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(V3002A, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_ensino_medio <- as.data.frame(tabela_rdpc_ensino_medio)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_ensino_medio) <- c('Ensino_Medio', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Exportar tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_ensino_medio,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio (Ajustadas pelo Salário Mínimo)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio
+# htmltools::html_print(a_tab_resumo_rdpc_ensino_medio)
+# 
+# ## 1.9.2A Gráfico Inicial ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~V3002A) +
+#   scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, by = 0.1)) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio
+# a_graf_rdpc_ensino_medio
+# 
+# ## 1.9.3A Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_ensino_medio, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ensino_Medio) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Ensino Médio',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio_topo
+# a_graf_rdpc_ensino_medio_topo
+# 
+# ## 1.9.4A Exportação Final ####
+# tabela_rdpc_ensino_medio_sem_na <- tabela_rdpc_ensino_medio %>%
+#   filter(!is.na(abandono))
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_ensino_medio_sem_na,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_ensino_medio_sem_na)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# ## 1.9.1B Resumo Descritivo ####
+# tabela_rdpc_ensino_medio_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, V3002A, Faixa_RDPC, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V3002A, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# colnames(tabela_rdpc_ensino_medio_ano) <- c('Ano', 'Ensino_Medio', 'Faixa_RDPC', 'abandono', 'Contagem', 'Proporcao')
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_ensino_medio_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio Segmentada por Ano',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio
+# htmltools::html_print(b_tab_resumo_rdpc_ensino_medio)
+# 
+# ## 1.9.2B Gráfico Inicial ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~Ano + V3002A, ncol = 2) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio
+# b_graf_rdpc_ensino_medio
+# 
+# ## 1.9.3B Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_ensino_medio_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Ensino_Medio, ncol = 2) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo por Ensino Médio e Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio_topo
+# b_graf_rdpc_ensino_medio_topo
+# 
+# ## 1.9.4B Exportação Final ####
+# tabela_rdpc_ensino_medio_sem_na_ano <- tabela_rdpc_ensino_medio_ano %>%
+#   filter(!is.na(abandono))
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_ensino_medio_sem_na_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC por Ensino Médio e Ano (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_ensino_medio_sem_na)
+# 
+# ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+# 
+# ## | ####
+# 
+# ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+# # Limpar o ambiente
+# gc(); cat('\014')
+# 
+# #### 1.10 RDPC POR Abandono ####
+# 
+# #### ////// (A) DADOS EMPILHADOS ////// ####
+# ## 1.10.1A Resumo Descritivo do RDPC por Abandono ####
+# # Adicionar o salário mínimo à base, calculado para cada ano
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano))  # Adiciona o salário mínimo correspondente ao ano
+# 
+# # Filtrar para garantir que não há valores NA ou zero em Salario_Minimo, RDPC e abandono
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(abandono))
+# 
+# # Criar categorias de RDPC por Abandono
+# tabela_rdpc_abandono <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(abandono, Faixa_RDPC) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Converter o tibble para data.frame
+# tabela_rdpc_abandono <- as.data.frame(tabela_rdpc_abandono)
+# 
+# # Renomear colunas
+# colnames(tabela_rdpc_abandono) <- c('abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
+# 
+# # Exportar tabela como HTML
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC (Ajustadas pelo Salário Mínimo)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono
+# htmltools::html_print(a_tab_resumo_rdpc_abandono)
+# 
+# ## 1.10.2A Gráfico Inicial ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, by = 0.1)) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono
+# a_graf_rdpc_abandono
+# 
+# ## 1.10.3A Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_abandono, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_topo
+# a_graf_rdpc_abandono_topo
+# 
+# ## 1.10.4A Exportação Final ####
+# tabela_rdpc_abandono_sem_na <- tabela_rdpc_abandono %>%
+#   filter(!is.na(abandono))
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_sem_na,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_abandono_sem_na)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# ## 1.10.1B Resumo Descritivo ####
+# tabela_rdpc_abandono_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, abandono, Faixa_RDPC) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# colnames(tabela_rdpc_abandono_ano) <- c('Ano', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono
+# htmltools::html_print(b_tab_resumo_rdpc_abandono)
+# 
+# ## 1.10.2B Gráfico Inicial ####
+# ggplot(base_abandono_filtrada %>%
+#          mutate(
+#            Faixa_RDPC = case_when(
+#              RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#              RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#              RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#              RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#              RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#              RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#              TRUE ~ 'Acima de 20 SM'
+#            )
+#          ),
+#        aes(x = Faixa_RDPC, fill = as.factor(abandono))) +
+#   geom_bar(position = 'fill', color = 'black') +
+#   facet_wrap(~Ano, ncol = 2) +
+#   labs(
+#     title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Proporção (%)',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono
+# b_graf_rdpc_abandono
+# 
+# ## 1.10.3B Gráfico com Percentuais no Topo ####
+# ggplot(tabela_rdpc_abandono_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano, ncol = 2) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC com Percentuais no Topo Segmentada por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_topo
+# b_graf_rdpc_abandono_topo
+# 
+# ## 1.10.4B Exportação Final ####
+# tabela_rdpc_abandono_sem_na_ano <- tabela_rdpc_abandono_ano %>%
+#   filter(!is.na(abandono))
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_sem_na_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC Segmentada por Ano (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_abandono_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -2876,143 +2897,143 @@ gc(); cat('\014')
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.11.1A Resumo Descritivo do RDPC por Abandono e Ensino Médio ####
-base_abandono_filtrada <- base_abandono_filtrada %>%
-  mutate(Salario_Minimo = sal_min(Ano)) %>%  # Adicionar salário mínimo
-  filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(abandono) & !is.na(V3002A))
-
-tabela_rdpc_abandono_ensino <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(V3002A, abandono, Faixa_RDPC) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(V3002A, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-colnames(tabela_rdpc_abandono_ensino) <- c('Ensino_Medio', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
-
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_ensino,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio (Ajustadas pelo Salário Mínimo)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino
-htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino)
-
-## 1.11.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
-tabela_rdpc_abandono_ensino_validos <- tabela_rdpc_abandono_ensino %>%
-  filter(!is.na(abandono) & !is.na(Ensino_Medio))
-
-ggplot(tabela_rdpc_abandono_ensino_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ensino_Medio) +
-  labs(
-    title = 'Abandono por Faixas de RDPC e Ensino Médio (Sem NAs)',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_ensino
-a_graf_rdpc_abandono_ensino
-
-## 1.11.5A Exportação Final ####
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_ensino_validos,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino_sem_na
-htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino_sem_na)
-
-#### ////// (B) DADOS LONGITUDINAIS ////// ####
-## 1.11.1B Resumo Descritivo ####
-tabela_rdpc_abandono_ensino_ano <- base_abandono_filtrada %>%
-  mutate(
-    Faixa_RDPC = case_when(
-      RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
-      RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
-      RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
-      RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
-      RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
-      RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
-      TRUE ~ 'Acima de 20 SM'
-    )
-  ) %>%
-  group_by(Ano, V3002A, abandono, Faixa_RDPC) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, V3002A, Faixa_RDPC) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-colnames(tabela_rdpc_abandono_ensino_ano) <- c('Ano', 'Ensino_Medio', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
-
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_ensino_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio Segmentada por Ano',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino
-htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino)
-
-## 1.11.4B Gráfico com Percentuais no Topo ####
-tabela_rdpc_abandono_ensino_validos_ano <- tabela_rdpc_abandono_ensino_ano %>%
-  filter(!is.na(abandono) & !is.na(Ensino_Medio))
-
-ggplot(tabela_rdpc_abandono_ensino_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
-  geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
-  geom_text(
-    aes(label = paste0(Proporcao, '%')),
-    position = position_dodge(width = 0.9),
-    vjust = -0.5,
-    size = 3.5
-  ) +
-  facet_wrap(~Ano + Ensino_Medio, ncol = 2) +
-  labs(
-    title = 'Abandono por Faixas de RDPC e Ensino Médio (Sem NAs) Segmentada por Ano',
-    x = 'Faixa de RDPC',
-    y = 'Frequência',
-    fill = 'Abandono (1=Sim)'
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_ensino
-b_graf_rdpc_abandono_ensino
-
-## 1.11.5B Exportação Final ####
-tabela_html <- stargazer(
-  tabela_rdpc_abandono_ensino_validos_ano,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio Segmentada por Ano (Sem NAs)',
-  digits = 2
-)
-
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino_sem_na
-htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino_sem_na)
+# base_abandono_filtrada <- base_abandono_filtrada %>%
+#   mutate(Salario_Minimo = sal_min(Ano)) %>%  # Adicionar salário mínimo
+#   filter(!is.na(Salario_Minimo) & !is.na(RDPC) & Salario_Minimo > 0 & !is.na(abandono) & !is.na(V3002A))
+# 
+# tabela_rdpc_abandono_ensino <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(V3002A, abandono, Faixa_RDPC) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(V3002A, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# colnames(tabela_rdpc_abandono_ensino) <- c('Ensino_Medio', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_ensino,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio (Ajustadas pelo Salário Mínimo)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino
+# htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino)
+# 
+# ## 1.11.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
+# tabela_rdpc_abandono_ensino_validos <- tabela_rdpc_abandono_ensino %>%
+#   filter(!is.na(abandono) & !is.na(Ensino_Medio))
+# 
+# ggplot(tabela_rdpc_abandono_ensino_validos, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ensino_Medio) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC e Ensino Médio (Sem NAs)',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_ensino
+# a_graf_rdpc_abandono_ensino
+# 
+# ## 1.11.5A Exportação Final ####
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_ensino_validos,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino_sem_na
+# htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino_sem_na)
+# 
+# #### ////// (B) DADOS LONGITUDINAIS ////// ####
+# ## 1.11.1B Resumo Descritivo ####
+# tabela_rdpc_abandono_ensino_ano <- base_abandono_filtrada %>%
+#   mutate(
+#     Faixa_RDPC = case_when(
+#       RDPC <= 0.5 * Salario_Minimo ~ 'Até 0.5 SM',
+#       RDPC <= Salario_Minimo ~ '0.5 a 1 SM',
+#       RDPC <= 2 * Salario_Minimo ~ '1 a 2 SM',
+#       RDPC <= 5 * Salario_Minimo ~ '2 a 5 SM',
+#       RDPC <= 10 * Salario_Minimo ~ '5 a 10 SM',
+#       RDPC <= 20 * Salario_Minimo ~ '10 a 20 SM',
+#       TRUE ~ 'Acima de 20 SM'
+#     )
+#   ) %>%
+#   group_by(Ano, V3002A, abandono, Faixa_RDPC) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, V3002A, Faixa_RDPC) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# colnames(tabela_rdpc_abandono_ensino_ano) <- c('Ano', 'Ensino_Medio', 'abandono', 'Faixa_RDPC', 'Contagem', 'Proporcao')
+# 
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_ensino_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio Segmentada por Ano',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino
+# htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino)
+# 
+# ## 1.11.4B Gráfico com Percentuais no Topo ####
+# tabela_rdpc_abandono_ensino_validos_ano <- tabela_rdpc_abandono_ensino_ano %>%
+#   filter(!is.na(abandono) & !is.na(Ensino_Medio))
+# 
+# ggplot(tabela_rdpc_abandono_ensino_validos_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
+#   geom_bar(stat = 'identity', position = position_dodge(width = 0.9), color = 'black') +
+#   geom_text(
+#     aes(label = paste0(Proporcao, '%')),
+#     position = position_dodge(width = 0.9),
+#     vjust = -0.5,
+#     size = 3.5
+#   ) +
+#   facet_wrap(~Ano + Ensino_Medio, ncol = 2) +
+#   labs(
+#     title = 'Abandono por Faixas de RDPC e Ensino Médio (Sem NAs) Segmentada por Ano',
+#     x = 'Faixa de RDPC',
+#     y = 'Frequência',
+#     fill = 'Abandono (1=Sim)'
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_ensino
+# b_graf_rdpc_abandono_ensino
+# 
+# ## 1.11.5B Exportação Final ####
+# tabela_html <- stargazer(
+#   tabela_rdpc_abandono_ensino_validos_ano,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Faixas de RDPC e Ensino Médio Segmentada por Ano (Sem NAs)',
+#   digits = 2
+# )
+# 
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino_sem_na
+# htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -3026,7 +3047,7 @@ gc(); cat('\014')
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.12.1A Resumo Descritivo da População (Rural vs Urbana) ####
-tabela_populacao <- base_abandono_filtrada %>%
+tabela_populacao <- base_abandono_pdm %>%
   group_by(V1022, abandono) %>%
   summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(V1022) %>%
@@ -3039,7 +3060,7 @@ tabela_html <- stargazer(
   tabela_populacao,
   type = 'html',
   summary = FALSE,
-  title = 'Proporção de Abandono por Tipo de População (Rural vs Urbana)',
+  title = 'Proporção de Abandono por Tipo de População (base PDM) (Rural vs Urbana)',
   digits = 2
 )
 
@@ -3047,7 +3068,7 @@ HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_populacao
 htmltools::html_print(a_tab_resumo_populacao)
 
 ## 1.12.3A Gráfico com Percentuais no Topo ####
-base_abandono_percentual_populacao <- base_abandono_filtrada %>%
+base_abandono_percentual_populacao <- base_abandono_pdm %>%
   group_by(V1022, abandono) %>%
   summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(V1022) %>%
@@ -3063,7 +3084,7 @@ ggplot(base_abandono_percentual_populacao, aes(x = V1022, y = Contagem, fill = a
     size = 3.5
   ) +
   labs(
-    title = 'Abandono por Tipo de População com Percentuais no Topo',
+    title = 'Abandono por Tipo de População com Percentuais no Topo (base PDM)',
     x = 'Tipo de População',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -3075,7 +3096,7 @@ a_graf_populacao_percentual
 tabela_populacao_sem_na <- tabela_populacao %>%
   filter(!is.na(abandono))
 
-titulo_dinamico <- 'Proporção de Abandono por Tipo de População (Sem NAs)'
+titulo_dinamico <- 'Proporção de Abandono por Tipo de População (base PDM) (Sem NAs)'
 tabela_html <- stargazer(
   tabela_populacao_sem_na,
   type = 'html',
@@ -3089,7 +3110,7 @@ htmltools::html_print(a_tab_resumo_populacao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.12.1B Resumo Descritivo da População Segmentada por Ano ####
-tabela_populacao_ano <- base_abandono_filtrada %>%
+tabela_populacao_ano <- base_abandono_pdm %>%
   group_by(Ano, V1022, abandono) %>%
   summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(Ano, V1022) %>%
@@ -3102,7 +3123,7 @@ tabela_html <- stargazer(
   tabela_populacao_ano,
   type = 'html',
   summary = FALSE,
-  title = 'Proporção de Abandono por Tipo de População Segmentada por Ano',
+  title = 'Proporção de Abandono por Tipo de População Segmentada por Ano (base PDM)',
   digits = 2
 )
 
@@ -3123,7 +3144,7 @@ ggplot(tabela_populacao_sem_na_ano, aes(x = Populacao, y = Contagem, fill = as.f
   ) +
   facet_wrap(~Ano, ncol = 2) +
   labs(
-    title = 'Abandono por Tipo de População (Sem NAs) Segmentada por Ano',
+    title = 'Abandono por Tipo de População (base PDM) (Sem NAs) Segmentada por Ano',
     x = 'Tipo de População',
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
@@ -3143,7 +3164,7 @@ gc(); cat('\014')
 
 #### ////// TEMPO: DADOS EMPILHADOS ////// ####
 ## 1.14.1A Resumo Descritivo da Abandono** ####
-tabela_abandono <- base_abandono_filtrada %>%
+tabela_abandono <- base_abandono_pdm %>%
   group_by(abandono) %>%
   summarise(Contagem = n(), .groups = 'drop') %>%
   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2))
@@ -3152,7 +3173,7 @@ tabela_abandono
 ## 1.14.2A Gráfico Inicial: Proporção de Abandono** #### 
 # Gerar título dinâmico com período
 titulo_dinamico <- paste0(
-  'Proporção de Abandono - Período: ',
+  'Proporção de Abandono (base PDM) - Período: ',
   inicio, '-', fim
 )
 
@@ -3172,7 +3193,7 @@ a_graf_abandono
 ## 1.13.3A Exportação Final da Tabela (Sem NAs em abandono)** #### 
 # Gerar título dinâmico com período
 titulo_dinamico <- paste0(
-  'Proporção de Abandono (Sem NAs) - Período: ',
+  'Proporção de Abandono (base PDM) (Sem NAs) - Período: ',
   inicio, '-', fim
 )
 
@@ -3182,7 +3203,7 @@ stargazer(tabela_abandono, type = 'text', summary = FALSE,
           digits = 2)
 
 # Estes valores batem com: 
-prop.table(round(table(base_abandono_filtrada$abandono)))
+# prop.table(round(table(base_abandono_pdm$abandono)))
 
 # Gerar a tabela em formato HTML com stargazer
 tabela_html <- stargazer(
@@ -3202,7 +3223,7 @@ htmltools::html_print(HTML(html_output))
 #### ////// TEMPO: DADOS LONGITUDINAIS ////// ####
 ## 1.13.1B Resumo Descritivo da Abandono** ####
 # Calcular proporções de Abandono por ano
-tabela_abandono_longitudinal <- base_abandono_filtrada %>% 
+tabela_abandono_longitudinal <- base_abandono_pdm %>% 
   group_by(Ano, abandono) %>%
   summarise(Contagem = n(), .groups = 'drop') %>%
   group_by(Ano) %>%
@@ -3213,7 +3234,7 @@ tabela_abandono_longitudinal
 
 ## 1.13.2B Gráfico Inicial: Proporção de Abandono** #### 
 # Gerar título dinâmico
-titulo_dinamico <- 'Proporção de Abandono Segmentada por Ano'
+titulo_dinamico <- 'Proporção de Abandono Segmentada por Ano (base PDM)'
 
 # Gráfico mostrando a proporção de Abandono por ano
 ggplot(tabela_abandono_longitudinal, aes(x = as.factor(Ano), y = Contagem, fill = as.factor(abandono))) +
@@ -3239,7 +3260,7 @@ b_graf_abandono_ano
 inicio <- min(tabela_abandono_longitudinal$Ano)
 fim <- max(tabela_abandono_longitudinal$Ano)
 titulo_dinamico <- paste0(
-  'Proporção de Abandono (Sem NAs) - Período: ',
+  'Proporção de Abandono (base PDM) (Sem NAs) - Período: ',
   inicio, '-', fim
 )
 
