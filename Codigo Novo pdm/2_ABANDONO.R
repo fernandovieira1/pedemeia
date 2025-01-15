@@ -19,7 +19,11 @@ if (local_bd == 'processar') {
   source('Codigo Novo pdm\\Script pdm\\2_abandono.R')
   gc()
 } else {
-  rm(publico_alvo_filtrado)
+  # Verificar se o objeto existe antes de removê-lo
+  if (exists('publico_alvo_filtrado')) {
+    rm(publico_alvo_filtrado)
+  }
+  
   Sys.sleep(15)
   gc()
   Sys.sleep(5)
@@ -33,6 +37,7 @@ if (local_bd == 'processar') {
   }
   base_abandono_filtrada <- read_feather(caminho_feather)
 }
+
 
 ######################## 1. BASE ABANDONO ########################
 # Limpar o ambiente
@@ -140,8 +145,8 @@ ggplot(base_abandono_filtrada, aes(x = V2009, fill = as.factor(abandono))) +
        x = 'Idade',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_idades_abandono
-a_graf_idades_abandono
+  theme_minimal() -> a_graf_ab_idades_abandono
+a_graf_ab_idades_abandono
 Sys.sleep(3)
 gc()
 
@@ -167,8 +172,8 @@ ggplot(base_abandono_percentual, aes(x = as.factor(V2009), y = Contagem, fill = 
        x = 'Idade',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_abandono_1424
-a_graf_abandono_1424
+  theme_minimal() -> a_graf_ab_abandono_1424
+a_graf_ab_abandono_1424
 Sys.sleep(3)
 gc()
 
@@ -196,8 +201,8 @@ tabela_html <- stargazer(
 
 # Renderizar no Viewer
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_idades
-htmltools::html_print(b_tab_resumo_idades)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_idades
+htmltools::html_print(b_tab_ab_resumo_idades)
 Sys.sleep(3)
 gc()
 
@@ -270,8 +275,8 @@ gc()
 #     y = 'Frequência',
 #     fill = 'Abandono (1=Sim)'
 #   ) +
-#   theme_minimal() -> b_graf_idades_abandono
-# b_graf_idades_abandono
+#   theme_minimal() -> b_graf_ab_idades_abandono
+# b_graf_ab_idades_abandono
 # Este gráfico trava o RStudio
 
 ## 1.1.4B Gráfico Filtrado: Idades Válidas (14-24 Anos)** ####
@@ -295,8 +300,8 @@ ggplot(base_abandono_percentual_ano, aes(x = as.factor(V2009), y = Contagem, fil
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> b_graf_abandono_1424
-b_graf_abandono_1424
+  theme_minimal() -> b_graf_ab_abandono_1424
+b_graf_ab_abandono_1424
 Sys.sleep(3)
 gc()
 
@@ -342,8 +347,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_cor
-htmltools::html_print(a_tab_resumo_cor)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_cor
+htmltools::html_print(a_tab_ab_resumo_cor)
 gc()
 
 ## 1.2.2A Gráfico Inicial: Proporção de Abandono por Cor/Raça ####
@@ -379,8 +384,8 @@ ggplot(base_abandono_percentual_cor, aes(x = V2010, y = Contagem, fill = as.fact
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_cor_percentual
-a_graf_cor_percentual
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_cor_percentual
+a_graf_ab_cor_percentual
 
 ## 1.2.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 
@@ -472,8 +477,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_cor_raca
-htmltools::html_print(b_tab_cor_raca)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_cor_raca
+htmltools::html_print(b_tab_ab_cor_raca)
 
 ## 1.2.2B Gráfico Inicial: Proporção de Abandono por Cor/Raça ####
 # Gráfico mostrando a proporção de Abandono por cor/raça para cada ano
@@ -513,8 +518,8 @@ ggplot(base_abandono_percentual_ano, aes(x = V2010, y = Contagem, fill = as.fact
     fill = 'Abandono (1=Sim)'
   ) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_cor_percentual
-b_graf_cor_percentual
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_cor_percentual
+b_graf_ab_cor_percentual
 
 
 ## 1.2.4B Gráfico com Percentuais no Topo (Sem NAs)***####
@@ -539,8 +544,8 @@ ggplot(base_abandono_percentual_ano, aes(x = V2010, y = Contagem, fill = as.fact
     fill = 'Abandono (1=Sim)'
   ) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_cor_percentual_sem_na
-b_graf_cor_percentual_sem_na
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_cor_percentual_sem_na
+b_graf_ab_cor_percentual_sem_na
 
 ## 1.2.5B Exportação Final da Tabela (Sem NAs)** ####
 # Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
@@ -578,8 +583,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_cor_percentual_sem_na
-htmltools::html_print(b_tab_cor_percentual_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_cor_percentual_sem_na
+htmltools::html_print(b_tab_ab_cor_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -621,8 +626,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo
-htmltools::html_print(a_tab_resumo_sexo)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_sexo
+htmltools::html_print(a_tab_ab_resumo_sexo)
 
 ## 1.3.2A Gráfico Inicial: Proporção de Abandono por Sexo ####
 # ggplot(base_abandono_filtrada, aes(x = V2007, fill = as.factor(abandono))) +
@@ -656,8 +661,8 @@ ggplot(base_abandono_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.fac
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_sexo_percentual
-a_graf_sexo_percentual
+  theme_minimal() -> a_graf_ab_sexo_percentual
+a_graf_ab_sexo_percentual
 
 ## 1.3.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Obter os valores mínimo e máximo da variável 'anos'
@@ -680,8 +685,8 @@ ggplot(base_abandono_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.fac
        x = 'Sexo',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_cor_percentual_sem_na
-a_graf_cor_percentual_sem_na
+  theme_minimal() -> a_graf_ab_cor_percentual_sem_na
+a_graf_ab_cor_percentual_sem_na
 
 ## 1.3.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Filtrar valores válidos (remover NAs da variável abandono)
@@ -721,8 +726,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_sexo_sem_na
-htmltools::html_print(a_tab_resumo_sexo_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_sexo_sem_na
+htmltools::html_print(a_tab_ab_resumo_sexo_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # head(base_abandono_filtrada, 2)
@@ -760,8 +765,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_sexo
-htmltools::html_print(b_tab_resumo_sexo)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_sexo
+htmltools::html_print(b_tab_ab_resumo_sexo)
 
 ## 1.3.2B Gráfico Inicial: Proporção de Abandono por Sexo ####
 # Gráfico de proporção por sexo segmentada por ano
@@ -798,8 +803,8 @@ htmltools::html_print(b_tab_resumo_sexo)
 #     y = 'Frequência',
 #     fill = 'Abandono (1=Sim)'
 #   ) +
-#   theme_minimal() -> b_graf_sexo_percentual
-# b_graf_sexo_percentual
+#   theme_minimal() -> b_graf_ab_sexo_percentual
+# b_graf_ab_sexo_percentual
 ## Este gráfico demora para processar e não acrescenta muito
 
 ## 1.3.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
@@ -822,8 +827,8 @@ ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> b_graf_sexo_percentual_sem_na
-b_graf_sexo_percentual_sem_na
+  theme_minimal() -> b_graf_ab_sexo_percentual_sem_na
+b_graf_ab_sexo_percentual_sem_na
 
 ## 1.3.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Criar um mapeamento para os valores de Sexo
@@ -861,8 +866,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_sexo_percentual_sem_na
-htmltools::html_print(b_tab_sexo_percentual_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_sexo_percentual_sem_na
+htmltools::html_print(b_tab_ab_sexo_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -905,8 +910,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_regiao
-htmltools::html_print(a_tab_resumo_regiao)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_regiao
+htmltools::html_print(a_tab_ab_resumo_regiao)
 
 ## 1.4.2A Gráfico Inicial: Proporção de Abandono por Região ####
 # ggplot(base_abandono_filtrada, aes(x = regiao, fill = as.factor(abandono))) +
@@ -940,8 +945,8 @@ ggplot(base_abandono_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.
        x = 'Região',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_regiao_percentual
-a_graf_regiao_percentual
+  theme_minimal() -> a_graf_ab_regiao_percentual
+a_graf_ab_regiao_percentual
 
 ## 1.4.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de Abandono por região
@@ -960,8 +965,8 @@ ggplot(base_abandono_percentual_regiao, aes(x = regiao, y = Contagem, fill = as.
        x = 'Região',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
-  theme_minimal() -> a_graf_regiao_percentual_sem_na
-a_graf_regiao_percentual_sem_na
+  theme_minimal() -> a_graf_ab_regiao_percentual_sem_na
+a_graf_ab_regiao_percentual_sem_na
 
 ## 1.4.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Filtrar valores válidos (remover NAs da variável abandono) (ESTE!)
@@ -998,8 +1003,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_regiao_sem_na
-htmltools::html_print(a_tab_resumo_regiao_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_regiao_sem_na
+htmltools::html_print(a_tab_ab_resumo_regiao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # Cabeçalho inicial para mostrar a estrutura da base
@@ -1032,8 +1037,8 @@ tabela_html <- stargazer(
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_regiao
-htmltools::html_print(b_tab_resumo_regiao)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_regiao
+htmltools::html_print(b_tab_ab_resumo_regiao)
 
 ## 1.4.2B Gráfico Inicial: Proporção de Abandono por Região ####
 # Gráfico mostrando a proporção de Abandono por região para cada ano
@@ -1071,8 +1076,8 @@ ggplot(base_abandono_percentual_regiao_ano, aes(x = regiao, y = Contagem, fill =
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> b_graf_regiao_percentual
-b_graf_regiao_percentual
+  theme_minimal() -> b_graf_ab_regiao_percentual
+b_graf_ab_regiao_percentual
 
 ## 1.4.4B Gráfico com Percentuais no Topo (Sem NAs)** ####
 # Calcular os percentuais de Abandono por região e ano
@@ -1095,8 +1100,8 @@ ggplot(base_abandono_percentual_regiao_validos_ano, aes(x = regiao, y = Contagem
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> b_graf_regiao_percentual_sem_na
-b_graf_regiao_percentual_sem_na
+  theme_minimal() -> b_graf_ab_regiao_percentual_sem_na
+b_graf_ab_regiao_percentual_sem_na
 gc()
 
 ## 1.4.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
@@ -1117,8 +1122,8 @@ tabela_html <- stargazer(
 
 # Renderizar a tabela no Viewer do RStudio
 htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_regiao_sem_na
-htmltools::html_print(b_tab_resumo_regiao_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_regiao_sem_na
+htmltools::html_print(b_tab_ab_resumo_regiao_sem_na)
 
 #P2 # Até aqui, roda.
 
@@ -1184,8 +1189,8 @@ gc()
 # 
 # # Renderizar a tabela no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
-# htmltools::html_print(a_tab_resumo_rdpc)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc
+# htmltools::html_print(a_tab_ab_resumo_rdpc)
 # gc()
 ## Removi. Não acrescentava muito.
 
@@ -1233,8 +1238,8 @@ gc()
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual
-# a_graf_rdpc_percentual
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_percentual
+# a_graf_ab_rdpc_percentual
 # gc()
 
 # Parei aqui
@@ -1284,8 +1289,8 @@ gc()
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_percentual_sem_na
-# a_graf_rdpc_percentual_sem_na
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_percentual_sem_na
+# a_graf_ab_rdpc_percentual_sem_na
 
 ## 1.5.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
 # Filtrar tabela sem NAs em abandono
@@ -1319,8 +1324,8 @@ gc()
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_sem_na)
 ## Código trava aqui. Ver depois se vale a pena otimizar
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
@@ -1372,8 +1377,8 @@ gc()
 # 
 # # Renderizar a tabela no Viewer do RStudio
 # htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ano
-# htmltools::html_print(b_tab_resumo_rdpc_ano)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_ano
+# htmltools::html_print(b_tab_ab_resumo_rdpc_ano)
 
 ## 1.5.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC ####
 # Gráfico mostrando a proporção de Abandono por faixas de RDPC para cada ano
@@ -1538,8 +1543,8 @@ gc(); cat('\014')
 # 
 # # Renderizar a tabela no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao
-# htmltools::html_print(a_tab_resumo_rdpc_regiao)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_regiao
+# htmltools::html_print(a_tab_ab_resumo_rdpc_regiao)
 # 
 # ## 1.6.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
 # # Gráfico inicial: proporção de Abandono por faixas de RDPC por região
@@ -1689,8 +1694,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_regiao_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_regiao_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_regiao_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_regiao_sem_na)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # # head(base_abandono_filtrada, 2)
@@ -1741,8 +1746,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao
-# htmltools::html_print(b_tab_resumo_rdpc_regiao)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_regiao
+# htmltools::html_print(b_tab_ab_resumo_rdpc_regiao)
 # 
 # ## 1.6.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Região ####
 # # Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada região e ano
@@ -1871,8 +1876,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_regiao_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_regiao_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_regiao_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_regiao_sem_na)
 # 
 # ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 # 
@@ -1936,8 +1941,8 @@ gc(); cat('\014')
 # 
 # # Renderizar a tabela no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_cor
-# htmltools::html_print(a_tab_resumo_rdpc_cor)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_cor
+# htmltools::html_print(a_tab_ab_resumo_rdpc_cor)
 # 
 # ## 1.7.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
 # # Gráfico inicial: proporção de Abandono por faixas de RDPC por cor
@@ -1964,8 +1969,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_cor
-# a_graf_rdpc_cor
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_cor
+# a_graf_ab_rdpc_cor
 # 
 # ## 1.7.3A Gráfico com Percentuais no Topo ####
 # # Criar gráfico com os percentuais no topo das barras, segmentado por cor
@@ -1985,8 +1990,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))-> a_graf_rdpc_cor_percentual
-# a_graf_rdpc_cor_percentual
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))-> a_graf_ab_rdpc_cor_percentual
+# a_graf_ab_rdpc_cor_percentual
 # 
 # ## 1.7.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # # Filtrar apenas dados válidos (sem NAs em abandono e V2010)
@@ -2071,8 +2076,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(html_output))
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc
-# htmltools::html_print(a_tab_resumo_rdpc)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc
+# htmltools::html_print(a_tab_ab_resumo_rdpc)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # 
@@ -2122,8 +2127,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor
-# htmltools::html_print(b_tab_resumo_rdpc_cor)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_cor
+# htmltools::html_print(b_tab_ab_resumo_rdpc_cor)
 # 
 # ## 1.7.2B Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Cor ####
 # # Gráfico inicial mostrando a proporção de Abandono por faixas de RDPC para cada cor e ano
@@ -2242,8 +2247,8 @@ gc(); cat('\014')
 # 
 # # Renderizar no Viewer do RStudio
 # htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_cor_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_cor_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_cor_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_cor_sem_na)
 # 
 # ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 # 
@@ -2299,8 +2304,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo
-# htmltools::html_print(a_tab_resumo_rdpc_sexo)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_sexo
+# htmltools::html_print(a_tab_ab_resumo_rdpc_sexo)
 # 
 # ## 1.8.2A Gráfico Inicial: Proporção de Abandono por Faixas de RDPC por Sexo ####
 # ggplot(base_abandono_filtrada %>%
@@ -2326,8 +2331,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo
-# a_graf_rdpc_sexo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_sexo
+# a_graf_ab_rdpc_sexo
 # 
 # ## 1.8.3A Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_sexo, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2346,8 +2351,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_sexo_topo
-# a_graf_rdpc_sexo_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_sexo_topo
+# a_graf_ab_rdpc_sexo_topo
 # 
 # ## 1.8.4A Exportação Final ####
 # tabela_rdpc_sexo_sem_na <- tabela_rdpc_sexo %>%
@@ -2362,8 +2367,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_sexo_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_sexo_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_sexo_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_sexo_sem_na)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # ## 1.8.1B Resumo Descritivo do RDPC por Sexo ####
@@ -2395,8 +2400,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo
-# htmltools::html_print(b_tab_resumo_rdpc_sexo)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_sexo
+# htmltools::html_print(b_tab_ab_resumo_rdpc_sexo)
 # 
 # ## 1.8.2B Gráfico Inicial ####
 # ggplot(base_abandono_filtrada %>%
@@ -2422,8 +2427,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo
-# b_graf_rdpc_sexo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_sexo
+# b_graf_ab_rdpc_sexo
 # 
 # ## 1.8.3B Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_sexo_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2442,8 +2447,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_sexo_topo
-# b_graf_rdpc_sexo_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_sexo_topo
+# b_graf_ab_rdpc_sexo_topo
 # 
 # ## 1.8.4B Exportação Final ####
 # tabela_rdpc_sexo_sem_na_ano <- tabela_rdpc_sexo_ano %>%
@@ -2458,8 +2463,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_sexo_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_sexo_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_sexo_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_sexo_sem_na)
 # 
 # ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 # 
@@ -2515,8 +2520,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio
-# htmltools::html_print(a_tab_resumo_rdpc_ensino_medio)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_ensino_medio
+# htmltools::html_print(a_tab_ab_resumo_rdpc_ensino_medio)
 # 
 # ## 1.9.2A Gráfico Inicial ####
 # ggplot(base_abandono_filtrada %>%
@@ -2542,8 +2547,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio
-# a_graf_rdpc_ensino_medio
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_ensino_medio
+# a_graf_ab_rdpc_ensino_medio
 # 
 # ## 1.9.3A Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_ensino_medio, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2562,8 +2567,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_ensino_medio_topo
-# a_graf_rdpc_ensino_medio_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_ensino_medio_topo
+# a_graf_ab_rdpc_ensino_medio_topo
 # 
 # ## 1.9.4A Exportação Final ####
 # tabela_rdpc_ensino_medio_sem_na <- tabela_rdpc_ensino_medio %>%
@@ -2577,8 +2582,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_ensino_medio_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_ensino_medio_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_ensino_medio_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_ensino_medio_sem_na)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # ## 1.9.1B Resumo Descritivo ####
@@ -2610,8 +2615,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio
-# htmltools::html_print(b_tab_resumo_rdpc_ensino_medio)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_ensino_medio
+# htmltools::html_print(b_tab_ab_resumo_rdpc_ensino_medio)
 # 
 # ## 1.9.2B Gráfico Inicial ####
 # ggplot(base_abandono_filtrada %>%
@@ -2636,8 +2641,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio
-# b_graf_rdpc_ensino_medio
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_ensino_medio
+# b_graf_ab_rdpc_ensino_medio
 # 
 # ## 1.9.3B Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_ensino_medio_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2656,8 +2661,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_ensino_medio_topo
-# b_graf_rdpc_ensino_medio_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_ensino_medio_topo
+# b_graf_ab_rdpc_ensino_medio_topo
 # 
 # ## 1.9.4B Exportação Final ####
 # tabela_rdpc_ensino_medio_sem_na_ano <- tabela_rdpc_ensino_medio_ano %>%
@@ -2671,8 +2676,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_ensino_medio_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_ensino_medio_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_ensino_medio_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_ensino_medio_sem_na)
 # 
 # ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 # 
@@ -2728,8 +2733,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono
-# htmltools::html_print(a_tab_resumo_rdpc_abandono)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_abandono
+# htmltools::html_print(a_tab_ab_resumo_rdpc_abandono)
 # 
 # ## 1.10.2A Gráfico Inicial ####
 # ggplot(base_abandono_filtrada %>%
@@ -2754,8 +2759,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono
-# a_graf_rdpc_abandono
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_abandono
+# a_graf_ab_rdpc_abandono
 # 
 # ## 1.10.3A Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_abandono, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2773,8 +2778,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_topo
-# a_graf_rdpc_abandono_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_abandono_topo
+# a_graf_ab_rdpc_abandono_topo
 # 
 # ## 1.10.4A Exportação Final ####
 # tabela_rdpc_abandono_sem_na <- tabela_rdpc_abandono %>%
@@ -2788,8 +2793,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_abandono_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_abandono_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_abandono_sem_na)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # ## 1.10.1B Resumo Descritivo ####
@@ -2821,8 +2826,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono
-# htmltools::html_print(b_tab_resumo_rdpc_abandono)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_abandono
+# htmltools::html_print(b_tab_ab_resumo_rdpc_abandono)
 # 
 # ## 1.10.2B Gráfico Inicial ####
 # ggplot(base_abandono_filtrada %>%
@@ -2847,8 +2852,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono
-# b_graf_rdpc_abandono
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_abandono
+# b_graf_ab_rdpc_abandono
 # 
 # ## 1.10.3B Gráfico com Percentuais no Topo ####
 # ggplot(tabela_rdpc_abandono_ano, aes(x = Faixa_RDPC, y = Contagem, fill = as.factor(abandono))) +
@@ -2867,8 +2872,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_topo
-# b_graf_rdpc_abandono_topo
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_abandono_topo
+# b_graf_ab_rdpc_abandono_topo
 # 
 # ## 1.10.4B Exportação Final ####
 # tabela_rdpc_abandono_sem_na_ano <- tabela_rdpc_abandono_ano %>%
@@ -2882,8 +2887,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_abandono_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_abandono_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_abandono_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -2929,8 +2934,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino
-# htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_abandono_ensino
+# htmltools::html_print(a_tab_ab_resumo_rdpc_abandono_ensino)
 # 
 # ## 1.11.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 # tabela_rdpc_abandono_ensino_validos <- tabela_rdpc_abandono_ensino %>%
@@ -2952,8 +2957,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_rdpc_abandono_ensino
-# a_graf_rdpc_abandono_ensino
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> a_graf_ab_rdpc_abandono_ensino
+# a_graf_ab_rdpc_abandono_ensino
 # 
 # ## 1.11.5A Exportação Final ####
 # tabela_html <- stargazer(
@@ -2964,8 +2969,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_rdpc_abandono_ensino_sem_na
-# htmltools::html_print(a_tab_resumo_rdpc_abandono_ensino_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_rdpc_abandono_ensino_sem_na
+# htmltools::html_print(a_tab_ab_resumo_rdpc_abandono_ensino_sem_na)
 # 
 # #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # ## 1.11.1B Resumo Descritivo ####
@@ -2997,8 +3002,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino
-# htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_abandono_ensino
+# htmltools::html_print(b_tab_ab_resumo_rdpc_abandono_ensino)
 # 
 # ## 1.11.4B Gráfico com Percentuais no Topo ####
 # tabela_rdpc_abandono_ensino_validos_ano <- tabela_rdpc_abandono_ensino_ano %>%
@@ -3020,8 +3025,8 @@ gc(); cat('\014')
 #     fill = 'Abandono (1=Sim)'
 #   ) +
 #   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_rdpc_abandono_ensino
-# b_graf_rdpc_abandono_ensino
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_rdpc_abandono_ensino
+# b_graf_ab_rdpc_abandono_ensino
 # 
 # ## 1.11.5B Exportação Final ####
 # tabela_html <- stargazer(
@@ -3032,8 +3037,8 @@ gc(); cat('\014')
 #   digits = 2
 # )
 # 
-# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_abandono_ensino_sem_na
-# htmltools::html_print(b_tab_resumo_rdpc_abandono_ensino_sem_na)
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_rdpc_abandono_ensino_sem_na
+# htmltools::html_print(b_tab_ab_resumo_rdpc_abandono_ensino_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -3064,8 +3069,8 @@ tabela_html <- stargazer(
   digits = 2
 )
 
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_populacao
-htmltools::html_print(a_tab_resumo_populacao)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_populacao
+htmltools::html_print(a_tab_ab_resumo_populacao)
 
 ## 1.12.3A Gráfico com Percentuais no Topo ####
 base_abandono_percentual_populacao <- base_abandono_pdm %>%
@@ -3089,8 +3094,8 @@ ggplot(base_abandono_percentual_populacao, aes(x = V1022, y = Contagem, fill = a
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> a_graf_populacao_percentual
-a_graf_populacao_percentual
+  theme_minimal() -> a_graf_ab_populacao_percentual
+a_graf_ab_populacao_percentual
 
 ## 1.12.5A Exportação Final da Tabela ####
 tabela_populacao_sem_na <- tabela_populacao %>%
@@ -3105,8 +3110,8 @@ tabela_html <- stargazer(
   digits = 2
 )
 
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_resumo_populacao_sem_na
-htmltools::html_print(a_tab_resumo_populacao_sem_na)
+HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_populacao_sem_na
+htmltools::html_print(a_tab_ab_resumo_populacao_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.12.1B Resumo Descritivo da População Segmentada por Ano ####
@@ -3127,8 +3132,8 @@ tabela_html <- stargazer(
   digits = 2
 )
 
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_populacao
-htmltools::html_print(b_tab_resumo_populacao)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_populacao
+htmltools::html_print(b_tab_ab_resumo_populacao)
 
 ## 1.12.4B Gráfico com Percentuais no Topo ####
 tabela_populacao_sem_na_ano <- tabela_populacao_ano %>%
@@ -3149,8 +3154,8 @@ ggplot(tabela_populacao_sem_na_ano, aes(x = Populacao, y = Contagem, fill = as.f
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> b_graf_populacao_percentual
-b_graf_populacao_percentual
+  theme_minimal() -> b_graf_ab_populacao_percentual
+b_graf_ab_populacao_percentual
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -3187,8 +3192,8 @@ ggplot(tabela_abandono, aes(x = '', y = Contagem, fill = as.factor(abandono))) +
     y = 'Frequência',
     fill = 'Abandono (1=Sim)'
   ) +
-  theme_minimal() -> a_graf_abandono
-a_graf_abandono
+  theme_minimal() -> a_graf_ab_abandono
+a_graf_ab_abandono
 
 ## 1.13.3A Exportação Final da Tabela (Sem NAs em abandono)** #### 
 # Gerar título dinâmico com período
@@ -3252,8 +3257,8 @@ ggplot(tabela_abandono_longitudinal, aes(x = as.factor(Ano), y = Contagem, fill 
     fill = 'Abandono (1=Sim)'
   ) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_abandono_ano
-b_graf_abandono_ano
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_abandono_ano
+b_graf_ab_abandono_ano
 
 ## 1.13.3B Exportação Final da Tabela (Sem NAs em abandono)** #### 
 # Gerar título dinâmico com período
@@ -3289,8 +3294,8 @@ html_output <- paste(tabela_html, collapse = '\n')
 
 # Renderizar no Viewer do RStudio
 htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_idades
-htmltools::html_print(b_tab_resumo_idades)
+HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_resumo_idades
+htmltools::html_print(b_tab_ab_resumo_idades)
 
 ## ++++++++++++++++++++++++++++++++ FIM +++++++++++++++++++++++++++++++ ####
 cat('\014')
@@ -3307,5 +3312,5 @@ gc()
 
 # Calcular o tempo total de execução
 tempo_execucao <- fim - ini
-print(paste("Tempo de execução (minutos):", round(tempo_execucao, 2)))
+print(paste('Tempo de execução (minutos):', round(tempo_execucao, 2)))
 gc()
