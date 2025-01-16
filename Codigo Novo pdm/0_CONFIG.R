@@ -5,7 +5,7 @@ rm(list = ls(all = TRUE)); gc(); cat('\014')
 # Marcar o início do processamento
 ini <- Sys.time()
 
-###################################### I. DEFINIR PERÍODOS ######################################
+###################################### I. DE'FINIR PERÍODOS ######################################
 
 ### Definir período ####
 ## AVISO: Definir anos inicial e final

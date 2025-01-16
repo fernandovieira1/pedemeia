@@ -141,7 +141,7 @@ ggplot(base_abandono_filtrada, aes(x = V2009, fill = as.factor(abandono))) +
   scale_x_continuous(breaks = seq(min(base_abandono_filtrada$V2009), 
                                   max(base_abandono_filtrada$V2009), 
                                   by = 5)) +
-  labs(title = paste0('Distribuição Etária por Abandono Escolar - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Distribuição Etária por Abandono Escolar - Acumulado (PNAD completa): Período ', inicio, '-', fim),
        x = 'Idade',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -168,7 +168,7 @@ ggplot(base_abandono_percentual, aes(x = as.factor(V2009), y = Contagem, fill = 
   scale_x_discrete(breaks = seq(min(as.numeric(base_abandono_percentual$V2009)), 
                                 max(as.numeric(base_abandono_percentual$V2009)), 
                                 by = 1)) +  # Intervalos de 1 ano
-  labs(title = paste0('Distribuição Etária por Abandono Escolar (Idades 14-24) - Acumulado: Período ', inicio, '-', fim),
+  labs(title = paste0('Distribuição Etária por Abandono Escolar (base PDM) (Idades 14-24) - Acumulado: Período ', inicio, '-', fim),
        x = 'Idade',
        y = 'Frequência',
        fill = 'Abandono (1=Sim)') +
@@ -209,43 +209,44 @@ gc()
 ## 1.1.2B Filtragem de Idades Válidas ####
 
 # Contagem de idades válidas por ano e por idade
-contagem_validos_ano_idade <- base_abandono_pdm %>%
-  group_by(Ano, V2009) %>%
-  summarise(Contagem = n(), .groups = 'drop')
-
-# Adicionar linha de total por ano
-contagem_validos_totais <- base_abandono_pdm %>%
-  group_by(Ano) %>%
-  summarise(V2009 = 'Total', Contagem = n(), .groups = 'drop')
-
-# Converter V2009 para character em ambas as tabelas para garantir compatibilidade
-contagem_validos_ano_idade <- contagem_validos_ano_idade %>%
-  mutate(V2009 = as.character(V2009))
-
-# Combinar tabelas segmentadas com totais
-tabela_completa <- bind_rows(contagem_validos_ano_idade, contagem_validos_totais)
-
-# Ordenar para garantir a visualização correta
-tabela_completa <- tabela_completa %>%
-  arrange(Ano, V2009)
-
-# Exibir a tabela com stargazer (em HTML)
-tabela_html <- stargazer(
-  tabela_completa,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = 'Contagem de Idades Válidas PDM (14-24 Anos) Segmentada por Idade',
-  digits = 0,               # Número de casas decimais
-  rownames = FALSE          # Sem nomes de linha
-)
-
-# Converter para um único texto HTML
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar no Viewer
-htmltools::html_print(HTML(html_output))
-Sys.sleep(3)
-gc()
+# contagem_validos_ano_idade <- base_abandono_pdm %>%
+#   group_by(Ano, V2009) %>%
+#   summarise(Contagem = n(), .groups = 'drop')
+# 
+# # Adicionar linha de total por ano
+# contagem_validos_totais <- base_abandono_pdm %>%
+#   group_by(Ano) %>%
+#   summarise(V2009 = 'Total', Contagem = n(), .groups = 'drop')
+# 
+# # Converter V2009 para character em ambas as tabelas para garantir compatibilidade
+# contagem_validos_ano_idade <- contagem_validos_ano_idade %>%
+#   mutate(V2009 = as.character(V2009))
+# 
+# # Combinar tabelas segmentadas com totais
+# tabela_completa <- bind_rows(contagem_validos_ano_idade, contagem_validos_totais)
+# 
+# # Ordenar para garantir a visualização correta
+# tabela_completa <- tabela_completa %>%
+#   arrange(Ano, V2009)
+# 
+# # Exibir a tabela com stargazer (em HTML)
+# tabela_html <- stargazer(
+#   tabela_completa,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = 'Contagem de Idades Válidas PDM (14-24 Anos) Segmentada por Idade',
+#   digits = 0,               # Número de casas decimais
+#   rownames = FALSE          # Sem nomes de linha
+# )
+# 
+# # Converter para um único texto HTML
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar no Viewer
+# htmltools::html_print(HTML(html_output))
+# Sys.sleep(3)
+# gc()
+## Funcionou, mas não se mostrou útil
 
 # Criar o gráfico com os totais acima das barras
 # ggplot(contagem_validos_ano_idade, aes(x = as.factor(V2009), y = Contagem, fill = as.factor(Ano))) +
