@@ -3251,10 +3251,10 @@ htmltools::html_print(b_tab_resumo_idades)
 
 #### FIM ####
 # Marcar o final do processamento
-fim <- Sys.time()
+final <- Sys.time()
 
 # Calcular o tempo total de execução
-tempo_execucao <- fim - ini
+tempo_execucao <- final - ini
 print(paste('Tempo de execução (minutos):', round(tempo_execucao, 2)))
 
 Sys.sleep(5)

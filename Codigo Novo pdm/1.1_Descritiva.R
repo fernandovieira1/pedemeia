@@ -39,10 +39,10 @@ b_graf_evasao_1424
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.2.1A Resumo Descritivo da Cor/Raça ####
-htmltools::html_print(a_tab_resumo_cor)
+htmltools::html_print(a_tab_resumo_cor) #texto
 
 ## 1.2.3A Gráfico com Percentuais no Topo ####
-a_graf_cor_percentual
+a_graf_cor_percentual #texto
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 ## 1.2.1B Resumo Descritivo da Cor/Raça ####
@@ -69,7 +69,7 @@ htmltools::html_print(b_tab_cor_percentual_sem_na)
 htmltools::html_print(a_tab_resumo_sexo)
 
 ## 1.3.3A Gráfico com Percentuais no Topo ####
-a_graf_sexo_percentual
+a_graf_sexo_percentual #texto
 
 ## 1.3.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 a_graf_cor_percentual_sem_na
@@ -100,10 +100,10 @@ htmltools::html_print(b_tab_sexo_percentual_sem_na)
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.4.1A Resumo Descritivo da Região ####
-htmltools::html_print(a_tab_resumo_regiao)
+htmltools::html_print(a_tab_resumo_regiao) #texto
 
 ## 1.4.3A Gráfico com Percentuais no Topo ####
-a_graf_regiao_percentual
+a_graf_regiao_percentual #texto
 
 ## 1.4.4A Gráfico com Percentuais no Topo (Sem NAs)** ####
 a_graf_regiao_percentual_sem_na
@@ -180,7 +180,8 @@ htmltools::html_print(b_tab_resumo_rdpc_regiao_sem_na)
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.7.1A Resumo Descritivo do RDPC por Cor ####
-htmltools::html_print(a_tab_resumo_rdpc_cor)
+htmltools::html_print(a_tab_resumo_rdpc_cor)  #texto
+# Brancos e não brancos
 
 ## 1.7.3A Gráfico com Percentuais no Topo ####
 a_graf_rdpc_cor_percentual
@@ -330,7 +331,7 @@ htmltools::html_print(b_tab_resumo_rdpc_evasao_ensino_sem_na)
 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.12.1A Resumo Descritivo ####
-htmltools::html_print(a_tab_resumo_populacao)
+htmltools::html_print(a_tab_resumo_populacao) #texto
 
 ## 1.12.3A Gráfico com Percentuais no Topo ####
 a_graf_populacao_percentual
