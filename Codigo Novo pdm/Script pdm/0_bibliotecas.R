@@ -19,6 +19,7 @@ load_install <- function(pacote) {
   load_install('future') # Paralelização
   load_install('furrr') # Paralelização
   load_install('arrow') # Manipulação de grandes bases de dados
+  load_install('gridExtra') # Gráficos em colunas
   
   ## Modelos econométricos
   load_install('fixest') # Estimação de modelos fixos
