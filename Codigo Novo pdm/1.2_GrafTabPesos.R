@@ -3,30 +3,76 @@
 gc(); cat('\014')
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
-## Estimar Público total PDM (PNADc) ####
+## Estimativa 1: Público total PDM (PNADc) ####
 
-# Filtrar o dataframe para o ano de 2023
+## i) Filtrar o dataframe para o ano de 2023 ####
 base_2023 <- subset(base_evasao_pdm, Ano == 2023)
 
-# Criar o design amostral
+
+## ii) Criar o design amostral ####
 options(survey.lonely.psu = "adjust")
 
 design <- svydesign(
-  ids = ~UPA,                     # Unidade Primária de Amostragem
-  strata = ~Estrato,              # Estrato amostral
-  weights = ~V1028032,            # Pesos amostrais (correto)
+  ids = ~UPA,                     
+  strata = ~Estrato,              
+  weights = ~V1028032,           
   data = base_2023,
-  nest = TRUE                     # Indica estrutura aninhada
+  nest = TRUE                    
 )
 
-# Adicionar estrutura para estimativas de renda, se necessário
+## iii) Adicionar estrutura para estimativas de renda, se necessário ####
 design <- convey_prep(design)
 
-# Estimar o total da população-alvo
+## iv) Estimar o total da população-alvo ####
 populacao_total <- svytotal(~ensino_medio, design)
 
-# Exibir os resultados
+## v) Exibir os resultados ####
 print(populacao_total)
+
+## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+
+## | ####
+
+## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
+## Estimativa 2: Público total PDM (PNADc) ####
+
+## Estimar Público total PDM (PNADc) ####
+# Calcular a proporção de registros de ensino médio
+proporcao_alunos <- sum(base_2023$ensino_medio, na.rm = TRUE) / nrow(base_2023)
+
+# Novo fator de ajuste considerando apenas os alunos relevantes
+fator_ajuste_proporcional <- 2400000 / (sum(base_2023$V1028032, na.rm = TRUE) * proporcao_alunos)
+
+## i) Filtrar o dataframe para o ano de 2023 ####
+base_2023_2 <- subset(base_evasao_pdm, Ano == 2023)
+
+# Criar pesos ajustados proporcionalmente
+base_2023_2 <- base_2023_2 %>%
+  mutate(V1028032_ajustado = ifelse(ensino_medio == 1, 
+                                    V1028032 * fator_ajuste_proporcional, 
+                                    0))
+
+## ii) Criar o design amostral ####
+options(survey.lonely.psu = "adjust")
+
+design <- svydesign(
+  ids = ~UPA,
+  strata = ~Estrato,
+  weights = ~V1028032_ajustado,
+  data = base_2023_2,
+  nest = TRUE
+)
+
+
+
+## iii) Adicionar estrutura para estimativas de renda, se necessário ####
+design <- convey_prep(design)
+
+## iv) Estimar o total da população-alvo ####
+populacao_total2 <- svytotal(~ensino_medio, design)
+
+## v) Exibir os resultados ####
+print(populacao_total2)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 

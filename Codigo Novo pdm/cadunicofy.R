@@ -1,24 +1,20 @@
 library(data.table)
 library(dplyr)
 library(survey)
+library(convey)
 library(stringr)
 library(tidyr)
 library(readr)
 
 # Carregar a base pessoa
-#pessoas <- fread("C:/Users/admin/Desktop/base_amostra_cad_201812/base_amostra_pessoa_201812.csv"")
 pessoas <- fread("C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia\\base_amostra_pessoa_201812.csv")
-#pessoas <- fread("C:/Users/admin/Desktop/base_amostra_cad_201812/base_amostra_pessoa_201812.csv")
-
-# file.exists("/Users/ivyszermeta/Library/Mobile Documents/com~apple~CloudDocs/PPGE - Economia/Bases/base_amostra_cad_201812/base_amostra_pessoa_201812.csv")
 
 # Carregar a base família
-#familia <- fread("C:/Users/admin/Desktop/base_amostra_cad_201812/base_amostra_familia_201812.csv")
 familia <- fread("C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia\\base_amostra_familia_201812.csv")
-#familia <- fread("C:/Users/admin/Desktop/base_amostra_cad_201812/base_amostra_familia_201812.csv")
 
+
+#### Estimativa sem Pesos ####
 base_fusionada <- inner_join(pessoas, familia, by = "id_familia")
-
 
 # Criando variáveis auxiliares para obtenção da estimativa desejada
 base_fusionada  <- transform(base_fusionada , cd_ibge.x=paste0(cd_ibge.x))
@@ -171,24 +167,16 @@ base_fusionada <- base_fusionada %>%
   mutate(peso.pes = str_pad(peso.pes, 15, side = "right", pad = "0"), # Preenchendo a string
          peso.pes = as.numeric(peso.pes) * 1e-14)  # Convertendo para numérico e multiplicando
 
-
-
-svy_design <- svydesign(
-  id = ~id_familia,                # coluna para unidade primária de amostragem (PSU)
-  strata = ~estrato.x,        # coluna para o estrato
-  weights = ~peso.pes,          # coluna para os pesos amostrais
-  data = base_fusionada,              # o dataframe de dados
-  nest = TRUE               # se é um desenho aninhado (múltiplos estágios)
-)
-
-# Transformando para adicionar variável de contagem
-svy_design <- transform(svy_design, contagem = 1)
-
 # Aplicando os filtros adicionais - Ensino Médio
-filtered_ensino_medio <- base_fusionada %>%
+ensino_medio <- base_fusionada %>%
   filter(
     ind_frequenta_escola_memb == 1,
     # cod_curso_frequenta_memb == 7,
     idade >= 14 & idade <= 24,
     vlr_renda_media_fam <= 477,
   )
+nrow(ensino_medio)
+
+## Não há necessidade de calcular com pesos, pois o CadÚnico é um cadastro (população), não uma pesquisa (amostral)
+
+
