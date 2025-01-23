@@ -2982,7 +2982,7 @@ tabela_html <- stargazer(
   digits = 2
 )
 
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_evasao_ensino_sem_na
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_resumo_rdpc_evasao_ensino_sem_na
 htmltools::html_print(b_tab_resumo_rdpc_evasao_ensino_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####

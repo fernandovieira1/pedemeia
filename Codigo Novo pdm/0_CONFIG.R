@@ -5,7 +5,7 @@ rm(list = ls(all = TRUE)); gc(); cat('\014')
 # Marcar o início do processamento
 ini <- Sys.time()
 
-###################################### I. DE'FINIR PERÍODOS ######################################
+###################################### I. DEFINIR PERÍODOS ######################################
 
 ### Definir período ####
 ## AVISO: Definir anos inicial e final
@@ -19,7 +19,7 @@ anos <- c(2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023)
 # - P. ex.: todos os trimestres (1, 2, 3, 4); apenas o 3º e 4º trimestres (3, 4) etc.
 # - Se a análise for de evasão e não envolver mais de dois anos, recomendada a inclusão 
 # apenas do 1º trimestre (1) p/ economizar RAM.
-trimestres <- c(1, 2, 3, 4)
+trimestres <- c(1)
 
 ################################### II. CONFIGURAR PARÂMETROS ###################################
 ## Critérios que interferem na qtde. de informações analisadas e no processamento dos scripts.
