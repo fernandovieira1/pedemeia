@@ -1,18 +1,19 @@
-# Limpar o ambiente
-gc(); cat('\014')
-
-# Carregar pacotes
+# Carregar pacotes necessários
+library(survey)    # Para análise de survey
+library(pscl)      # Para pseudo-R2 (opcional)
 library(car) # Verificar colinearidade
 library(margins) # Verificar efeitos marginais
 library(ggcorrplot) # Gráfico de correlação
 options(survey.lonely.psu = 'adjust')  # Ajusta variâncias para estratos com uma única PSU
 
+# Limpar o ambiente
+gc(); cat('\014')
 
 ################ ***************************** ################ 
-################ 1. VARIÁVEIS DO MODELO ################ 
+#################### I. CONSTRUÇÃO DO MODELO #################### 
 ################ ***************************** ################ 
 
-## 1.1 CRIAR DF ####
+# 1 CRIAR DF ####
 base_evasao_probit <- base_evasao_pdm %>%
   select(
     ## IDs
@@ -58,7 +59,7 @@ base_evasao_probit <- base_evasao_probit %>%
 
 ## ||| ####
 
-## 1.2 CRIAR/TRANSFORMAR VARIÁVEIS ####
+# 2 CRIAR/TRANSFORMAR VARIÁVEIS ####
 
 ## a. Educação média dos pais ####
 base_evasao_probit <- base_evasao_probit %>%
@@ -90,7 +91,7 @@ base_evasao_probit <- base_evasao_probit %>%
 
 ## ||| ####
 
-## 1.3 AED ####
+# 3 AED ####
 glimpse(base_evasao_probit)
 
 ## a. Dados numéricos ####
@@ -122,239 +123,89 @@ base_evasao_probit %>%
   select_if(~ sd(.) > 0) %>%
   cor(use = 'pairwise.complete.obs') %>%
   ggcorrplot(
-    method = "circle",
-    type = "lower",
+    method = 'circle',
+    type = 'lower',
     lab = TRUE,
-    title = "Matriz de Correlação - Base Limpa"
+    title = 'Matriz de Correlação - Base Limpa'
   )
 
 ## ||| ####
 
-## 1.4 DESENHO DO MODELO####
-
-# base_evasao_probit <- base_evasao_probit %>%
-#   filter(!Estrato %in% estratos_psu$Estrato)
-
+# 4 DESENHO DO MODELO####
+base_evasao_probit <- na.omit(base_evasao_probit)  # Remove NAs
 desenho_probit <- svydesign(
   ids = ~UPA,
   strata = ~Estrato,
   weights = ~V1028032,
-  data = base_evasao_probit,
-  # nest = TRUE
+  data = base_evasao_probit
 )
 
+## ||| ####
+
+# 5. ESTIMATIVAS DE POPULAÇÃO ####
 svytotal(~evasao, desenho_probit)
 svytotal(~evasao, subset(desenho_probit, Ano == 2023))
 
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
-################ ***************************************** ################ 
-################  2. MODELOS PROBIT PDM (EVASÃO) ################ 
-################ ***************************************** ################
+################ ***************************** ################ 
+#################### 2. MODELO #################### 
+################ ***************************** ################ 
 
-## 2.1 PROBIT COMPLETO ####
-
-## a. Equação ####
-probit_pdm_evasao_completo <- svyglm(
-  
-  # Variável dependente
-  evasao ~ V2009 + V3002A + ensino_medio + V2010 + V2007 + regiao + V1022 + 
-    VD2004 + V2001 + educacao_mae + educacao_pai + RDPC + RDPC_menor_meio_sm + 
-    VD4020 + VD4013 + Ano + Trimestre + educ_media_pais + educ_max_pais,
-  
-  # Modelo
-  design = desenho_probit,
-  family = binomial(link = 'probit')
-)
-
-## b. Resultados da Regressão ####
-summary(probit_pdm_evasao_completo)
-
-## c. Colinearidade ####
-vif(probit_pdm_evasao_completo)
-
-## d. Efeitos Marginais ####
-marginais <- margins(probit_pdm_evasao_completo)
-summary(marginais)
-
-## ||| ####
-
-## 2.2 PROBIT ENXUTO ####
-
-## a. Equação ####
-probit_pdm_evasao_enxuto <- svyglm(
-  evasao ~ V2010 + V2007 + V1022 + VD2004 + RDPC_menor_meio_sm,
-  design = desenho_probit,
-  family = binomial(link = 'probit')
-)
-
-## b. Resultados da Regressão ####
-summary(probit_pdm_evasao_enxuto)
-
-## c. Colinearidade ####
-vif(probit_pdm_evasao_enxuto)
-
-## d. Efeitos Marginais ####
-marginais_evasao_enxuto <- margins(probit_pdm_evasao_enxuto, design = desenho_probit)
-summary(marginais_evasao_enxuto)
-
-## ||| ####
-
-## 2.3 PROBIT TESTES ####
-
-## **Equação ####
-probit_pdm_evasao_testes <- svyglm(
-  evasao ~ V2010 + V2007 + V1022 + VD2004 + RDPC_menor_meio_sm +
-    educ_media_pais + VD4013,
-  design = desenho_probit,
-  family = binomial(link = 'probit')
-)
-
-## a. Resultados da Regressão ####
-summary(probit_pdm_evasao_testes)
-
-## b. Colinearidade ####
-vif(probit_pdm_evasao_testes)
-
-## c. Efeitos Marginais ####
-marginais_evasao_testes <- margins(probit_pdm_evasao_testes, design = desenho_probit)
-summary(marginais_evasao_enxuto)
-
-## ||| ####
-
-## 2.4 PROBIT FINAL ####
-
-## a. Equação ####
-probit_pdm_evasao_final <- svyglm(
-  # Categóricas
+# 1. CRIAR O MODELO PROBIT COM SVYGLM ####
+probit_pdm_evasao_corrigido <- svyglm(
   evasao ~ V2010 + V2007 + V1022 + VD2004 + V3002A + VD4013 +
-  # Numéricas
     educ_max_pais + V2009 + V2001 + RDPC,
-  design = desenho_probit,
+  
+  design = desenho_probit,  # Design previamente criado
   family = binomial(link = 'probit')
 )
 
-## b. Resultados da Regressão ####
-summary(probit_pdm_evasao_final)
+# 2. RESUMO DO MODELO ####
+summary(probit_pdm_evasao_corrigido)
 
-## c. Colinearidade ####
-vif(probit_pdm_evasao_final)
+# 3. VIF ####
+vif_values <- vif(probit_pdm_evasao_corrigido)
+print('VIF dos coeficientes do modelo:')
+print(vif_values)
 
-## d. Efeitos Marginais ####
-marginais_evasao_testes <- margins(probit_pdm_evasao_final, design = desenho_probit)
-summary(marginais_evasao_enxuto)
+# 4. EFEITOS MARGINAIS####
 
-## ||| ####
+# 4.1 Obter predições na escala linear ####
+linear_preds <- predict(probit_pdm_evasao_corrigido, type = 'link')
 
-## 2.5 PROBIT FERNANDO ####
+# 4.2 MATRIZ DO MODELO ####
+X <- model.matrix(probit_pdm_evasao_corrigido)
 
-## a. Equação ####
-probit_pdm_evasao_fernando <- svyglm(
-  # Categóricas
-  evasao ~ V2010 + V2007 + VD2004 + V3002A +
-        # removi: 
-        # - V1022 (rural ou urbana)
-        # - VD4013 (horas de trabalho semanais)
-    
-    # Numéricas
-    educ_max_pais + V2009 + V2001 + RDPC,
-  design = desenho_probit,
-  family = binomial(link = 'probit')
-)
+# 4.3 DENSIDADE ####
+densities <- dnorm(linear_preds)
 
-## b. Resultados da Regressão ####
-summary(probit_pdm_evasao_fernando)
+# 4.4 Calcular efeitos marginais ####
+marginal_effects <- sweep(X, 2, coef(probit_pdm_evasao_corrigido), `*`) * densities
 
-## c. Colinearidade ####
-vif(probit_pdm_evasao_fernando)
+# 4.5 Visualizar os efeitos marginais para as primeiras observações ####
+print('Efeitos marginais (primeiras observações):')
+print(head(marginal_effects))
 
-## d. Efeitos Marginais ####
-marginais_evasao_testes <- margins(probit_pdm_evasao_fernando, design = desenho_probit)
-summary(marginais_evasao_enxuto)
+# 4.6 Analisar os efeitos marginais por variável ####
+print('Média dos efeitos marginais por variável:')
+marginal_means <- colMeans(marginal_effects, na.rm = TRUE)
+print(marginal_means)
 
-## ||| ####
+# 5. PSEUDO R2 ####
+pseudo_r2 <- pR2(probit_pdm_evasao_corrigido)
+print('Pseudo R² do modelo:')
+print(pseudo_r2)
 
-## VISUALIZAR RESULTADOS ####
 
-## **Coeficientes do Modelo Probit ####
-# Extrair coeficientes e intervalos de confiança
-coeficientes <- summary(probit_pdm_evasao_fernando)$coefficients
-coef_df <- as.data.frame(coeficientes) %>%
-  rownames_to_column(var = 'Variável') %>%
-  mutate(
-    Inferior = Estimate - 1.96 * `Std. Error`,
-    Superior = Estimate + 1.96 * `Std. Error`
-  )
-
-# Plotar os coeficientes
-ggplot(coef_df, aes(x = reorder(Variável, Estimate), y = Estimate)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = Inferior, ymax = Superior), width = 0.2) +
-  coord_flip() +
-  labs(
-    title = 'Coeficientes do Modelo Probit',
-    x = 'Variáveis',
-    y = 'Coeficiente Estimado'
-  ) +
-  theme_minimal()
-
-## **Colinearidade ####
-# Extrair VIFs
-vif_df <- as.data.frame(vif(probit_pdm_evasao_fernando)) %>%
-  rownames_to_column(var = 'Variável')
-
-# Gráfico de barras para VIFs
-ggplot(vif_df, aes(x = reorder(Variável, GVIF), y = GVIF^(1/(2*Df)))) +
-  geom_bar(stat = 'identity', fill = 'tomato', alpha = 0.8) +
-  coord_flip() +
-  labs(
-    title = 'Fatores de Inflação da Variância (VIF) / Colinearidade',
-    x = 'Variáveis',
-    y = 'GVIF^(1/(2*Df))'
-  ) +
-  theme_minimal()
-
-## **Efeitos Marginais ####
-# Converter efeitos marginais para um dataframe
-marginais_df <- as.data.frame(summary(probit_pdm_evasao_fernando))
-
-# Criar o gráfico dos efeitos marginais
-ggplot(marginais_df, aes(x = reorder(factor, AME), y = AME)) +
-  geom_bar(stat = 'identity', fill = 'steelblue', alpha = 0.8) +
-  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2, color = 'black') +
-  coord_flip() +
-  labs(
-    title = 'Efeitos Marginais Médios (AMEs)',
-    x = 'Variáveis',
-    y = 'Efeito Marginal'
-  ) +
-  theme_minimal()
-
-## ||| ####
-
-## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
-
-## COLUNAS ####
-# UPA                : Unidade Primária de Amostragem
-# id_individuo       : Identificador do indivíduo
-# V2009              : Idade
-# V3002A             : Tipo da escola (Pública ou Privada)
-# Estrato            : Estratificação da PNADc
-# V1028032           : Peso amostral
-# ensino_medio       : Indicador de conclusão do ensino médio
-# evasao             : Indicador de evasão
-# V2010              : Cor/Raça
-# V2007              : Sexo
-# V2001              : Tamanho do domicílio
-# regiao             : Região do Brasil
-# V1022              : Localização do domicílio (Rural ou Urbana)
-# VD2004             : Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
-# educacao_mae       : Anos de estudo da mãe
-# educacao_pai       : Anos de estudo do pai
-# RDPC               : Renda domiciliar per capita
-# RDPC_menor_meio_sm : Renda domiciliar per capita menor que meio salário mínimo
-# VD4020             : Rendimento EFETIVO (R$)
-# VD4013             : Horas de tabalho semanais (em intervalos. P. ex: 15 a 39)
-# educ_media_pais    : Média da educação dos pais
-# educ_max_pais      : Máximo da educação dos pais
+# 6. NOTAS ####
+# - educacao_mae e RDPC e RDPC_menor_meio_sm colineares, conforme matriz de correlacao (mc)
+# - VD4020 e RDPC colineares, conforme mc
+# - VD4013 irrelevante sempre
+# - V3002A irrelevante sempre
+# - V2009 irrelevante sempre
+# - educ_max_pais irrelevante sempre
+# - educacao_mae irrelevante sempre
+# - V1022 irrelevante sempre
+# - ensino_medio e V2009 (idade) colineares, conforme mc
