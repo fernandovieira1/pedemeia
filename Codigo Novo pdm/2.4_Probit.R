@@ -7,8 +7,8 @@ library(margins) # Verificar efeitos marginais
 
 ################ 1. VARIÁVEIS DO MODELO ################ 
 
-## ** Criar base_evasao_probit ####
-base_evasao_probit <- base_evasao_filtrada %>%
+## ** Criar base_abandono_probit ####
+base_abandono_probit <- base_abandono_filtrada %>%
   select(
     ## IDs
     UPA, id_individuo, 
@@ -17,7 +17,7 @@ base_evasao_probit <- base_evasao_filtrada %>%
     Estrato,  V1028032,
     
     ## Variáveis dependentes
-    ensino_medio, evasao, 
+    ensino_medio, abandono, 
     
     ## Variáveis independentes
     # Cor/Raça
@@ -31,26 +31,28 @@ base_evasao_probit <- base_evasao_filtrada %>%
     V1022, # do domicílio (Rural ou Urbana)
     VD2004, # Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
     
-    # Educação dos pais
-    
-    
     # Renda
     RDPC, RDPC_menor_meio_sm,
     VD4020 # Rendimento EFETIVO (R$)
-    ) 
+  ) 
+
+base_abandono_probit <- base_abandono_probit %>%
+  filter(V2010 != "Ignorado") %>%
+  mutate(V2010 = droplevels(V2010))
+
 
 ## **Verificar a base ####
-table(base_evasao_probit$V2010,
-      base_evasao_probit$V2007,
-      base_evasao_probit$V1022,
-      base_evasao_probit$VD2004)
+table(base_abandono_probit$V2010,
+      base_abandono_probit$V2007,
+      base_abandono_probit$V1022,
+      base_abandono_probit$VD2004)
 
 #### 1.1 Desenho do modelo ####
 desenho_probit <- svydesign(
   id = ~UPA,
   strata = ~Estrato,
   weights = ~V1028032,
-  data = base_evasao_probit,
+  data = base_abandono_probit,
   nest = TRUE
 )
 
@@ -59,40 +61,40 @@ desenho_probit <- svydesign(
 #### 2.1 Probit Completo ####
 
 ## **Equação ####
-probit_pdm_evasao_completo <- svyglm(
+probit_pdm_abandono_completo <- svyglm(
   
   # Variável dependente
-  evasao ~ ensino_medio + # Se faz EM (0 ou 1)
+  abandono ~ ensino_medio + # Se faz EM (0 ou 1)
     
     ## Variáveis independentes
     # Cor/Raça
     V2010 +
-  
-  # Sexo
-  V2007 +
-  
-  # Localização do domicílio
-  regiao + # do Brasil
-  V1022 + # do domicílio (Rural ou Urbana)
-  VD2004 + # Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
-  
-  # Renda
-  RDPC + RDPC_menor_meio_sm +
-  VD4020, # Rendimento EFETIVO (R$)
     
+    # Sexo
+    V2007 +
+    
+    # Localização do domicílio
+    regiao + # do Brasil
+    V1022 + # do domicílio (Rural ou Urbana)
+    VD2004 + # Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
+    
+    # Renda
+    RDPC + RDPC_menor_meio_sm +
+    VD4020, # Rendimento EFETIVO (R$)
+  
   # Modelo
   design = desenho_probit,
   family = binomial(link = 'probit')
 )
 
 ## a. Resultados da Regressão ####
-summary(probit_pdm_evasao_completo)
+summary(probit_pdm_abandono_completo)
 
 ## b. Colinearidade ####
-vif(probit_pdm_evasao_completo)
+vif(probit_pdm_abandono_completo)
 
 ## c. Efeitos Marginais ####
-marginais <- margins(probit_pdm_evasao_interacoes)
+marginais <- margins(probit_pdm_abandono_interacoes)
 summary(marginais)
 
 ## d. Visualizar os Resultados ####
@@ -101,27 +103,27 @@ summary(marginais)
 #### 2.2 Probit Enxuto ####
 
 ## **Equação ####
-probit_pdm_evasao_enxuto <- svyglm(
-  evasao ~ V2010 + V2007 + V1022 + VD2004 + RDPC_menor_meio_sm,
+probit_pdm_abandono_enxuto <- svyglm(
+  abandono ~ V2010 + V2007 + V1022 + VD2004 + RDPC_menor_meio_sm,
   design = desenho_probit,
   family = binomial(link = 'probit')
 )
 
 ## a. Resultados da Regressão ####
-summary(probit_pdm_evasao_enxuto)
+summary(probit_pdm_abandono_enxuto)
 
 ## b. Colinearidade ####
-vif(probit_pdm_evasao_enxuto)
+vif(probit_pdm_abandono_enxuto)
 
 ## c. Efeitos Marginais ####
-marginais_evasao_enxuto <- margins(probit_pdm_evasao_enxuto)
-summary(marginais_evasao_enxuto)
+marginais_abandono_enxuto <- margins(probit_pdm_abandono_enxuto)
+summary(marginais_abandono_enxuto)
 
 ## d. Visualizar os Resultados ####
 
 ## **Coeficientes do Modelo Probit ####
 # Extrair coeficientes e intervalos de confiança
-coeficientes <- summary(probit_pdm_evasao_enxuto)$coefficients
+coeficientes <- summary(probit_pdm_abandono_enxuto)$coefficients
 coef_df <- as.data.frame(coeficientes) %>%
   rownames_to_column(var = 'Variável') %>%
   mutate(
@@ -143,7 +145,7 @@ ggplot(coef_df, aes(x = reorder(Variável, Estimate), y = Estimate)) +
 
 ## **Colinearidade ####
 # Extrair VIFs
-vif_df <- as.data.frame(vif(probit_pdm_evasao_enxuto)) %>%
+vif_df <- as.data.frame(vif(probit_pdm_abandono_enxuto)) %>%
   rownames_to_column(var = 'Variável')
 
 # Gráfico de barras para VIFs
@@ -159,7 +161,7 @@ ggplot(vif_df, aes(x = reorder(Variável, GVIF), y = GVIF^(1/(2*Df)))) +
 
 ## **Efeitos Marginais ####
 # Converter efeitos marginais para um dataframe
-marginais_df <- as.data.frame(summary(marginais_evasao_enxuto))
+marginais_df <- as.data.frame(summary(marginais_abandono_enxuto))
 
 # Criar o gráfico dos efeitos marginais
 ggplot(marginais_df, aes(x = reorder(factor, AME), y = AME)) +
