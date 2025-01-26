@@ -29,4 +29,3 @@ for (arquivo in arquivos_rds) {
 # Fechar a conexão
 dbDisconnect(con)
 message("Banco de dados recriado com sucesso!")
-+

@@ -92,15 +92,14 @@ gc()
 
 ## *Identificar a educação da mãe e do pai ####
 base_abandono <- base_abandono %>%
-  group_by(ID_DOMICILIO) %>%
+  group_by(ID_DOMICILIO) %>%  # Substitua ID_DOMICILIO pelo identificador do grupo familiar, se for diferente
   mutate(
-    is_mae = V2007 == 2 & VD2002 %in% c(1, 2, 6),
-    educacao_mae = ifelse(any(is_mae), first(VD3005[is_mae]), NA),
-    is_pai = V2007 == 1 & VD2002 %in% c(1, 2, 6),
-    educacao_pai = ifelse(any(is_pai), first(VD3005[is_pai]), NA)
+    is_mae = as.numeric(V2007) == 2 & as.numeric(VD2002) %in% c(1, 2, 6),
+    educacao_mae = ifelse(any(is_mae), VD3005[is_mae][1], NA),
+    is_pai = as.numeric(V2007) == 1 & as.numeric(VD2002) %in% c(1, 2, 6),
+    educacao_pai = ifelse(any(is_pai), VD3005[is_pai][1], NA)
   ) %>%
-  ungroup() # demora
-gc()
+  ungroup()
 
 ## *Organizar em ordem ascendente por id, ano e trimestre ####
 base_abandono <- base_abandono %>%

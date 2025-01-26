@@ -1,17 +1,25 @@
+# Carregar pacotes necessários
+library(survey)    
+library(pscl)      
+library(car)       
+library(margins)   
+library(ggcorrplot) 
+options(survey.lonely.psu = 'adjust')  
+
 # Limpar o ambiente
 gc(); cat('\014')
 
-# Carregar pacotes
-library(car) # Verificar colinearidade
-library(margins) # Verificar efeitos marginais
+################ ***************************** ################ 
+#################### I. CONSTRUÇÃO DO MODELO #################### 
+################ ***************************** ################ 
 
-################ 1. VARIÁVEIS DO MODELO ################ 
-
-## ** Criar base_evasao_logit ####
+# 1 CRIAR DF ####
 base_evasao_logit <- base_evasao_filtrada %>%
   select(
     ## IDs
     UPA, id_individuo, 
+    V2009, # Idade
+    V3002A, # Tipo da escola (Pública ou Privada)
     
     # Estratificação
     Estrato,  V1028032,
@@ -26,146 +34,184 @@ base_evasao_logit <- base_evasao_filtrada %>%
     # Sexo
     V2007,
     
-    # Localização do domicílio
+    # Domicílio
     regiao, # do Brasil
     V1022, # do domicílio (Rural ou Urbana)
     VD2004, # Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
+    V2001, # Tamanho do domicílio
+    
+    # Educação dos pais
+    educacao_mae, educacao_pai, VD3005,
     
     # Renda
     RDPC, RDPC_menor_meio_sm,
-    VD4020 # Rendimento EFETIVO (R$)
+    VD4020, # Rendimento EFETIVO (R$)
+    VD4013, # Horas de tabalho semanais
+    
+    ## 
+    Ano, Trimestre 
   ) 
 
-## **Verificar a base ####
-table(base_evasao_logit$V2010,
-      base_evasao_logit$V2007,
-      base_evasao_logit$V1022,
-      base_evasao_logit$VD2004)
+## Limitar a idades entre 14 e 24 anos
+base_evasao_logit <- base_evasao_logit %>%
+  filter(V2009 >= 14 & V2009 <= 24)
 
-#### 1.1 Desenho do modelo ####
-desenho_logit <- svydesign(
-  id = ~UPA,
-  strata = ~Estrato,
-  weights = ~V1028032,
-  data = base_evasao_logit,
-  nest = TRUE
+## ||| ####
+
+# 2 CRIAR/TRANSFORMAR VARIÁVEIS ####
+
+## a. Educação média dos pais ####
+base_evasao_logit <- base_evasao_logit %>%
+  mutate(educ_media_pais = (educacao_mae + educacao_pai) / 2)
+
+## b. Educação máxima dos pais ####
+base_evasao_logit <- base_evasao_logit %>%
+  mutate(educ_max_pais = pmax(educacao_mae, educacao_pai, na.rm = TRUE)) %>%
+  mutate(educ_max_pais = ifelse(is.na(educacao_mae) & is.na(educacao_pai), NA, educ_max_pais))
+
+## c. Remover valores ignorados Cor/Raça e redefinir categorias ####
+base_evasao_logit <- base_evasao_logit %>%
+  filter(V2010 != 'Ignorado') 
+
+# base_evasao_logit <- base_evasao_logit %>%
+#   mutate(
+#     V2010 = ifelse(V2010 == 'Branca', 'Brancos', 'Não-Brancos'),
+#     V2010 = as.factor(V2010)  # Garantir que seja um fator
+#   )
+
+## d. Transformar em fator regiao ####
+base_evasao_logit$regiao <- as.factor(base_evasao_logit$regiao)
+
+## e. Variável dependente como factor ####
+base_evasao_logit$evasao <- as.factor(base_evasao_logit$evasao)
+
+## f. Resumo Linhas e Colunas df ####
+cat('Linhas:', nrow(base_evasao_logit), '\n')
+cat('Colunas:', ncol(base_evasao_logit), '\n')
+
+## f. Corrigir Pesos ####
+base_evasao_logit <- base_evasao_logit %>%
+  filter(V1028032 > 0)
+
+## g. Converter Anos de estudo p/ numérico ####
+base_evasao_logit$VD3005 <- as.numeric(base_evasao_logit$VD3005)-1
+
+## ||| ####
+
+# 3 AED ####
+glimpse(base_evasao_logit)
+
+## a. Dados numéricos ####
+base_evasao_logit %>%
+  select_if(is.numeric) %>%
+  summary()
+
+## b. Dados categóricos ####
+base_evasao_logit %>%
+  select_if(is.factor) %>%
+  summary()
+
+## c. Correlação das variáveis numéricas ####
+
+# Tabela correlação
+cor(base_evasao_logit %>%
+      select_if(is.numeric) %>%
+      select(-Ano, -V1028032) %>%
+      select_if(~ sd(.) > 0) %>%
+      na.omit(),
+    use = 'pairwise.complete.obs'
 )
 
-################  2. MODELOS logit PDM (EVASÃO) ################ 
-
-#### 2.1 logit Completo ####
-
-## **Equação ####
-logit_pdm_evasao_completo <- svyglm(
-  
-  # Variável dependente
-  evasao ~ ensino_medio + # Se faz EM (0 ou 1)
-    
-    ## Variáveis independentes
-    # Cor/Raça
-    V2010 +
-    
-    # Sexo
-    V2007 +
-    
-    # Localização do domicílio
-    regiao + # do Brasil
-    V1022 + # do domicílio (Rural ou Urbana)
-    VD2004 + # Espécie da unidade doméstica (Unipessoal, Nuclear, Estendida, Composta)
-    
-    # Renda
-    RDPC + RDPC_menor_meio_sm +
-    VD4020, # Rendimento EFETIVO (R$)
-  
-  # Modelo
-  design = desenho_logit,
-  family = binomial(link = 'logit')
-)
-
-## a. Resultados da Regressão ####
-summary(logit_pdm_evasao_completo)
-
-## b. Colinearidade ####
-vif(logit_pdm_evasao_completo)
-
-## c. Efeitos Marginais ####
-marginais <- margins(logit_pdm_evasao_interacoes)
-summary(marginais)
-
-## d. Visualizar os Resultados ####
-
-
-#### 2.2 logit Enxuto ####
-
-## **Equação ####
-logit_pdm_evasao_enxuto <- svyglm(
-  evasao ~ V2010 + V2007 + V1022 + VD2004 + RDPC_menor_meio_sm,
-  design = desenho_logit,
-  family = binomial(link = 'logit')
-)
-
-## a. Resultados da Regressão ####
-summary(logit_pdm_evasao_enxuto)
-
-## b. Colinearidade ####
-vif(logit_pdm_evasao_enxuto)
-
-## c. Efeitos Marginais ####
-marginais_evasao_enxuto <- margins(logit_pdm_evasao_enxuto)
-summary(marginais_evasao_enxuto)
-
-## d. Visualizar os Resultados ####
-
-## **Coeficientes do Modelo logit ####
-# Extrair coeficientes e intervalos de confiança
-coeficientes <- summary(logit_pdm_evasao_enxuto)$coefficients
-coef_df <- as.data.frame(coeficientes) %>%
-  rownames_to_column(var = 'Variável') %>%
-  mutate(
-    Inferior = Estimate - 1.96 * `Std. Error`,
-    Superior = Estimate + 1.96 * `Std. Error`
+# Gráfico correlação
+base_evasao_logit %>%
+  na.omit() %>%
+  select_if(is.numeric) %>%
+  select(-Ano, -V1028032) %>%
+  select_if(~ sd(.) > 0) %>%
+  cor(use = 'pairwise.complete.obs') %>%
+  ggcorrplot(
+    method = 'circle',
+    type = 'lower',
+    lab = TRUE,
+    title = 'Matriz de Correlação - Base Limpa'
   )
 
-# Plotar os coeficientes
-ggplot(coef_df, aes(x = reorder(Variável, Estimate), y = Estimate)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = Inferior, ymax = Superior), width = 0.2) +
-  coord_flip() +
-  labs(
-    title = 'Coeficientes do Modelo logit',
-    x = 'Variáveis',
-    y = 'Coeficiente Estimado'
-  ) +
-  theme_minimal()
+## ||| ####
 
-## **Colinearidade ####
-# Extrair VIFs
-vif_df <- as.data.frame(vif(logit_pdm_evasao_enxuto)) %>%
-  rownames_to_column(var = 'Variável')
+# 4 DESENHO DO MODELO####
+base_evasao_logit <- na.omit(base_evasao_logit)  # Remove NAs
+desenho_logit <- svydesign(
+  ids = ~UPA,
+  strata = ~Estrato,
+  weights = ~V1028032,
+  data = base_evasao_logit
+)
 
-# Gráfico de barras para VIFs
-ggplot(vif_df, aes(x = reorder(Variável, GVIF), y = GVIF^(1/(2*Df)))) +
-  geom_bar(stat = 'identity', fill = 'tomato', alpha = 0.8) +
-  coord_flip() +
-  labs(
-    title = 'Fatores de Inflação da Variância (VIF) / Colinearidade',
-    x = 'Variáveis',
-    y = 'GVIF^(1/(2*Df))'
-  ) +
-  theme_minimal()
+## ||| ####
 
-## **Efeitos Marginais ####
-# Converter efeitos marginais para um dataframe
-marginais_df <- as.data.frame(summary(marginais_evasao_enxuto))
+# 5. ESTIMATIVAS DE POPULAÇÃO ####
+svytotal(~evasao, desenho_logit)
+svytotal(~evasao, subset(desenho_logit, Ano == 2023))
 
-# Criar o gráfico dos efeitos marginais
-ggplot(marginais_df, aes(x = reorder(factor, AME), y = AME)) +
-  geom_bar(stat = 'identity', fill = 'steelblue', alpha = 0.8) +
-  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2, color = 'black') +
-  coord_flip() +
-  labs(
-    title = 'Efeitos Marginais Médios (AMEs)',
-    x = 'Variáveis',
-    y = 'Efeito Marginal'
-  ) +
-  theme_minimal()
+## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
+
+################ ***************************** ################ 
+#################### 2. MODELO #################### 
+################ ***************************** ################ 
+
+# 1. CRIAR O MODELO logit COM SVYGLM ####
+logit_pdm_evasao_corrigido <- svyglm(
+  evasao ~ V2010 + V2007 + V1022 + VD2004 + V3002A + VD4013 +
+    educ_max_pais + V2009 + V2001 + RDPC,
+  
+  design = desenho_logit,  # Design previamente criado
+  family = binomial(link = 'logit')
+)
+
+# 2. RESUMO DO MODELO ####
+summary(logit_pdm_evasao_corrigido)
+
+# 3. VIF ####
+vif_values <- vif(logit_pdm_evasao_corrigido)
+print('VIF dos coeficientes do modelo:')
+print(vif_values)
+
+# 4. EFEITOS MARGINAIS####
+
+# 4.1 Obter predições na escala linear ####
+linear_preds <- predict(logit_pdm_evasao_corrigido, type = 'link')
+
+# 4.2 MATRIZ DO MODELO ####
+X <- model.matrix(logit_pdm_evasao_corrigido)
+
+# 4.3 DENSIDADE ####
+densities <- dnorm(linear_preds)
+
+# 4.4 Calcular efeitos marginais ####
+marginal_effects <- sweep(X, 2, coef(logit_pdm_evasao_corrigido), `*`) * densities
+
+# 4.5 Visualizar os efeitos marginais para as primeiras observações ####
+print('Efeitos marginais (primeiras observações):')
+print(head(marginal_effects))
+
+# 4.6 Analisar os efeitos marginais por variável ####
+print('Média dos efeitos marginais por variável:')
+marginal_means <- colMeans(marginal_effects, na.rm = TRUE)
+print(marginal_means)
+
+# 5. PSEUDO R2 ####
+pseudo_r2 <- pR2(logit_pdm_evasao_corrigido)
+print('Pseudo R² do modelo:')
+print(pseudo_r2)
+
+
+# 6. NOTAS ####
+# - educacao_mae e RDPC e RDPC_menor_meio_sm colineares, conforme matriz de correlacao (mc)
+# - VD4020 e RDPC colineares, conforme mc
+# - VD4013 irrelevante sempre
+# - V3002A irrelevante sempre
+# - V2009 irrelevante sempre
+# - educ_max_pais irrelevante sempre
+# - educacao_mae irrelevante sempre
+# - V1022 irrelevante sempre
+# - ensino_medio e V2009 (idade) colineares, conforme mc
