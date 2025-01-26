@@ -29,7 +29,8 @@ if (local_bd == 'processar') {
   Sys.sleep(5)
   
   # Use o caminho completo para o arquivo Feather
-  caminho_feather <- file.path(local, '2_base_abandono_filtrada_2015-2023.feather')
+  # caminho_feather <- file.path(local, '2_base_abandono_filtrada_2015-2023.feather')
+  caminho_feather <- file.path(local, '2_base_abandono_filtrada_2015-2023_2.feather')
   
   if (!file.exists(caminho_feather)) {
     stop('Arquivo Feather não encontrado: ', caminho_feather)
@@ -443,24 +444,31 @@ htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
 
 ## 1.2.1B Resumo Descritivo da Cor/Raça ####
 # Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
-mapa_cor_raca <- c(
-  '1' = 'Branca',
-  '2' = 'Preta',
-  '3' = 'Amarela',
-  '4' = 'Parda',
-  '5' = 'Indígena',
-  '9' = 'Ignorado'
-)
+# Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
+# Certifique-se de que 'V2010' é do tipo texto
+base_abandono_filtrada <- base_abandono_filtrada %>%
+  mutate(V2010 = as.character(V2010))
 
 # Aplicar o mapeamento e calcular os resultados
 tabela_cor_raca_ano <- base_abandono_filtrada %>%
-  mutate(V2010 = as.character(V2010)) %>% # Garantir que V2010 seja texto
-  mutate(Cor_Raca = recode(V2010, !!!mapa_cor_raca)) %>% # Mapear os códigos
+  mutate(
+    Cor_Raca = case_when(
+      V2010 == "1" ~ "Branca",
+      V2010 == "2" ~ "Preta",
+      V2010 == "3" ~ "Amarela",
+      V2010 == "4" ~ "Parda",
+      V2010 == "5" ~ "Indígena",
+      V2010 == "9" ~ "Ignorado",
+      TRUE ~ NA_character_ # Para valores inesperados
+    )
+  ) %>%
   group_by(Ano, Cor_Raca, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>% # Contar observações
+  summarise(Contagem = n(), .groups = "drop") %>% # Contar observações
   group_by(Ano, Cor_Raca) %>%
   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>% # Calcular proporção
   ungroup()
+
+
 
 # Renomear colunas para maior clareza
 colnames(tabela_cor_raca_ano) <- c('Ano', 'Cor_Raca', 'abandono', 'Contagem', 'Proporcao')
@@ -548,44 +556,44 @@ ggplot(base_abandono_percentual_ano, aes(x = V2010, y = Contagem, fill = as.fact
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) -> b_graf_ab_cor_percentual_sem_na
 b_graf_ab_cor_percentual_sem_na
 
-## 1.2.5B Exportação Final da Tabela (Sem NAs)** ####
-# Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
-mapa_cor_raca <- c(
-  '1' = 'Branca',
-  '2' = 'Preta',
-  '3' = 'Amarela',
-  '4' = 'Parda',
-  '5' = 'Indígena',
-  '9' = 'Ignorado'
-)
-
-# Aplicar o mapeamento e calcular os resultados
-tabela_cor_raca_ano2 <- base_abandono_pdm %>%
-  mutate(V2010 = as.character(V2010)) %>% # Garantir que V2010 seja texto
-  mutate(Cor_Raca = recode(V2010, !!!mapa_cor_raca)) %>% # Mapear os códigos
-  group_by(Ano, Cor_Raca, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>% # Contar observações
-  group_by(Ano, Cor_Raca) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>% # Calcular proporção
-  ungroup()
-
-# Renomear colunas para maior clareza
-colnames(tabela_cor_raca_ano2) <- c('Ano', 'Cor_Raca', 'abandono', 'Contagem', 'Proporcao')
-
-# Exportar a tabela consolidada como HTML
-tabela_html <- stargazer(
-  tabela_cor_raca_ano2,
-  type = 'html',
-  summary = FALSE,
-  title = 'Proporção de Abandono por Cor/Raça (Sem NAs - Base PDM) - Segmentada por Ano',
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_cor_percentual_sem_na
-htmltools::html_print(b_tab_ab_cor_percentual_sem_na)
+# ## 1.2.5B Exportação Final da Tabela (Sem NAs)** ####
+# # Dicionário para mapear os códigos para os nomes das categorias de Cor/Raça
+# mapa_cor_raca <- c(
+#   '1' = 'Branca',
+#   '2' = 'Preta',
+#   '3' = 'Amarela',
+#   '4' = 'Parda',
+#   '5' = 'Indígena',
+#   '9' = 'Ignorado'
+# )
+# 
+# # Aplicar o mapeamento e calcular os resultados
+# tabela_cor_raca_ano2 <- base_abandono_pdm %>%
+#   mutate(V2010 = as.character(V2010)) %>% # Garantir que V2010 seja texto
+#   mutate(Cor_Raca = recode(V2010, !!!mapa_cor_raca)) %>% # Mapear os códigos
+#   group_by(Ano, Cor_Raca, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>% # Contar observações
+#   group_by(Ano, Cor_Raca) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>% # Calcular proporção
+#   ungroup()
+# 
+# # Renomear colunas para maior clareza
+# colnames(tabela_cor_raca_ano2) <- c('Ano', 'Cor_Raca', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Exportar a tabela consolidada como HTML
+# tabela_html <- stargazer(
+#   tabela_cor_raca_ano2,
+#   type = 'html',
+#   summary = FALSE,
+#   title = 'Proporção de Abandono por Cor/Raça (Sem NAs - Base PDM) - Segmentada por Ano',
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_cor_percentual_sem_na
+# htmltools::html_print(b_tab_ab_cor_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -689,46 +697,46 @@ ggplot(base_abandono_percentual_sexo, aes(x = V2007, y = Contagem, fill = as.fac
   theme_minimal() -> a_graf_ab_cor_percentual_sem_na
 a_graf_ab_cor_percentual_sem_na
 
-## 1.3.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
-# Filtrar valores válidos (remover NAs da variável abandono)
-# Calcular a proporção dentro de cada sexo
-tabela_sexo_sem_na <- tabela_sexo %>%
-  filter(!is.na(abandono)) %>%  # Remover NAs apenas da coluna abandono
-  group_by(Sexo) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%  # Recalcular proporção dentro de cada sexo
-  ungroup()
-
-# Verificar a tabela ajustada
-print(tabela_sexo_sem_na)
-
-# Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
-titulo_dinamico <- paste0('Proporção de Abandono por Sexo (Base PDM) (Recalculada para cada Sexo) - Período: ', inicio, '-', fim)
-
-# Exportar tabela limpa com stargazer
-stargazer(tabela_sexo_sem_na, type = 'text', summary = FALSE,
-          title = titulo_dinamico,
-          digits = 2)
-
-# Filtrar para mostrar apenas Abandono = 1
-tabela_sexo_sem_na %>%
-  filter(abandono == 1)
-
-# Gerar a tabela em formato HTML com stargazer
-tabela_html <- stargazer(
-  tabela_sexo_sem_na,
-  type = 'html',            # Exportar como HTML
-  summary = FALSE,          # Sem resumo
-  title = titulo_dinamico,  # Título dinâmico
-  digits = 2                # Número de casas decimais
-)
-
-# Unir o vetor HTML em uma única string
-html_output <- paste(tabela_html, collapse = '\n')
-
-# Renderizar no Viewer do RStudio
-htmltools::html_print(HTML(html_output))
-HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_sexo_sem_na
-htmltools::html_print(a_tab_ab_resumo_sexo_sem_na)
+# ## 1.3.5A Exportação Final da Tabela (Sem NAs em abandono)** ####
+# # Filtrar valores válidos (remover NAs da variável abandono)
+# # Calcular a proporção dentro de cada sexo
+# tabela_sexo_sem_na <- tabela_sexo %>%
+#   filter(!is.na(abandono)) %>%  # Remover NAs apenas da coluna abandono
+#   group_by(Sexo) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%  # Recalcular proporção dentro de cada sexo
+#   ungroup()
+# 
+# # Verificar a tabela ajustada
+# print(tabela_sexo_sem_na)
+# 
+# # Gerar título dinâmico com as variáveis 'inicio' e 'fim', sem aspas
+# titulo_dinamico <- paste0('Proporção de Abandono por Sexo (Base PDM) (Recalculada para cada Sexo) - Período: ', inicio, '-', fim)
+# 
+# # Exportar tabela limpa com stargazer
+# stargazer(tabela_sexo_sem_na, type = 'text', summary = FALSE,
+#           title = titulo_dinamico,
+#           digits = 2)
+# 
+# # Filtrar para mostrar apenas Abandono = 1
+# tabela_sexo_sem_na %>%
+#   filter(abandono == 1)
+# 
+# # Gerar a tabela em formato HTML com stargazer
+# tabela_html <- stargazer(
+#   tabela_sexo_sem_na,
+#   type = 'html',            # Exportar como HTML
+#   summary = FALSE,          # Sem resumo
+#   title = titulo_dinamico,  # Título dinâmico
+#   digits = 2                # Número de casas decimais
+# )
+# 
+# # Unir o vetor HTML em uma única string
+# html_output <- paste(tabela_html, collapse = '\n')
+# 
+# # Renderizar no Viewer do RStudio
+# htmltools::html_print(HTML(html_output))
+# HTML(paste(tabela_html, collapse = '\n')) -> a_tab_ab_resumo_sexo_sem_na
+# htmltools::html_print(a_tab_ab_resumo_sexo_sem_na)
 
 #### ////// (B) DADOS LONGITUDINAIS ////// ####
 # head(base_abandono_filtrada, 2)
@@ -742,13 +750,17 @@ mapa_sexo <- c(
 
 # Resumo estatístico: Contagem e proporção de Abandono por sexo segmentada por ano
 tabela_sexo_ano <- base_abandono_filtrada %>%
-  mutate(V2007 = as.character(V2007)) %>%  # Converter para texto
-  mutate(Sexo = recode(V2007, !!!mapa_sexo)) %>%  # Recode para 'Homem' e 'Mulher'
+  mutate(
+    V2007 = as.character(V2007), # Garantir que V2007 seja texto
+    Sexo = V2007 # Usar diretamente os valores de V2007
+  ) %>%
   group_by(Ano, Sexo, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
+  summarise(Contagem = n(), .groups = "drop") %>% # Contar observações
   group_by(Ano, Sexo) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>% # Calcular proporção
   ungroup()
+
+
 
 # Renomear colunas para maior clareza
 colnames(tabela_sexo_ano) <- c('Ano', 'Sexo', 'abandono', 'Contagem', 'Proporcao')
@@ -831,44 +843,44 @@ ggplot(base_abandono_percentual_sexo_ano, aes(x = V2007, y = Contagem, fill = as
   theme_minimal() -> b_graf_ab_sexo_percentual_sem_na
 b_graf_ab_sexo_percentual_sem_na
 
-## 1.3.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
-# Criar um mapeamento para os valores de Sexo
-mapa_sexo <- c(
-  '1' = 'Homem',
-  '2' = 'Mulher'
-)
-
-# Filtrar valores válidos (remover NAs de Sexo e abandono)
-tabela_sexo_sem_na <- base_abandono_pdm %>%
-  filter(!is.na(V2007) & !is.na(abandono)) %>%  # Remover NAs
-  mutate(V2007 = as.character(V2007)) %>%  # Converter para texto
-  mutate(Sexo = recode(V2007, !!!mapa_sexo)) %>%  # Recode para 'Homem' e 'Mulher'
-  group_by(Ano, Sexo, abandono) %>%
-  summarise(Contagem = n(), .groups = 'drop') %>%
-  group_by(Ano, Sexo) %>%
-  mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
-  ungroup()
-
-# Renomear as colunas para maior clareza
-colnames(tabela_sexo_sem_na) <- c('Ano', 'Sexo', 'abandono', 'Contagem', 'Proporcao')
-
-# Criar um título dinâmico para a tabela
-titulo_dinamico <- 'Proporção de Abandono por Sexo (Sem NAs - Base PDM) - Segmentada por Ano'
-
-# Exportar a tabela com stargazer (HTML)
-tabela_html <- stargazer(
-  tabela_sexo_sem_na,
-  type = 'html',
-  summary = FALSE,
-  title = titulo_dinamico,
-  digits = 2,
-  rownames = FALSE
-)
-
-# Renderizar a tabela no Viewer do RStudio
-htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
-HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_sexo_percentual_sem_na
-htmltools::html_print(b_tab_ab_sexo_percentual_sem_na)
+# ## 1.3.5B Exportação Final da Tabela (Sem NAs em abandono)** ####
+# # Criar um mapeamento para os valores de Sexo
+# mapa_sexo <- c(
+#   '1' = 'Homem',
+#   '2' = 'Mulher'
+# )
+# 
+# # Filtrar valores válidos (remover NAs de Sexo e abandono)
+# tabela_sexo_sem_na <- base_abandono_pdm %>%
+#   filter(!is.na(V2007) & !is.na(abandono)) %>%  # Remover NAs
+#   mutate(V2007 = as.character(V2007)) %>%  # Converter para texto
+#   mutate(Sexo = recode(V2007, !!!mapa_sexo)) %>%  # Recode para 'Homem' e 'Mulher'
+#   group_by(Ano, Sexo, abandono) %>%
+#   summarise(Contagem = n(), .groups = 'drop') %>%
+#   group_by(Ano, Sexo) %>%
+#   mutate(Proporcao = round(Contagem / sum(Contagem) * 100, 2)) %>%
+#   ungroup()
+# 
+# # Renomear as colunas para maior clareza
+# colnames(tabela_sexo_sem_na) <- c('Ano', 'Sexo', 'abandono', 'Contagem', 'Proporcao')
+# 
+# # Criar um título dinâmico para a tabela
+# titulo_dinamico <- 'Proporção de Abandono por Sexo (Sem NAs - Base PDM) - Segmentada por Ano'
+# 
+# # Exportar a tabela com stargazer (HTML)
+# tabela_html <- stargazer(
+#   tabela_sexo_sem_na,
+#   type = 'html',
+#   summary = FALSE,
+#   title = titulo_dinamico,
+#   digits = 2,
+#   rownames = FALSE
+# )
+# 
+# # Renderizar a tabela no Viewer do RStudio
+# htmltools::html_print(HTML(paste(tabela_html, collapse = '\n')))
+# HTML(paste(tabela_html, collapse = '\n')) -> b_tab_ab_sexo_percentual_sem_na
+# htmltools::html_print(b_tab_ab_sexo_percentual_sem_na)
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 

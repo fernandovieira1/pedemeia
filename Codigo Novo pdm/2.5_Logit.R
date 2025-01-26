@@ -14,7 +14,7 @@ gc(); cat('\014')
 ################ ***************************** ################ 
 
 # 1 CRIAR DF ####
-base_abandono_probit <- base_abandono_filtrada %>%
+base_abandono_logit <- base_abandono_filtrada %>%
   select(
     ## IDs
     UPA, id_individuo, 
@@ -53,7 +53,7 @@ base_abandono_probit <- base_abandono_filtrada %>%
   ) 
 
 ## Limitar a idades entre 14 e 24 anos
-base_abandono_probit <- base_abandono_probit %>%
+base_abandono_logit <- base_abandono_logit %>%
   filter(V2009 >= 14 & V2009 <= 24)
 
 ## ||| ####
@@ -61,60 +61,60 @@ base_abandono_probit <- base_abandono_probit %>%
 # 2 CRIAR/TRANSFORMAR VARIÁVEIS ####
 
 ## a. Educação média dos pais ####
-base_abandono_probit <- base_abandono_probit %>%
+base_abandono_logit <- base_abandono_logit %>%
   mutate(educ_media_pais = (educacao_mae + educacao_pai) / 2)
 
 ## b. Educação máxima dos pais ####
-base_abandono_probit <- base_abandono_probit %>%
+base_abandono_logit <- base_abandono_logit %>%
   mutate(educ_max_pais = pmax(educacao_mae, educacao_pai, na.rm = TRUE)) %>%
   mutate(educ_max_pais = ifelse(is.na(educacao_mae) & is.na(educacao_pai), NA, educ_max_pais))
 
 ## c. Remover valores ignorados Cor/Raça e redefinir categorias ####
-base_abandono_probit <- base_abandono_probit %>%
+base_abandono_logit <- base_abandono_logit %>%
   filter(V2010 != 'Ignorado') 
 
-# base_abandono_probit <- base_abandono_probit %>%
+# base_abandono_logit <- base_abandono_logit %>%
 #   mutate(
 #     V2010 = ifelse(V2010 == 'Branca', 'Brancos', 'Não-Brancos'),
 #     V2010 = as.factor(V2010)  # Garantir que seja um fator
 #   )
 
 ## d. Transformar em fator regiao ####
-base_abandono_probit$regiao <- as.factor(base_abandono_probit$regiao)
+base_abandono_logit$regiao <- as.factor(base_abandono_logit$regiao)
 
 ## e. Variável dependente como factor ####
-base_abandono_probit$abandono <- as.factor(base_abandono_probit$abandono)
+base_abandono_logit$abandono <- as.factor(base_abandono_logit$abandono)
 
 ## f. Resumo Linhas e Colunas df ####
-cat('Linhas:', nrow(base_abandono_probit), '\n')
-cat('Colunas:', ncol(base_abandono_probit), '\n')
+cat('Linhas:', nrow(base_abandono_logit), '\n')
+cat('Colunas:', ncol(base_abandono_logit), '\n')
 
 ## f. Corrigir Pesos ####
-base_abandono_probit <- base_abandono_probit %>%
+base_abandono_logit <- base_abandono_logit %>%
   filter(V1028032 > 0)
 
 ## g. Converter Anos de estudo p/ numérico ####
-base_abandono_probit$VD3005 <- as.numeric(base_abandono_probit$VD3005)-1
+base_abandono_logit$VD3005 <- as.numeric(base_abandono_logit$VD3005)-1
 
 ## ||| ####
 
 # 3 AED ####
-glimpse(base_abandono_probit)
+glimpse(base_abandono_logit)
 
 ## a. Dados numéricos ####
-base_abandono_probit %>%
+base_abandono_logit %>%
   select_if(is.numeric) %>%
   summary()
 
 ## b. Dados categóricos ####
-base_abandono_probit %>%
+base_abandono_logit %>%
   select_if(is.factor) %>%
   summary()
 
 ## c. Correlação das variáveis numéricas ####
 
 # Tabela correlação
-cor(base_abandono_probit %>%
+cor(base_abandono_logit %>%
       select_if(is.numeric) %>%
       select(-Ano, -V1028032) %>%
       select_if(~ sd(.) > 0) %>%
@@ -123,7 +123,7 @@ cor(base_abandono_probit %>%
 )
 
 # Gráfico correlação
-base_abandono_probit %>%
+base_abandono_logit %>%
   na.omit() %>%
   select_if(is.numeric) %>%
   select(-Ano, -V1028032) %>%
@@ -139,19 +139,19 @@ base_abandono_probit %>%
 ## ||| ####
 
 # 4 DESENHO DO MODELO####
-base_abandono_probit <- na.omit(base_abandono_probit)  # Remove NAs
-desenho_probit <- svydesign(
+base_abandono_logit <- na.omit(base_abandono_logit)  # Remove NAs
+desenho_logit <- svydesign(
   ids = ~UPA,
   strata = ~Estrato,
   weights = ~V1028032,
-  data = base_abandono_probit
+  data = base_abandono_logit
 )
 
 ## ||| ####
 
 # 5. ESTIMATIVAS DE POPULAÇÃO ####
-svytotal(~abandono, desenho_probit)
-svytotal(~abandono, subset(desenho_probit, Ano == 2023))
+svytotal(~abandono, desenho_logit)
+svytotal(~abandono, subset(desenho_logit, Ano == 2023))
 
 ## ++++++++++++++++++++++++++++++++++ FIM ++++++++++++++++++++++++++++++++ ####
 
@@ -159,36 +159,36 @@ svytotal(~abandono, subset(desenho_probit, Ano == 2023))
 #################### 2. MODELO #################### 
 ################ ***************************** ################ 
 
-# 1. CRIAR O MODELO PROBIT COM SVYGLM ####
-probit_pdm_abandono <- svyglm(
+# 1. CRIAR O MODELO logit COM SVYGLM ####
+logit_pdm_abandono <- svyglm(
   abandono ~ V2010 + V2007 + V1022 + VD2004 + V3002A + VD4013 +
     educ_max_pais + V2009 + V2001 + RDPC + Trimestre,
   
-  design = desenho_probit,
-  family = binomial(link = 'probit')
+  design = desenho_logit,
+  family = binomial(link = 'logit')
 )
 
 # 2. RESUMO DO MODELO ####
-summary(probit_pdm_abandono)
+summary(logit_pdm_abandono)
 
 # 3. VIF ####
-vif_values <- vif(probit_pdm_abandono)
+vif_values <- vif(logit_pdm_abandono)
 print('VIF dos coeficientes do modelo:')
 print(vif_values)
 
 # 4. EFEITOS MARGINAIS####
 
 # 4.1 Obter predições na escala linear ####
-linear_preds <- predict(probit_pdm_abandono, type = 'link')
+linear_preds <- predict(logit_pdm_abandono, type = 'link')
 
 # 4.2 MATRIZ DO MODELO ####
-X <- model.matrix(probit_pdm_abandono)
+X <- model.matrix(logit_pdm_abandono)
 
 # 4.3 DENSIDADE ####
 densities <- dnorm(linear_preds)
 
 # 4.4 Calcular efeitos marginais ####
-marginal_effects <- sweep(X, 2, coef(probit_pdm_abandono), `*`) * densities
+marginal_effects <- sweep(X, 2, coef(logit_pdm_abandono), `*`) * densities
 
 # 4.5 Visualizar os efeitos marginais para as primeiras observações ####
 print('Efeitos marginais (primeiras observações):')
@@ -200,7 +200,7 @@ marginal_means <- colMeans(marginal_effects, na.rm = TRUE)
 print(marginal_means)
 
 # 5. PSEUDO R2 ####
-pseudo_r2 <- pR2(probit_pdm_abandono)
+pseudo_r2 <- pR2(logit_pdm_abandono)
 print('Pseudo R² do modelo:')
 print(pseudo_r2)
 
