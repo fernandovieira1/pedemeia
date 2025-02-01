@@ -41,28 +41,30 @@ ETAPAS:
                 IV) % de evadidos por rural vs urbana (geral) (x)
                 
         ABANDONO
-        1.1.4A ( )
-        1.2.1A (dividir entre branco e não branco) ( )
-        1.3.1A ( )
+        1.1.4A (x)
+        1.2.1A (dividir entre branco e não branco) (x)
+        1.3.1A (x)
         se conseguir fazer alguma coisa de rdpc pode mandar tb (não tem nada de rdpc no arquivo enviado). 
-        Infos que quero (sem figuras) ( )
+        Infos que quero (sem figuras) (x)
             % dos abandonos por região, 
             % dos abandonos por rural vs urbana
         
-     viii) Converter os dados amostrais escolhidos em populacionais (pesos) ( )
-     ix)   Versão final dos gráficos e tabelas populacionais a serem insereridos no texto ( )
+     viii) Converter os dados amostrais escolhidos em populacionais (pesos) (x)
+     ix)   Versão final dos gráficos e tabelas populacionais a serem insereridos no texto (x)
 
 
 3) MODELOS
 -------------
 Socioeconômicos
-      i)   Probit - Evasão ( )
-     ii)   Logit - Evasão ( )
+      i)   Probit - Evasão (x)
+     ii)   Logit - Evasão (x)
+    iii)   Heckit - Evasão (x)
     
-    iii)   Probit - Abandono ( )
-     iv)   Logit - Abandono ( ) 
+     iv)   Probit - Abandono (x)
+      v)   Logit - Abandono (x) 
+     vi)   Heckit - Abandono (x)
 
 Efeitos futuros
-      v)   Heckit (equação de salários) ( )
-     vi)   Modelo de duração ( )
+     vi)   Heckit (equação de salários) ( )
+    vii)   Modelo de duração ( )
 
