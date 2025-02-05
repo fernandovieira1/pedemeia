@@ -1,7 +1,7 @@
 # Limpar o ambiente
 rm(list = ls(all = TRUE)); gc(); cat('\014')
 
-#### INÍCIO ####
+#### INÍCIO #### 
 # Marcar o início do processamento
 ini <- Sys.time()
 

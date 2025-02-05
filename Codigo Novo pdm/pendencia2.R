@@ -28,7 +28,7 @@ renda_depois <- base_evasao_filtrada %>%
 
 # Incremento de renda médio por beneficiado
 incremento_renda <- renda_depois$renda_media_depois - renda_antes$renda_media_antes
-
+ 
 # Número de beneficiados
 num_beneficiados <- base_evasao_filtrada %>%
   filter(Ano >= 2023, ensino_medio == 1) %>%

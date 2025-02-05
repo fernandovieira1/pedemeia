@@ -11,7 +11,7 @@ base_heckit <- base_evasao_probit %>%
 # Etapa 1: Modelo Probit para seleção
 # Definir a variável dependente da seleção (participação no público-alvo)
 base_heckit$RDPC_menor_meio_sm <- as.numeric(base_heckit$RDPC_menor_meio_sm)
-
+ 
 # Ajustar o modelo Probit
 modelo_selecao <- glm(evasao ~ V2010 + V2007 + V1022 + V3002A + VD4013 +
                         educ_max_pais + V2009 + V2001 + RDPC,

@@ -6,7 +6,7 @@
 # - Apenas gráficos e tabelas salvos na AED (1_EVASAO) que serão utilizadas
 # no texto do trabalho.
 gc()
- 
+  
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 # Limpar o ambiente
 #### 1.1 FAIXA ETÁRIA ####

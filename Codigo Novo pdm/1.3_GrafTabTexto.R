@@ -7,7 +7,7 @@ cat(a_tab_resumo_cor_latex)
 
 ## 1.2.3A Gráfico com Percentuais no Topo ####
 grid.arrange(grafico_percentual, grafico_agrupado, ncol = 2)
-
+ 
 ## 1.3.3A Gráfico com Percentuais no Topo ####
 a_graf_sexo_percentual_peso
 

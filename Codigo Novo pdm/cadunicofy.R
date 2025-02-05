@@ -12,7 +12,7 @@ pessoas <- fread("C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTO
 # Carregar a base família
 familia <- fread("C:\\Users\\ferna\\OneDrive\\1. Educacao\\2. Academia\\3. DOUTORADO\\USP - Economia Aplicada\\MATERIAS\\Eco II - Daniel\\Desafio Eco II - Pe de Meia\\BDs Pe de Meia\\base_amostra_familia_201812.csv")
 
-
+ 
 #### Estimativa sem Pesos ####
 base_fusionada <- inner_join(pessoas, familia, by = "id_familia")
 

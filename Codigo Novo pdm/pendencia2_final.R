@@ -5,7 +5,7 @@ cat('\014')
 total_estudantes_brasil <- 6967905  # https://www.gov.br/inep/pt-br/assuntos/noticias/censo-escolar/escolas-publicas-atendem-45-milhoes-de-alunos-no-brasil#:~:text=No%20ensino%20m%C3%A9dio%2C%20dos%206%2C9%20milh%C3%B5es%20de%20alunos,alunos%20matriculados%2C%2076%25%20se%20concentram%20na%20rede%20p%C3%BAblica.
 
 # Passo 1: Benefícios do Programa
-
+ 
 # Calcular a evasão antes e depois do programa
 evasao_antes <- base_evasao_filtrada %>%
   filter(Ano < 2023) %>%

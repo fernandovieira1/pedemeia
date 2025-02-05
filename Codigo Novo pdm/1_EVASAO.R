@@ -6,7 +6,7 @@
 
 # Limpar o ambiente
 gc(); cat('\014'); Sys.setlocale('LC_ALL', 'pt_BR.UTF-8')
-
+ 
 #### INÍCIO ####
 # Marcar o início do processamento
 ini <- Sys.time()

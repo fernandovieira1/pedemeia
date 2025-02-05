@@ -9,7 +9,7 @@ gc()
 
 ## ++++++++++++++++++++++++++++++++ INÍCIO ++++++++++++++++++++++++++++++++ ####
 #### 1.1 FAIXA ETÁRIA ####
-
+ 
 #### ////// (A) DADOS EMPILHADOS ////// ####
 ## 1.1.3A Gráfico Inicial: Distribuição Etária por Evasão** ####
 a_graf_ab_idades_abandono

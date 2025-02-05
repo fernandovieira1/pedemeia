@@ -4,7 +4,7 @@ cat('\014')
 # ============================================================
 # 1️⃣ Modelo de Diferenças-em-Diferenças para Evasão e Abandono Escolar (s(P)) ####
 # ============================================================
-
+ 
 # Criar variável indicadora para participação no programa PDM
 base_evasao_filtrada2 <- base_evasao_filtrada %>%
   mutate(PDM = ifelse(Ano >= 2023, 1, 0))

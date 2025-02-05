@@ -204,7 +204,7 @@ pseudo_r2 <- pR2(probit_pdm_evasao)
 print('Pseudo R² do modelo:')
 print(pseudo_r2)
 
-
+ 
 # 6. NOTAS ####
 # - educacao_mae e RDPC e RDPC_menor_meio_sm colineares, conforme matriz de correlacao (mc)
 # - VD4020 e RDPC colineares, conforme mc
